@@ -545,7 +545,7 @@ class Targets:
                 self.env.logLine(1, "No macros available")
             else:
                 self.env.logLine(1, "Using system macros from " + s_targetpath)
-                self.target_sysindex = 0
+            self.target_sysindex = 0
         else:
             self.env.logLine(1, "Using user macros from " + u_targetpath)
             self.target_sysindex = 2
@@ -571,17 +571,18 @@ class Targets:
         targetjson = self.env.readJSON(os.path.join(u_targetpath, "modelling.json"))
         if targetjson is None:
             targetjson = self.env.readJSON(os.path.join(s_targetpath, "modelling.json"))
-            self.env.logLine(1, "Using constant modelling.json from " + u_targetpath)
+            self.env.logLine(1, "Using system modelling.json from " + s_targetpath)
         else:
             if targetjson is None:
                 self.env.logLine(1, "No constant modelling.json file")
             else:
-                self.env.logLine(1, "Using constant modelling.json from " + s_targetpath)
+                self.env.logLine(1, "Using constant modelling.json from " + u_targetpath)
 
         targetpath = self.env.stdUserPath("target")
         userjson = self.env.readJSON(os.path.join(targetpath, "modelling.json"))
 
         if targetjson is None:
+            self.env.logLine(1, "User only modelling.json")
             return (userjson)
 
         if userjson is not None:

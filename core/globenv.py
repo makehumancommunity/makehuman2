@@ -697,6 +697,18 @@ class programInfo():
         self.last_error = "/".join([name for name in names]) + " not found"
         return None
 
+    def getDataDirs(self, *names):
+        """
+        get an array of directories,
+        return user data first
+        """
+        result = []
+        for path in [self.path_userdata, self.path_sysdata]:
+            test = os.path.join(path, *[name for name in names])
+            if os.path.isdir(test):
+                result.append(test)
+        return result
+
     def subDirsBaseFolder(self, pattern, subdir=None):
         """
         classical all folders for objects may have 2 levels

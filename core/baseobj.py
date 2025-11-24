@@ -53,10 +53,9 @@ class baseClass():
     """
     get the environment for a base
     """
-    def __init__(self, glob, name, dirname):
+    def __init__(self, glob, name):
         self.env = glob.env
         self.glob = glob
-        self.dirname = dirname      # contains dirname of the obj (to determine user or system space)
         self.baseMesh = None
         self.baseInfo = None
         self.attachedAssets = []
@@ -715,21 +714,19 @@ class baseClass():
     def prepareClass(self, modelfile=None):
         self.env.logLine(2, "Prepare class called with: " + self.env.basename)
 
-        filename = os.path.join(self.dirname, "base.json")
-
         okay = self.glob.generateBaseSubDirs(self.env.basename)
         if not okay:
             self.env.logLine(1, self.env.last_error )
             return (False)
 
+        filename = self.env.existDataFile("base", self.env.basename, "base.json")
         self.baseInfo = self.env.readJSON(filename)
         if self.baseInfo is None:
             self.env.logLine(1, self.env.last_error )
             return (False)
         self.env.initFileCache()
 
-
-        name = os.path.join(self.dirname, "base.obj")
+        name = self.env.existDataFile("base", self.env.basename, "base.obj")
 
         self.baseMesh = object3d(self.glob, self.baseInfo, "base")
         (res, err) = self.baseMesh.load(name)
@@ -780,7 +777,7 @@ class baseClass():
         if modelfile is not None:
             self.loadMHMFile(modelfile)
         elif "mhm" in self.baseInfo:
-            mhmfile = os.path.join(self.dirname, self.baseInfo["mhm"])
+            mhmfile = self.env.existDataFile("base", self.env.basename, self.baseInfo["mhm"])
             self.loadMHMFile(mhmfile)
         else:
             self.baseMesh.loadMaterial(None)

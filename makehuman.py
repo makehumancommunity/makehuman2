@@ -91,8 +91,8 @@ def main():
             env.basename = args.base
 
     if env.basename is not None:
-        dirname  = env.existDataDir("base", env.basename)
-        if dirname is None:
+        dirnames  = env.getDataDirs("base", env.basename)
+        if len(dirnames) == 0:
             print("Base mesh " + env.basename + " does not exist")
             exit(22)
 
@@ -119,7 +119,7 @@ def main():
     app.processEvents(QEventLoop.AllEvents)
 
     if env.basename is not None:
-        base = baseClass(glob, env.basename, dirname)
+        base = baseClass(glob, env.basename)
         base.prepareClass(modelfile)
 
     mainwin = MHMainWindow(glob)

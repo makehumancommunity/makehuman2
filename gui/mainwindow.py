@@ -895,13 +895,13 @@ class MHMainWindow(QMainWindow):
         #self.graph.view.Tweak()
 
     def loadNewClass(self, basename, filename=None):
+        """
+        :param str basename: the base name like 'hm08'
+        :param str filename: the filename of the obj file
+        """
         self.env.logLine(1, "New base " + basename + ", file:" + str(filename))
-        if filename is None:
-            dirname  = self.env.existDataDir("base", basename)
-        else:
-            dirname = os.path.dirname(filename)
 
-        base = baseClass(self.glob, basename, dirname)
+        base = baseClass(self.glob, basename)
         okay = base.prepareClass()
         if not okay:
             ErrorBox(self.central_widget, self.env.last_error)
