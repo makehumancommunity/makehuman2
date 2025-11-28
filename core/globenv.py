@@ -44,6 +44,7 @@ class globalObjects():
             self.keyDict = {
                 "Top": "Num+9", "Left": "Num+4", "Right": "Num+6", "Front": "Num+2",
                 "Back": "Num+8", "Bottom": "Num+7", "Zoom-In": "Num++", "Zoom-Out": "Num+-",
+                "Pan-Left": "Shift+Left", "Pan-Right": "Shift+Right", "Pan-Down": "Shift+Down", "Pan-Up": "Shift+Up",
                 "Stop Animation": "Esc", "Toggle Perspective": "Num+0"
                 }
 

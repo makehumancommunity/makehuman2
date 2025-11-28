@@ -3,6 +3,7 @@
     Author: black-punkduck
 
     Classes:
+    * NoModSlider
     * ScaleComboItem
     * ScalePictureButton
     * ScaleCombo
@@ -21,6 +22,16 @@ from PySide6.QtWidgets import (
     )
 from gui.mapslider import MapBaryCentricCombo
 from gui.common import clickableProgressBar
+
+class NoModSlider(QSlider):
+    """
+    this class of slider allows to use <modifier>-<cursor> to be used as shortcuts
+    """
+    def keyPressEvent(self, event):
+        if event.modifiers():
+            event.ignore()
+        else:
+            super().keyPressEvent(event)
 
 
 class ScaleComboItem:
@@ -145,7 +156,7 @@ class ScaleCombo(QWidget):
         self.spinLayout.addWidget(self.dSpinBox)
         self.spinLayout.addWidget(self.resetButton)
 
-        self.slider=QSlider(Qt.Horizontal, self)
+        self.slider=NoModSlider(Qt.Horizontal, self)
         self.slider.setMinimum(self.min)
         self.slider.setMaximum(self.max)
         self.slider.setMinimumWidth(self.minwidth)
@@ -309,7 +320,7 @@ class SimpleSlider(QWidget):
         self.ident = ident
         if vertical:
             layout = QHBoxLayout()
-            self.slider=QSlider(Qt.Vertical, self)
+            self.slider=NoModSlider(Qt.Vertical, self)
             layout.addWidget(self.slider)
             layout.addWidget(self.info)
             self.slider.setTickPosition(QSlider.TicksRight)
@@ -318,7 +329,7 @@ class SimpleSlider(QWidget):
         else:
             layout = QVBoxLayout()
             layout.addWidget(self.info)
-            self.slider=QSlider(Qt.Horizontal, self)
+            self.slider=NoModSlider(Qt.Horizontal, self)
             layout.addWidget(self.slider)
             self.slider.setTickPosition(QSlider.TicksBelow)
             self.slider.setTickInterval(10)

@@ -67,7 +67,10 @@ class MHGraphicWindow(QWidget):
                 "Top": self.top_button, "Left": self.left_button,
                 "Right": self.right_button, "Front": self.front_button,
                 "Back": self.back_button, "Bottom": self.bottom_button,
-                "Zoom-In": self.zoom_in, "Zoom-Out": self.zoom_out, "Stop Animation": self.stop_anim,
+                "Zoom-In": self.zoom_in, "Zoom-Out": self.zoom_out,
+                "Pan-Left": self.pan_left, "Pan-Right": self.pan_right,
+                "Pan-Down": self.pan_down, "Pan-Up": self.pan_up,
+                "Stop Animation": self.stop_anim,
                 "Toggle Perspective": self.toggle_perspective_key
         }
         self.key2Func = {}
@@ -368,6 +371,23 @@ class MHGraphicWindow(QWidget):
     def zoom_out(self):
         self.zoom(1)
 
+    def pan(self, x, y):
+        self.view.keyPanning(x, y)
+        if self.debug:
+            self.camChanged()
+
+    def pan_left(self):
+        self.pan(0.01, 0.0)
+
+    def pan_right(self):
+        self.pan(-0.01, 0.0)
+
+    def pan_down(self):
+        self.pan(0.0, -0.01)
+
+    def pan_up(self):
+        self.pan(0.0, 0.01)
+
     def mouseInView(self, pos):
         window= self.view.mapToGlobal(self.view.pos())
         mx = int(pos.x())
@@ -397,7 +417,7 @@ class MHGraphicWindow(QWidget):
         """
         (b, x, y) = self.mouseInView(pos)
         if b:
-            self.view.panning(float(x), float(y))
+            self.view.mousePanning(float(x), float(y))
             if self.debug:
                 self.camChanged()
 

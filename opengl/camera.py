@@ -324,16 +324,20 @@ class Camera():
         self.cameraPos = position
         self.updateViewMatrix()
 
-    def panning(self, x, y):
+    def mousePanning(self, x, y):
         """
-        a panning mode, not 100% correct
+        calculate difference and calculate position
         """
-
-        frontview = (self.cameraDir.y() != 0.0)
         mx = (self.last_mousex - x) * self.deltaMoveX
         my = (self.last_mousey - y) * self.deltaMoveY
         self.setLastMousePosition(x, y)
+        self.panning(mx, my)
 
+    def panning(self, mx, my):
+        """
+        a panning mode, not 100% correct
+        """
+        frontview = (self.cameraDir.y() != 0.0)
         direct = self.cameraPos - self.center
         xv = direct.x()
         yv = direct.y()

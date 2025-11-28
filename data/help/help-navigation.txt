@@ -11,14 +11,16 @@ Main navigation is done mostly with mouse and mouse-buttons. It is a so-called a
 Be aware that some positions, like top view, cannot be reached when starting from front-view. In this case use a top-view instead
 and then change the rotation.
 <p>
+<i>Hint: Check "Settings/Preferences", tab "Input" for the current key-settings.</i>
+<p>
 <table style="background-color:#c0c0c0;color:#000000;vertical-align:middle;">
 <tr><td><b>Rotate</b></td><td>Press left mouse button and move mouse</td></tr>
-<tr><td><b>Move</b></td><td>Press right mouse button and move mouse</td></tr>
-<tr><td><b>Zoom In</b></td><td>Mouse-wheel down or function key Num +</td></tr>
-<tr><td><b>Zoom Out</b></td><td>Mouse-wheel up or function key Num -</td></tr>
+<tr><td><b>Move</b></td><td>Press right mouse button and move mouse or use shift + a cursor key (default)</td></tr>
+<tr><td><b>Zoom In</b></td><td>Mouse-wheel down or function key Num + (default)</td></tr>
+<tr><td><b>Zoom Out</b></td><td>Mouse-wheel up or function key Num - (default)</td></tr>
 </table>
 <p>
-Keys can be used to display different views as well. Check "Settings/Preferences", tab "Input".
+Keys can be used to display different views as well.
 
 <h3>Navigation icons:</h3>
 <p>

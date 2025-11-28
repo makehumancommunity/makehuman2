@@ -292,8 +292,13 @@ class OpenGLView(QOpenGLWidget):
         self.paintGL()
         self.update()
 
-    def panning(self, x, y):
-        self.camera.panning(x,y)
+    def mousePanning(self, x, y):
+        self.camera.mousePanning(x,y)
+        self.paintGL()
+        self.update()
+
+    def keyPanning(self, mx, my):
+        self.camera.panning(mx,my)
         self.paintGL()
         self.update()
 
