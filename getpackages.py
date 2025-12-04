@@ -76,8 +76,8 @@ if __name__ == '__main__':
                 okay = True
 
     for path in (path1, path2):
-        source  = "http://" + server + "/" + path
-        sourcem = "http://" + mirror + "/" + path
+        source  = server + "/" + path
+        sourcem = mirror + "/" + path
         print ("Download from: " + source)
         print ("for mesh     : " + mesh)
         print ("to folder    : " + space)
