@@ -296,33 +296,14 @@ class Camera():
     def arcBallRotation(self, x, y):
         """
         mouse navigation (rotation with button pressed)
-        TODO: no arcball navigation for cos= 1.0
+        TODO: maybe combine that by changing axes?
         (top view, bottom view)
         :param float x: x position
         :param float y: y position
         """
         xAngle = (self.last_mousex - x) * self.deltaAngleX
         yAngle = (self.last_mousey - y) * self.deltaAngleY
-
-        # avoid camera direction is identical to up vector
-        #
-        cosAngle = QVector3D.dotProduct(self.getViewDirection(), self.cameraDir)
-        if abs(cosAngle) > .99:
-            yangle = 0
-
-        # x rotation
-        #
-        rotMatrixX = QMatrix4x4()                   # create as identity matrix
-        rotMatrixX.rotate(xAngle, self.cameraDir)   # rotate in x
-        position = rotMatrixX.map(self.cameraPos - self.lookAt) + self.lookAt
-
-        # y rotation
-        #
-        rotMatrixY = QMatrix4x4()
-        rotMatrixY.rotate(yAngle, self.getRightVector())
-        position = rotMatrixY.map(position - self.lookAt) + self.lookAt
-        self.cameraPos = position
-        self.updateViewMatrix()
+        self.rotation(xAngle, yAngle)
 
     def mousePanning(self, x, y):
         """
@@ -394,6 +375,33 @@ class Camera():
         self.cameraPos.setY(self.cameraPos.y() - diffy)
 
         self.updateViewMatrix()
+
+    def rotation(self, xAngle, yAngle):
+        """
+        rotation used with direct angle input
+        :param float xAngle: rotation angle around camera direction (horizontal)
+        :param float yAngle: rotation angle around right vector (vertical)
+        """
+        # avoid camera direction is identical to up vector
+        #
+        cosAngle = QVector3D.dotProduct(self.getViewDirection(), self.cameraDir)
+        if abs(cosAngle) > .99:
+            yAngle = 0
+
+        # x rotation (horizontal)
+        #
+        rotMatrixX = QMatrix4x4()
+        rotMatrixX.rotate(xAngle, self.cameraDir)
+        position = rotMatrixX.map(self.cameraPos - self.lookAt) + self.lookAt
+
+        # y rotation (vertical)
+        #
+        rotMatrixY = QMatrix4x4()
+        rotMatrixY.rotate(yAngle, self.getRightVector())
+        position = rotMatrixY.map(position - self.lookAt) + self.lookAt
+        self.cameraPos = position
+        self.updateViewMatrix()
+
 
     def resizeViewPort(self, w, h):
         """

@@ -301,6 +301,11 @@ class OpenGLView(QOpenGLWidget):
         self.paintGL()
         self.update()
 
+    def keyRotation(self, xAngle, yAngle):
+        self.camera.rotation(xAngle, yAngle)
+        self.paintGL()
+        self.update()
+
     def modifyFov(self, value):
         self.camera.setFocalLength(value)
         self.paintGL()

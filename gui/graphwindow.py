@@ -31,6 +31,12 @@ class NavigationEvent(QObject):
         if event.type() == QEvent.ShortcutOverride:
             key = QKeySequence(event.keyCombination()).toString()
             self.win.keyToFunction(key)
+            event.accept()
+        elif event.type() == QEvent.KeyPress:
+            key = QKeySequence(event.keyCombination()).toString()
+            if self.win.keyToFunction(key):
+                event.accept()
+                return True
 
         elif event.type() == QEvent.MouseMove:
             if event.buttons() == Qt.MouseButton.LeftButton:
@@ -70,6 +76,8 @@ class MHGraphicWindow(QWidget):
                 "Zoom-In": self.zoom_in, "Zoom-Out": self.zoom_out,
                 "Pan-Left": self.pan_left, "Pan-Right": self.pan_right,
                 "Pan-Down": self.pan_down, "Pan-Up": self.pan_up,
+                "Rotate-Left": self.rotate_left, "Rotate-Right": self.rotate_right,
+                "Rotate-Down": self.rotate_down, "Rotate-Up": self.rotate_up,
                 "Stop Animation": self.stop_anim,
                 "Toggle Perspective": self.toggle_perspective_key
         }
@@ -83,7 +91,11 @@ class MHGraphicWindow(QWidget):
         create dictionary from configurable keys
         """
         for key, item in self.glob.keyDict.items():
-            self.key2Func[item] = self.funcDict[key]
+            if isinstance(item, str):
+                self.key2Func[item] = self.funcDict[key]
+            elif isinstance(item, list):
+                for elem in item:
+                    self.key2Func[elem] = self.funcDict[key]
 
     def keyToFunction(self, code):
         """
@@ -91,6 +103,8 @@ class MHGraphicWindow(QWidget):
         """
         if code in self.key2Func:
             self.key2Func[code]()
+            return True
+        return False
 
     def navButtons(self, vlayout):
         self.buttons = [ 
@@ -387,6 +401,23 @@ class MHGraphicWindow(QWidget):
 
     def pan_up(self):
         self.pan(0.0, 0.01)
+
+    def rotate(self, x, y):
+        self.view.keyRotation(x, y)
+        if self.debug:
+            self.camChanged()
+
+    def rotate_left(self):
+        self.rotate(5.0, 0.0)
+
+    def rotate_right(self):
+        self.rotate(-5.0, 0.0)
+
+    def rotate_down(self):
+        self.rotate(0.0, 5.0)
+
+    def rotate_up(self):
+        self.rotate(0.0, -5.0)
 
     def mouseInView(self, pos):
         window= self.view.mapToGlobal(self.view.pos())

@@ -30,7 +30,7 @@ class MHPrefWindow(QWidget):
         self.parent = parent
         env = parent.env
 
-        self.localKeys = self.parent.glob.keyDict.copy()
+        self.localKeys = self.genLocalKeys(self.parent.glob.keyDict)
 
         self.setWindowTitle("Preferences")
         self.resize (500, 600)
@@ -66,14 +66,55 @@ class MHPrefWindow(QWidget):
 
         self.setLayout(layout)
 
+    def genLocalKeys(self, keys):
+        """
+        create a copy of given key-dictionary with only lists with 3 elements
+        """
+        localKeys = {}
+        for key, item in keys.items():
+            if isinstance(item, str):
+                localKeys[key] = [item, "", "" ]
+            elif isinstance(item, list):
+                nitem = []
+                for s in item:
+                    nitem.append(s)
+                while len(nitem) < 3:
+                    nitem.append("")
+                localKeys[key] = nitem
+
+        return localKeys
+
+    def genNewKeyDict(self):
+        """
+        the key dictionary is the optimized version of the localKeys to handle keys using strings and lists
+        """
+        keydict = {}
+        for key, item in self.localKeys.items():
+            nitem = []
+            for i in item:
+                if i != '':
+                    nitem.append(i)
+            l = len(nitem)
+            if l == 1:
+                keydict[key] = nitem[0]
+            elif l > 1:
+                keydict[key] = nitem
+
+        return keydict
+
     def show(self):
         #
-        # work on a local copy
+        # is called when displaying the menu, in case of "cancel" before, it should be display again
         #
-        i = 0
         for row in range(self.keyTable.rowCount()):
             key = self.keyTable.item(row,0).text()
-            self.keyTable.item(row,1).setText(self.localKeys[key])
+            pos = 1
+            for text in self.localKeys[key]:
+                self.keyTable.item(row,pos).setText(text)
+                pos +=1
+        self.keylabel.setText('')
+        self.textlabel.setText('')
+        self.keyTable.clearSelection()
         super().show()
 
     def initMainTab(self, maintab):
@@ -180,29 +221,35 @@ class MHPrefWindow(QWidget):
         sess.setLayout(se_layout)
         layout.addWidget(sess)
 
+
     def initKeyTab(self, keytab):
         layout = QVBoxLayout(keytab)
         rows = len(self.localKeys)
-        self.keyTable = QTableWidget(rows, 2)
-        self.keyTable.setHorizontalHeaderLabels(["Feature", "Key"])
+        self.keyTable = QTableWidget(rows, 4)
+        self.keyTable.setHorizontalHeaderLabels(["Feature", "Key", "Key2", "Key3"])
         self.keyTable.verticalHeader().setVisible(False)
-        self.keyTable.horizontalHeader().setMinimumSectionSize((keytab.width() - 200) // 2)
-        self.keyTable.setMinimumHeight(int(keytab.height() * 0.7))
+        self.keyTable.horizontalHeader().setMinimumSectionSize((keytab.width() - 200) // 4)
         self.keyTable.itemClicked.connect(self.key_selected)
         i = 0
+        #
+        # create columns using localKeys
+        #
         for key, item in self.localKeys.items():
             q =  QTableWidgetItem(key)
-            q.setFlags(q.flags() ^ Qt.ItemFlag.ItemIsEditable)
+            q.setFlags(q.flags() ^ (Qt.ItemFlag.ItemIsEditable|Qt.ItemFlag.ItemIsSelectable))
             self.keyTable.setItem(i, 0, q)
-            q =  QTableWidgetItem(item)
-            q.setFlags(q.flags() ^ Qt.ItemFlag.ItemIsEditable)
-            self.keyTable.setItem(i, 1, q)
+            pos = 1
+            for col in item:
+                q =  QTableWidgetItem(col)
+                q.setFlags(q.flags() ^ Qt.ItemFlag.ItemIsEditable)
+                self.keyTable.setItem(i, pos, q)
+                pos += 1
             i += 1
         layout.addWidget(self.keyTable)
 
         chgkey = QGroupBox("Change key")
         chgkey.setObjectName("subwindow")
-        explain = QLabel("Select a feature or key in table above, then press a key,<br>To use new key, push change button")
+        explain = QLabel("Select a key in table above, then press a key,<br>To use new key, push change button")
 
         # set style to make the input fields visible
         #
@@ -221,31 +268,46 @@ class MHPrefWindow(QWidget):
         self.changeButton = QPushButton("Change")
         self.changeButton.clicked.connect(self.changekey_call)
         hlayout.addWidget(self.changeButton)
+        self.deleteButton = QPushButton("Delete")
+        self.deleteButton.clicked.connect(self.deletekey_call)
+        hlayout.addWidget(self.deleteButton)
         vlayout.addLayout(hlayout)
         chgkey.setLayout(vlayout)
         layout.addWidget(chgkey)
 
-        layout.addStretch()
 
     def key_selected(self):
+        """
+        write feature to change into textlabel
+        """
         row = self.keyTable.currentRow()
         if row < 0:
             return
         self.textlabel.setText(self.keyTable.item(row,0).text())
+        self.keylabel.setText('')
 
     def changekey_call(self):
         row = self.keyTable.currentRow()
-        if row < 0:
+        col = self.keyTable.currentColumn()
+        if row < 0 or col < 1:
             return
         name = self.textlabel.text()
         key  = self.keylabel.text()
-        self.localKeys[name] = key
-        print ("change", row, name, key)
-        self.keyTable.item(row,1).setText(key)
+        self.localKeys[name][col-1] = key
+        self.keyTable.item(row,col).setText(key)
+
+    def deletekey_call(self):
+        row = self.keyTable.currentRow()
+        col = self.keyTable.currentColumn()
+        if row < 0 or col < 1:
+            return
+        name = self.textlabel.text()
+        self.localKeys[name][col-1] = ''
+        self.keyTable.item(row,col).setText('')
 
     def cancel_call(self):
         # reset keys
-        self.localKeys = self.parent.glob.keyDict.copy()
+        self.localKeys = self.genLocalKeys(self.parent.glob.keyDict)
         self.close()
 
     def save_call(self):
@@ -257,7 +319,7 @@ class MHPrefWindow(QWidget):
 
         # first save new keys and apply it to graphical window
         #
-        glob.keyDict = self.localKeys.copy()
+        glob.keyDict = self.genNewKeyDict()
         glob.midColumn.generateKeyDict()
 
         apiport = int(self.ql_port.text())

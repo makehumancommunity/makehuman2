@@ -36,17 +36,22 @@ class globalObjects():
         self.baseClass = None
         self.closing = False
 
-        # if keys in config, set keys
+        # set default keys, this makes sure all keys are there
         #
+        self.keyDict = {
+            "Top": "Num+9", "Left": "Num+4", "Right": "Num+6", "Front": "Num+2",
+            "Back": "Num+8", "Bottom": "Num+7", "Zoom-In": "Num++", "Zoom-Out": "Num+-",
+            "Pan-Left": "Shift+Left", "Pan-Right": "Shift+Right", "Pan-Down": "Shift+Down", "Pan-Up": "Shift+Up",
+            "Rotate-Left": "Ctrl+Left", "Rotate-Right": "Ctrl+Right", "Rotate-Down": "Ctrl+Down", "Rotate-Up": "Ctrl+Up",
+            "Stop Animation": "Esc", "Toggle Perspective": "Num+0"
+            }
+
+        # now get own keys if available and replace elements
+        # 
         if "keys" in self.env.config:
-            self.keyDict = self.env.config["keys"]
-        else:
-            self.keyDict = {
-                "Top": "Num+9", "Left": "Num+4", "Right": "Num+6", "Front": "Num+2",
-                "Back": "Num+8", "Bottom": "Num+7", "Zoom-In": "Num++", "Zoom-Out": "Num+-",
-                "Pan-Left": "Shift+Left", "Pan-Right": "Shift+Right", "Pan-Down": "Shift+Down", "Pan-Up": "Shift+Up",
-                "Stop Animation": "Esc", "Toggle Perspective": "Num+0"
-                }
+            k = self.env.config["keys"]
+            for elem in k:
+                self.keyDict[elem] = k[elem]
 
         self.guiPresets = {"Randomizer": None, "Animplayer": None, "Renderer": None }
 
