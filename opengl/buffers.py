@@ -154,13 +154,13 @@ class RenderedObject:
 
         if material.shader == "litsphere":
             self.shader = self.shaders.getShader("litsphere")
-            self.litsphere = self.material.loadLitSphere(modify)
+            self.litsphere = self.material.loadLitSphere(modify, self.object)
         elif material.shader == "pbr":
             self.shader = self.shaders.getShader("pbr")
             self.aomap = self.material.loadAOMap(self.parent.scene.white, modify, self.object)
-            self.mrmap = self.material.loadMRMap(self.parent.scene.white, modify)
+            self.mrmap = self.material.loadMRMap(self.parent.scene.white, modify, self.object)
             self.emmap = self.material.loadEMMap(self.parent.scene.black, modify, self.object)
-            self.nomap = self.material.loadNOMap(self.parent.scene.normal, modify)
+            self.nomap = self.material.loadNOMap(self.parent.scene.normal, modify, self.object)
             self.mefac = material.metallicFactor if hasattr(self, 'metallicRoughnessTexture') else 1.0 - material.metallicFactor
         elif material.shader == "toon":
             self.shader = self.shaders.getShader("toon")

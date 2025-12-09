@@ -4,6 +4,7 @@
 
     Classes:
     * TextureRepo
+    * ImageEdit
     * MH_Texture
     * MH_Thumb
 """
@@ -11,7 +12,9 @@
 from PySide6.QtOpenGL import QOpenGLTexture
 from PySide6.QtGui import QImage, QColor
 from PySide6.QtCore import QSize, Qt
+import numpy as np
 import os
+from math import floor
 
 class TextureRepo():
     """
@@ -28,36 +31,53 @@ class TextureRepo():
         return self.textures
 
     def show(self):
-        for t in self.textures.keys():
-            print (t, self.textures[t][1], self.textures[t][2])
+        for k, l in self.textures.items():
+            s = ""
+            for n in l[4]:
+                if n is not None:
+                    s = s + n.name + " "
+                else:
+                    s = s + "None "
+            print (k, l[1], s)
+        print()
 
-    def add(self, path, texture, timestamp, mhtex, textype="user"):
-        if textype == "system":
-            self.systextures[path] = [texture, 1, 0, None]
-        else:
-            if path not in self.textures:
-                self.textures[path] = [texture, 1, timestamp, mhtex]
+    def add_sys(self, path, texture):
+        self.systextures[path] = [texture]
+
+    def add_user(self, path, texture, timestamp, mhtex, obj):
+        if path not in self.textures:
+            self.textures[path] = [texture, 1, timestamp, mhtex, [obj]]
 
     def exists(self, path):
         if path in self.textures:
             return self.textures[path][0]
 
-    def inc(self, path):
+    def inc(self, path, obj):
         if path in self.textures:
             self.textures[path][1] += 1
+            self.textures[path][4].append(obj)
 
-    def delete(self, texture):
+    def delete(self, texture, obj):
+        """
+        find texture path and check if obj is assigned
+        if so, delete it and decrement counter
+        """
         t = self.textures
         for elem in t:
-            if t[elem][0] == texture:
-                if t[elem][1] > 1:
-                    t[elem][1] -= 1
-                else:
-                    t[elem][0].destroy()
+            m = t[elem]
+            if m[0] == texture:
+                if obj in m[4]:
+                    m[1] -= 1
+                    m[4].remove(obj)
+                if m[1] == 0:
+                    m[0].destroy()
                     del t[elem]
                 return
 
     def refresh(self):
+        """
+        refresh all textures (to load e.g. a skin under construction
+        """
         for name, v in self.textures.items():
             # do not work with filedate 0 (means generated map)
             if v[2] != 0:
@@ -86,9 +106,83 @@ class TextureRepo():
                 t[elem][0].destroy()
 
 
-class MH_Texture():
-    def __init__(self, glob, textype="user"):
+
+
+class ImageEdit():
+    def __init__(self, glob):
         self.glob = glob
+
+    def modifyToConstantHue(self, image, r, g, b):
+        ptr = image.bits()
+        mlen = image.width() * image.height()
+        myarray = np.ndarray((mlen, 4), buffer=ptr, dtype=np.uint8)
+
+        qcol = QColor()
+        qcol.setRgbF(r,g,b)
+        hue = qcol.getHsv()[0]   # get "h" from given color in degrees
+
+        nrgb = myarray[:,:3].astype('float') / 256
+
+        # keep value and saturation
+        #
+        value = np.max(nrgb,1)
+        ndelta = value - np.min(nrgb,1)
+
+        # hue is -1 if r, g, b are identical
+        #
+        if hue == -1:
+            sat = np.zeros(mlen)
+            hue_index = 0
+            p = value
+            q = value
+            t = value
+        else:
+            np.seterr(all='ignore')
+            sat = np.where(value == 0.0, 0.0, ndelta / value)
+            np.seterr(all='print')
+            hue60 = hue / 60.0
+            hue_index = floor(hue60) % 6
+            hue_diff = hue60 - np.floor(hue60)
+            p = value * (1.0 - sat)
+            q = value * (1.0 - (hue_diff * sat))
+            t = value * (1.0 - ((1.0 - hue_diff) * sat))
+
+        if hue_index == 0:
+            rgb = np.dstack((p, t, value))
+        elif hue_index == 1:
+            rgb = np.dstack((p, value, q))
+        elif hue_index == 2:
+            rgb = np.dstack((t, value, p))
+        elif hue_index == 3:
+            rgb = np.dstack((value, q, p))
+        elif hue_index == 4:
+            rgb = np.dstack((value, p, t))
+        else:
+            rgb = np.dstack((q, p, value))
+        myarray[:,:3] = rgb * 256
+
+
+    def noColor(self, image):
+        self.modifyToConstantHue(image, 1.0, 1.0, 1.0)
+
+
+    def multColor(self, image, r, g, b):
+        ptr = image.bits()
+        mult = np.array([b, g, r, 1], dtype=np.float32)
+        mlen = image.width() * image.height()
+        myarray = np.ndarray((mlen, 4), buffer=ptr, dtype=np.uint8)
+        myarray2 = myarray.astype(np.float32, copy=True)
+        myarray2 *= mult
+        myarray[:] = myarray2.astype(np.uint8)[:]
+
+    def greyToColor(self, image, r, g, b):
+        self.noColor(image)
+        self.multColor(image, r, g, b)
+
+class MH_Texture():
+    def __init__(self, glob, textype="user", obj=None):
+        self.glob = glob
+        self.obj = obj
         self.repo = glob.textureRepo
         self.textype = textype
         self.texture = QOpenGLTexture(QOpenGLTexture.Target2D)
@@ -109,43 +203,52 @@ class MH_Texture():
         self.texture.destroy()
 
     def delete(self):
-        self.repo.delete(self.texture)
+        if self.textype == "user":
+            self.repo.delete(self.texture, self.obj)
 
-    def unicolor(self, rgb = [0.5, 0.5, 0.5], old=None):
+    def unicolor(self, rgb = [0.5, 0.5, 0.5]):
         color = QColor.fromRgbF(rgb[0], rgb[1], rgb[2])
         name = "Generated color [" + hex(color.rgb()) + "]"
         texture = self.repo.exists(name)
         if texture is not None:
-            #if old is None or rgb != old:
-            self.repo.inc(name)
+            self.repo.inc(name, self.obj)
             self.texture = texture
             return texture
 
         image = QImage(QSize(1,1),QImage.Format_ARGB32)
         image.fill(color)
         self.texture = self.create(name, image)
-        self.repo.add(name, self.texture, 0, None, self.textype)
+        if self.textype == "system":
+            self.repo.add_sys(name, self.texture)
+        else:
+            self.repo.add_user(name, self.texture, 0, None, self.obj)
         return self.texture
 
     def load(self, path, textype="user", modify=True):
         """
         load textures
         """
-        texture = self.repo.exists(path)
-        if texture is not None:
-            if modify:
-                self.repo.inc(path)
-            self.texture = texture
-            return texture
+        if textype == "user":
+            texture = self.repo.exists(path)
+            if texture is not None:
+                if modify:
+                    self.repo.inc(path, self.obj)
+                self.texture = texture
+                return texture
 
         if not os.path.isfile(path):
             return None
 
         timestamp = int(os.stat(path).st_mtime)
         image = QImage(path)
+
         self.glob.env.logLine(8, "Load: " + path + " " + str(image.format()))
         self.create(path, image)
-        self.repo.add(path, self.texture, timestamp, self, textype)
+        if textype == "system":
+            self.repo.add_sys(path, self.texture)
+        else:
+            self.repo.add_user(path, self.texture, timestamp, self, self.obj)
+        # self.repo.show()
         return self.texture
 
     def refresh(self, path):

@@ -37,7 +37,7 @@ class BaseSelect(QVBoxLayout):
         self.baseResultList = self.env.getDataDirList("base.obj", "base")
 
         if self.parent.glob.baseClass is None:
-            self.addWidget(QLabel("<h1>You need to select<br>a basemesh first!</h1>"))
+            self.addWidget(QLabel("<h1>Select a base mesh</h1>"))
 
         self.basewidget = QListWidget()
         self.basewidget.setFixedSize(240, 200)

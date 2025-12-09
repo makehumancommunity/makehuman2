@@ -57,6 +57,7 @@ class Scene():
         # and floor texture
         self.floorTexture(self.floortexname)
 
+
     def lowestPos(self, posed=False):
         if self.glob.baseClass is not None:
             return self.glob.baseClass.getLowestPos(posed)
@@ -77,6 +78,7 @@ class Scene():
         self.prims["yzgrid"] = Grid(self.context, shader, "yzgrid", 10.0, lowestPos, "yz")
         self.prims["xzgrid"] = Grid(self.context, shader, "xzgrid", 10.0, lowestPos, "xz")
         self.prims["floorcuboid"] = Cuboid(self.context, self.shaders, "floorcuboid", self.floorsize, [0.0, -8.0, 0.0], self.floortex)
+
 
         # visualization of lamps (if obj is not found, no lamps are presented)
         #
@@ -155,7 +157,7 @@ class Scene():
         :param str name: name of the texture in shaders folder
         """
         floorpath = self.env.existDataFile("shaders", "floor", name)
-        self.floortex = self.sysmaterials[5].setDiffuse(floorpath, self.red)
+        self.floortex = self.sysmaterials[5].setDiffuse(floorpath, self.red, None )
         self.floortexname = name
 
     def modFloorTexture(self, name):
