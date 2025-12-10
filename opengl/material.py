@@ -32,6 +32,8 @@ class Material:
         self.tex_nomap = None
         self.tex_mrmap = None
         self.tex_emmap = None
+        self.colorationMethod = 0 # 0: off, 1: hue-to-fixed, 2: desaturate + color multiply
+        self.colorationColor = [1.0, 1.0, 1.0 ]
         self.ambientColor = [1.0, 1.0, 1.0 ]
         self.diffuseColor = [1.0, 1.0, 1.0 ]
         self.specularColor = [0.5, 0.5, 0.5 ]

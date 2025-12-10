@@ -132,7 +132,7 @@ class TextureBox(QGroupBox):
         if hasattr(self.material, self.attrib):
             delattr(self.material, self.attrib)
 
-            # substract old texture
+            # delete old texture
             #
             self.material.freeTexture(self.attrib)
             self.securityCheck()
@@ -144,7 +144,7 @@ class TextureBox(QGroupBox):
         filename = freq.request()
         if filename is not None:
 
-            # substract old texture
+            # delete old texture
             #
             if hasattr(self.material, self.attrib):
                 self.material.freeTexture(self.attrib)
@@ -205,6 +205,7 @@ class MHMaterialEditor(QWidget):
         self.glob = parent.glob
         self.object = obj
         self.material = obj.material
+        self.tempcolmethod = 1      # preset coloration method
         self.TBoxes = []
 
         self.shadertypes = [ 
@@ -212,6 +213,11 @@ class MHMaterialEditor(QWidget):
                 [None, "Litpshere", "litsphere", "IBL (image based lighting), MatCap"],
                 [None, "PBR", "pbr", "physical based rendering (openGL)"],
                 [None, "Toon", "toon", "a silhouette based shader (openGL)"]
+        ]
+
+        self.colorationmethods = [
+                [None, "hue-to-color", "keep saturation and value of brightness, change hue to given color"],
+                [None, "desaturate + color multiply", "desaturate image and multiply this by given color"],
         ]
 
         self.factors = [
@@ -226,7 +232,9 @@ class MHMaterialEditor(QWidget):
         self.resize(600, 750)
 
         self.emptyIcon = os.path.join(self.env.path_sysdata, "icons", "noidea.png")
-        self.sweep = os.path.join(self.env.path_sysicon, "sweep.png")
+        self.sweep = os.path.join(self.env.path_sysdata, "icons", "sweep.png")
+        colorwheelicon = os.path.join(self.env.path_sysicon, "colorwheel.png")
+        self.colorwheel = IconButton(0, colorwheelicon, "colorate", self.colorate, checkable=True)
 
         layout = QVBoxLayout()
         self.namebox = QLineEdit(self.material.name)
@@ -265,9 +273,28 @@ class MHMaterialEditor(QWidget):
         gb.setLayout(hlayout)
         slayout.addWidget(gb)
 
-        t = TextureBox (self, self.object, "Base color", "diffuseTexture", altcolor="diffuseColor")
+        t = TextureBox (self, self.object, "Base color / base texture", "diffuseTexture", altcolor="diffuseColor")
         slayout.addWidget(t)
         self.TBoxes.append(t)
+
+        gb = QGroupBox("Base texture coloration (not yet working!)")
+        gb.setObjectName("subwindow")
+        hlayout = QHBoxLayout()
+
+        self.colorationButton = ColorButton("Color: ", self.colorationChanged)
+        hlayout.addWidget(self.colorationButton)
+
+        vlayout = QVBoxLayout()
+        for colmeth in self.colorationmethods:
+            colmeth[0] = QRadioButton(colmeth[1])
+            colmeth[0].setToolTip(colmeth[2])
+            colmeth[0].toggled.connect(self.updateColMeth)
+            vlayout.addWidget(colmeth[0])
+        hlayout.addLayout(vlayout)
+
+        hlayout.addWidget(self.colorwheel)
+        gb.setLayout(hlayout)
+        slayout.addWidget(gb)
 
         t = TextureBox (self, self.object, "Normalmap", "normalmapTexture", self.factors[3])
         slayout.addWidget(t)
@@ -319,6 +346,19 @@ class MHMaterialEditor(QWidget):
         for shader in self.shadertypes:
             shader[0].setChecked(self.material.shader == shader[2])
 
+    def setColMeth(self):
+        """
+        activate coloration method
+        """
+        if self.material.colorationMethod > 0:
+            self.colorwheel.setChecked(True)
+            self.tempcolmethod = self.material.colorationMethod
+        else:
+            self.colorwheel.setChecked(False)
+            self.tempcolmethod = 1
+        for m in range(0,len(self.colorationmethods)):
+            self.colorationmethods[m][0].setChecked(self.tempcolmethod == (m+1))
+
     def updateWidgets(self, obj):
         self.object = obj
         self.material = obj.material
@@ -332,6 +372,13 @@ class MHMaterialEditor(QWidget):
 
         for t in self.TBoxes:
             t.updateMap(self.object, False)
+
+        if hasattr(self.material, "colorationColor"):
+            color = getattr(self.material, "colorationColor")
+        else:
+            color = [1.0, 1.0, 1.0]
+        self.colorationButton.setColorValue(QColor.fromRgbF(*color)) # list to positional args
+        self.setColMeth()
         self.Tweak()
 
     def updateShaderType(self, _):
@@ -364,6 +411,34 @@ class MHMaterialEditor(QWidget):
             ErrorBox(self, "Litpshere cannot be used without a litsphere texture.")
             return False
         return True
+
+    def colorationChanged(self, color):
+        if hasattr(self.material, "colorationColor"):
+            newcol = list(color.getRgbF())[:3]
+            setattr(self.material, "colorationColor", newcol)
+            self.Tweak()
+
+    def updateColMeth(self, _):
+        m = self.sender()
+        self.colorwheel.setChecked(False)   # if change, set it back
+                                            # TODO: present original texture
+        if m.isChecked():
+            for i,colmeth in enumerate(self.colorationmethods):
+                if m is colmeth[0]:
+                    self.tempcolmethod = i + 1
+
+    def colorate(self):
+        if self.colorwheel.isChecked():
+            if self.tempcolmethod > 0:
+                self.material.colorationMethod = self.tempcolmethod
+                print("changed colorationMethod to ", self.tempcolmethod)
+        else:
+            self.tempcolmethod = 0
+            self.material.colorationMethod = 0
+            print("changed colorationMethod to ", self.tempcolmethod)
+
+        if self.tempcolmethod == 0:
+            self.colorwheel.setChecked(False)   # if change, set it back
 
     def save_call(self):
         if self.checkLitsphere() is False:
