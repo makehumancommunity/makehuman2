@@ -50,7 +50,8 @@ class TextureRepo():
 
     def exists(self, path):
         if path in self.textures:
-            return self.textures[path][0]
+            return self.textures[path][0], self.textures[path][3]
+        return None, None
 
     def inc(self, path, obj):
         if path in self.textures:
@@ -186,14 +187,26 @@ class MH_Texture():
         self.repo = glob.textureRepo
         self.textype = textype
         self.texture = QOpenGLTexture(QOpenGLTexture.Target2D)
+        self.image = None
+        self.name = None
 
-    def create(self, name, image):
+    def getImage(self):
+        return self.image
+
+    def getName(self):
+        return self.name
+
+    def getTexture(self):
+        return self.texture
+
+    def create(self, image):
         """
         :param image: QImage
         :param name: image path, used in repo to identify object
         """
+        self.image = image
         self.texture.create()
-        self.texture.setData(image)
+        self.texture.setData(self.image)
         self.texture.setMinMagFilters(QOpenGLTexture.Linear, QOpenGLTexture.Linear)
         self.texture.setWrapMode(QOpenGLTexture.ClampToEdge)
 
@@ -206,22 +219,25 @@ class MH_Texture():
         if self.textype == "user":
             self.repo.delete(self.texture, self.obj)
 
-    def unicolor(self, rgb = [0.5, 0.5, 0.5]):
-        color = QColor.fromRgbF(rgb[0], rgb[1], rgb[2])
-        name = "Generated color [" + hex(color.rgb()) + "]"
-        texture = self.repo.exists(name)
-        if texture is not None:
-            self.repo.inc(name, self.obj)
-            self.texture = texture
-            return texture
+    def stdcolor(self):
+        return self.unicolor([0.5, 0.5, 0.5], "Standard color")
 
-        image = QImage(QSize(1,1),QImage.Format_ARGB32)
-        image.fill(color)
-        self.texture = self.create(name, image)
+    def unicolor(self, rgb, name):
+        color = QColor.fromRgbF(rgb[0], rgb[1], rgb[2])
+        self.name = name
+        ogl_texture, mhtex = self.repo.exists(self.name)
+        if ogl_texture is not None:
+            self.repo.inc(self.name, self.obj)
+            self.texture = ogl_texture
+            return ogl_texture
+
+        self.image = QImage(QSize(1,1),QImage.Format_ARGB32)
+        self.image.fill(color)
+        self.texture = self.create(self.image)
         if self.textype == "system":
-            self.repo.add_sys(name, self.texture)
+            self.repo.add_sys(self.name, self.texture)
         else:
-            self.repo.add_user(name, self.texture, 0, None, self.obj)
+            self.repo.add_user(self.name, self.texture, 0, None, self.obj)
         return self.texture
 
     def load(self, path, textype="user", modify=True):
@@ -229,33 +245,41 @@ class MH_Texture():
         load textures
         """
         if textype == "user":
-            texture = self.repo.exists(path)
-            if texture is not None:
+            ogl_texture, mhtex = self.repo.exists(path)
+            if ogl_texture is not None:
                 if modify:
                     self.repo.inc(path, self.obj)
-                self.texture = texture
-                return texture
+                self.texture = ogl_texture
+                self.image = mhtex.getImage()
+                self.name = path
+                return ogl_texture
 
         if not os.path.isfile(path):
             return None
 
         timestamp = int(os.stat(path).st_mtime)
-        image = QImage(path)
-
-        self.glob.env.logLine(8, "Load: " + path + " " + str(image.format()))
-        self.create(path, image)
+        self.image = QImage(path)
+        self.glob.env.logLine(8, "Load: " + path + " " + str(self.image.format()))
+        self.create(self.image)
         if textype == "system":
             self.repo.add_sys(path, self.texture)
         else:
             self.repo.add_user(path, self.texture, timestamp, self, self.obj)
+        self.name = path
         # self.repo.show()
         return self.texture
 
-    def refresh(self, path):
+    def refresh_image(self):
         # print ("refresh: ", path)
         self.destroy()
-        image = QImage(path)
-        self.create(path, image)
+        self.create(self.image)
+        return self.texture
+
+    def refresh(self, path=None):
+        name = self.name if path is None else path
+        self.destroy()
+        self.image = QImage(name)
+        self.create(self.image)
         return self.texture
 
 

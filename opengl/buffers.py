@@ -151,6 +151,7 @@ class RenderedObject:
         """
         self.material = material
         self.texture = self.material.loadDiffuse(modify, self.object)
+        self.material.colorate()
 
         if material.shader == "litsphere":
             self.shader = self.shaders.getShader("litsphere")

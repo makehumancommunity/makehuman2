@@ -9,7 +9,8 @@
 import os
 import numpy
 from core.debug import dumper
-from opengl.texture import MH_Texture
+from opengl.texture import MH_Texture, ImageEdit
+from PySide6.QtGui import QColor
 
 class Material:
     def __init__(self, glob, objdir, eqtype):
@@ -32,6 +33,8 @@ class Material:
         self.tex_nomap = None
         self.tex_mrmap = None
         self.tex_emmap = None
+        self.colorationOldColor = [1.0, 1.0, 1.0 ]
+        self.colorationOldMethod= 0
         self.colorationMethod = 0 # 0: off, 1: hue-to-fixed, 2: desaturate + color multiply
         self.colorationColor = [1.0, 1.0, 1.0 ]
         self.ambientColor = [1.0, 1.0, 1.0 ]
@@ -316,6 +319,31 @@ backfaceCull {self.backfaceCull}
 
         return(materialfiles)
 
+    def colorate(self):
+        if not hasattr(self, "diffuseTexture"):
+            return
+
+        if self.tex_diffuse.getTexture() is None:
+            return
+        if self.colorationColor == self.colorationOldColor and self.colorationMethod == self.colorationOldMethod:
+            return
+        self.tex_diffuse.refresh() # reset
+        image = self.tex_diffuse.getImage()
+        ie = ImageEdit(self.glob)
+        if self.colorationMethod == 1:
+            ie.multColor(image, *self.colorationColor)
+            self.tex_diffuse.refresh_image()
+        elif self.colorationMethod ==2:
+            ie.greyToColor(image, *self.colorationColor)
+            self.tex_diffuse.refresh_image()
+
+        self.colorationOldColor = self.colorationColor.copy()
+        self.colorationOldMethod= self.colorationMethod
+
+    def colorToName(self, rgb):
+        color = QColor.fromRgbF(rgb[0], rgb[1], rgb[2])
+        return "Generated color [" + hex(color.rgb()) + "]"
+
     def mixColors(self, colors, values, obj=None):
         """
         generates a texture from a number of colors (e.g. ethnic slider)
@@ -326,31 +354,59 @@ backfaceCull {self.backfaceCull}
             newcolor += elem * values[n]
         self.freeTexture("diffuseTexture")
         self.tex_diffuse = MH_Texture(self.glob, obj=obj)
-        return self.tex_diffuse.unicolor([newcolor[0], newcolor[1], newcolor[2]])
+        return self.tex_diffuse.unicolor(newcolor, self.colorToName(newcolor))
 
     def uniColor(self, rgb, obj=None):
         self.freeTexture("diffuseTexture")
         self.tex_diffuse = MH_Texture(self.glob, self.type, obj=obj)
-        return self.tex_diffuse.unicolor(rgb)
+        return self.tex_diffuse.unicolor(rgb, self.colorToName(rgb))
+
+    def mapChanged(self, mapname, maptexture):
+        oldname = "" if maptexture is None else maptexture.getName()
+        if hasattr(self, mapname):
+            newname = getattr(self, mapname)
+            return oldname == newname
+        return False
+
+    def colorChanged(self, colname, maptexture):
+        oldname = "" if maptexture is None else maptexture.getName()
+        if hasattr(self, colname):
+            newname = getattr(self, colname)
+            name = self.colorToName(newname)
+            return oldname == name
+        return False
 
     def loadLitSphere(self, modify, obj):
+        if self.mapChanged('sp_litsphereTexture', self.tex_litsphere):
+            return self.tex_litsphere.getTexture()
+
+        self.freeTexture("sp_litsphereTexture")
         self.tex_litsphere = MH_Texture(self.glob, obj=obj)
         return self.tex_litsphere.load(self.sp_litsphereTexture, modify=modify)
 
     def loadAOMap(self, white, modify, obj):
-        self.freeTexture("aomapTexture")
+        if self.mapChanged('aomapTexture', self.tex_aomap):
+            return self.tex_aomap.getTexture()
+
         if hasattr(self, 'aomapTexture'):
+            self.freeTexture("aomapTexture")
             self.tex_aomap = MH_Texture(self.glob, obj=obj)
             return self.tex_aomap.load(self.aomapTexture,  modify=modify)
 
+        if self.colorChanged('ambientColor', self.tex_aomap):
+           return self.tex_aomap.getTexture()
+
+        self.freeTexture("aomapTexture")
         if hasattr(self, 'ambientColor'):
-            oldmaterial = obj.material
-            old = oldmaterial.ambientColor if hasattr(oldmaterial, 'ambientColor') else None
             self.tex_aomap = MH_Texture(self.glob, obj=obj)
-            return self.tex_aomap.unicolor(self.ambientColor)
+            return self.tex_aomap.unicolor(self.ambientColor, self.colorToName(self.ambientColor))
+
         return white
 
     def loadNOMap(self, nocolor, modify, obj):
+        if self.mapChanged('normalmapTexture', self.tex_nomap):
+            return self.tex_nomap.getTexture()
+
         self.freeTexture("normalmapTexture")
         if hasattr(self, 'normalmapTexture'):
             self.tex_nomap = MH_Texture(self.glob, obj=obj)
@@ -359,21 +415,30 @@ backfaceCull {self.backfaceCull}
         return nocolor
 
     def loadEMMap(self, nocolor, modify, obj):
-        self.freeTexture("emissiveTexture")
+        if self.mapChanged('emissiveTexture', self.tex_emmap):
+            return self.tex_emmap.getTexture()
+
         if hasattr(self, 'emissiveTexture'):
+            self.freeTexture("emissiveTexture")
             self.tex_emmap = MH_Texture(self.glob, obj=obj)
             return self.tex_emmap.load(self.emissiveTexture, modify=modify)
 
         if hasattr(self, 'emissiveColor'):
             if self.emissiveColor != [0.0, 0.0, 0.0]:
-                oldmaterial = obj.material
-                old = oldmaterial.emissiveColor if hasattr(oldmaterial, 'diffuseColor') else None
+                if self.colorChanged('emissiveColor', self.tex_emmap):
+                    return self.tex_emmap.getTexture()
+
+                self.freeTexture("emissiveTexture")
                 self.tex_emmap = MH_Texture(self.glob, obj=obj)
-                return self.tex_emmap.unicolor(self.emissiveColor)
+                return self.tex_emmap.unicolor(self.emissiveColor, self.colorToName(self.emissiveColor))
         
+        self.freeTexture("emissiveTexture")
         return nocolor
 
     def loadMRMap(self, white, modify, obj):
+        if self.mapChanged('metallicRoughnessTexture', self.tex_mrmap):
+            return self.tex_mrmap.getTexture()
+
         self.freeTexture("metallicRoughnessTexture")
         if hasattr(self, 'metallicRoughnessTexture'):
             self.tex_mrmap = MH_Texture(self.glob, obj=obj)
@@ -383,6 +448,9 @@ backfaceCull {self.backfaceCull}
 
 
     def setDiffuse(self, name, alternative, obj=None):
+        """
+        used for additional objects only
+        """
         if name is None:
             return alternative
         self.diffuseTexture = name
@@ -393,36 +461,53 @@ backfaceCull {self.backfaceCull}
         return alternative
 
     def loadDiffuse(self, modify, obj):
-        self.freeTexture("diffuseTexture")
-        self.tex_diffuse = MH_Texture(self.glob, obj=obj)
+        if self.mapChanged('diffuseTexture', self.tex_diffuse):
+            return self.tex_diffuse.getTexture()
 
         if hasattr(self, 'diffuseTexture'):
-            return self.tex_diffuse.load(self.diffuseTexture, modify=modify)
+            self.freeTexture("diffuseTexture")
+            self.tex_diffuse = MH_Texture(self.glob, obj=obj)
+            ogl_texture = self.tex_diffuse.load(self.diffuseTexture, modify=modify)
+        else:
+            if self.colorChanged('diffuseColor', self.tex_diffuse):
+               return self.tex_diffuse.getTexture()
 
-        if hasattr(self, 'diffuseColor'):
-            oldmaterial = obj.material
-            old = oldmaterial.diffuseColor if hasattr(oldmaterial, 'diffuseColor') else None
-
-            return self.tex_diffuse.unicolor(self.diffuseColor)
-        return self.tex_diffuse.unicolor()
+            self.freeTexture("diffuseTexture")
+            if hasattr(self, 'diffuseColor'):
+                self.tex_diffuse = MH_Texture(self.glob, obj=obj)
+                ogl_texture = self.tex_diffuse.unicolor(self.diffuseColor, self.colorToName(self.diffuseColor))
+            else:
+                ogl_texture = self.tex_diffuse.stdcolor()   # grey
+        return ogl_texture
 
     def freeTexture(self, attrib):
         """
         free only one texture (for material editor)
         """
-        elem = None
         if attrib == "normalmapTexture":
-            elem= self.tex_nomap
+            if self.tex_nomap:
+                self.tex_nomap.delete()
+                self.tex_nomap = None
         elif attrib == "diffuseTexture":
-            elem= self.tex_diffuse
+            if self.tex_diffuse:
+                self.tex_diffuse.delete()
+                self.tex_diffuse = None
         elif attrib == "aomapTexture":
-            elem= self.tex_aomap
+            if self.tex_aomap:
+                self.tex_aomap.delete()
+                self.tex_aomap = None
         elif attrib == "metallicRoughnessTexture":
-            elem= self.tex_mrmap
+            if self.tex_mrmap:
+                self.tex_mrmap.delete()
+                self.tex_mrmap = None
         elif attrib == "emissiveTexture":
-            elem= self.tex_emmap
-        if elem:
-            elem.delete()
+            if self.tex_emmap:
+                self.tex_emmap.delete()
+                self.tex_emmap = None
+        elif attrib == "sp_litsphereTexture":
+            if self.tex_litsphere:
+                self.tex_litsphere.delete()
+                self.tex_litsphere = None
 
     def freeTextures(self):
         # in case of system, cleanup is done in the end

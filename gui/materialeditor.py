@@ -35,7 +35,9 @@ class TextureBox(QGroupBox):
         super().__init__(name)
         self.openGL = parent.glob.openGLWindow
         self.securityCheck = parent.checkLitsphere
+        self.updateDep = parent.updateDependencies
         self.emptyIcon = parent.emptyIcon
+        self.glob = parent.glob
         self.object = obj
         self.attrib = attrib
         self.material = obj.material
@@ -114,10 +116,12 @@ class TextureBox(QGroupBox):
             self.setAltColor()
 
         if hasattr(self.material, self.attrib):
+            self.updateDep(self.attrib, True)
             item = getattr(self.material, self.attrib)
             self.map.newIcon(item)
             self.label.setText(self.shortenName(item))
         else:
+            self.updateDep(self.attrib, False)
             self.map.newIcon(self.emptyIcon)
             self.label.setText("None")
 
@@ -147,6 +151,7 @@ class TextureBox(QGroupBox):
             # delete old texture
             #
             if hasattr(self.material, self.attrib):
+                self.updateDep(self.attrib, False)          # needed to delete old base-color
                 self.material.freeTexture(self.attrib)
 
             # add new one
@@ -273,11 +278,9 @@ class MHMaterialEditor(QWidget):
         gb.setLayout(hlayout)
         slayout.addWidget(gb)
 
-        t = TextureBox (self, self.object, "Base color / base texture", "diffuseTexture", altcolor="diffuseColor")
-        slayout.addWidget(t)
-        self.TBoxes.append(t)
+        # define box coloration
 
-        gb = QGroupBox("Base texture coloration (not yet working!)")
+        gb = QGroupBox("Base texture coloration (not yet saved!)")
         gb.setObjectName("subwindow")
         hlayout = QHBoxLayout()
 
@@ -294,7 +297,12 @@ class MHMaterialEditor(QWidget):
 
         hlayout.addWidget(self.colorwheel)
         gb.setLayout(hlayout)
-        slayout.addWidget(gb)
+
+        t = TextureBox (self, self.object, "Base color / base texture", "diffuseTexture", altcolor="diffuseColor")
+        slayout.addWidget(t)
+        self.TBoxes.append(t)
+
+        slayout.addWidget(gb) # add coloration
 
         t = TextureBox (self, self.object, "Normalmap", "normalmapTexture", self.factors[3])
         slayout.addWidget(t)
@@ -381,6 +389,13 @@ class MHMaterialEditor(QWidget):
         self.setColMeth()
         self.Tweak()
 
+    def updateDependencies(self, texmap, used):
+        if texmap == "diffuseTexture":
+            self.colorwheel.setEnabled(used)
+            self.colorationButton.setVisible(used)
+            for radbut in self.colorationmethods:
+                radbut[0].setVisible(used)
+
     def updateShaderType(self, _):
         m = self.sender()
         if m.isChecked():
@@ -418,27 +433,34 @@ class MHMaterialEditor(QWidget):
             setattr(self.material, "colorationColor", newcol)
             self.Tweak()
 
+    def getColMeth(self):
+        for i,colmeth in enumerate(self.colorationmethods):
+            if colmeth[0].isChecked():
+                return i+1
+        return 0
+
     def updateColMeth(self, _):
         m = self.sender()
-        self.colorwheel.setChecked(False)   # if change, set it back
-                                            # TODO: present original texture
-        if m.isChecked():
-            for i,colmeth in enumerate(self.colorationmethods):
-                if m is colmeth[0]:
-                    self.tempcolmethod = i + 1
+        oldmethod = self.tempcolmethod
+        self.tempcolmethod = self.getColMeth()
+
+        if oldmethod != self.tempcolmethod and oldmethod != 0:
+            self.material.colorationMethod = 0
+            self.material.colorate()
+            self.colorwheel.setChecked(False)   # if change, set it back
+            self.Tweak()
 
     def colorate(self):
         if self.colorwheel.isChecked():
-            if self.tempcolmethod > 0:
-                self.material.colorationMethod = self.tempcolmethod
-                print("changed colorationMethod to ", self.tempcolmethod)
+            method = self.getColMeth()
+            if method > 0:
+                self.material.colorationMethod = self.tempcolmethod = method
         else:
             self.tempcolmethod = 0
             self.material.colorationMethod = 0
-            print("changed colorationMethod to ", self.tempcolmethod)
 
-        if self.tempcolmethod == 0:
-            self.colorwheel.setChecked(False)   # if change, set it back
+        self.material.colorate()
+        self.Tweak()
 
     def save_call(self):
         if self.checkLitsphere() is False:
