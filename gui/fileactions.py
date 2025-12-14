@@ -458,7 +458,7 @@ class DownLoadImport(QVBoxLayout):
         tempdir = self.assets.unZip(self.filename.text())
         destpath = self.env.path_sysdata if self.use_userpath is False else self.env.path_userdata
         print (tempdir, destpath, self.env.basename)
-        #self.assets.copyAssets(tempdir, destpath, self.env.basename)
+        self.assets.copyAssets(tempdir, destpath, self.env.basename)
 
     def finishUnzip(self):
         self.assets.cleanupUnzip()

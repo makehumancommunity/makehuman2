@@ -143,7 +143,7 @@ class TextureBox(QGroupBox):
             self.updateMap(self.object)
 
     def setMap(self):
-        directory = self.material.objdir
+        directory = self.material.mhmatdir
         freq = MHFileRequest("Texture (PNG/JPG)", "Images (*.png *.jpg *.jpeg)", directory)
         filename = freq.request()
         if filename is not None:
@@ -280,7 +280,7 @@ class MHMaterialEditor(QWidget):
 
         # define box coloration
 
-        gb = QGroupBox("Base texture coloration (not yet saved!)")
+        gb = QGroupBox("Base texture coloration (only Blender export works!)")
         gb.setObjectName("subwindow")
         hlayout = QHBoxLayout()
 
@@ -465,7 +465,7 @@ class MHMaterialEditor(QWidget):
     def save_call(self):
         if self.checkLitsphere() is False:
             return
-        directory = self.material.objdir
+        directory = self.material.mhmatdir
         freq = MHFileRequest("Material (MHMAT)", "material files (*.mhmat)", directory, save=".mhmat")
         filename = freq.request()
         if filename is not None:

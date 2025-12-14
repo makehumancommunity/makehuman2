@@ -56,10 +56,6 @@ class blendCom:
         self.MAGIC = b'MH2B'
         self.JSON = b'JSON'
         self.BIN  = "BIN\x00"
-        #
-        # for image and sampler
-        self.IMAGEJPEG = 'image/jpeg'
-        self.IMAGEPNG = "image/png"
 
         self.json = {}
         # change asset version to add a name for collection
@@ -245,7 +241,12 @@ class blendCom:
 
         if hasattr(material, "diffuseTexture"):
             self.debug ("Diffuse " + material.diffuseTexture)
-            pbr = self.addDiffuseTexture(material.diffuseTexture, material.metallicFactor, material.roughnessFactor, roughtex)
+            if material.colorationMethod > 0:
+                diffusename = material.saveDiffuse()
+            else:
+                diffusename = material.diffuseTexture
+
+            pbr = self.addDiffuseTexture(diffusename, material.metallicFactor, material.roughnessFactor, roughtex)
         else:   
             pbr = self.pbrMaterial(material.diffuseColor, material.metallicFactor, material.roughnessFactor, roughtex)
 

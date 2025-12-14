@@ -269,6 +269,18 @@ class MH_Texture():
         # self.repo.show()
         return self.texture
 
+    def save_png(self, rgb):
+        """
+        save image changed by coloration color (in exportfolder with name hex-color name prefix)
+        :param list rgb: coloration color
+        """
+        outname, rest =os.path.splitext( os.path.basename(self.name)) # in case of e.g. jpg split extension
+        color = QColor.fromRgbF(rgb[0], rgb[1], rgb[2])
+        outname = hex(color.rgb())[2:-2] + "_" + outname + ".png"
+        outname = os.path.join(self.glob.env.stdUserPath("exports"), outname)
+        self.image.save(outname, "PNG", -1)
+        return outname
+
     def refresh_image(self):
         # print ("refresh: ", path)
         self.destroy()

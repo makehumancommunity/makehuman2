@@ -16,7 +16,7 @@ class Material:
     def __init__(self, glob, objdir, eqtype):
         self.glob = glob
         self.env = glob.env
-        self.objdir = objdir
+        self.mhmatdir = objdir
         self.type = eqtype
         self.tags = []
         self.default()
@@ -59,19 +59,27 @@ class Material:
 
     def isExistent(self, filename):
         """
-        concatenate / check same folder (objdir ends with the start of filename)
+        concatenate / check same folder (mhmatdir ends with the start of filename)
         """
-        path = os.path.join(self.objdir, filename)
+        path = os.path.join(self.mhmatdir, filename)
         if os.path.isfile(path):
             return (path)
+
+        # try if we are in materials
+        #
+        if self.mhmatdir.endswith("materials"):
+            path = os.path.join(self.mhmatdir[:-10], filename)
+            if os.path.isfile(path):
+                return (path)
 
         # try to get rid of first directory of filename (notation: unicode)
         #
         if "/" in filename:
             fname = "/".join (filename.split("/")[1:])
-            path = os.path.join(self.objdir, fname)
+            path = os.path.join(self.mhmatdir, fname)
             if os.path.isfile(path):
                 return (path)
+
 
         # try an "absolute" method when it starts with the type name like "clothes"
         # then delete clothes 
@@ -101,7 +109,7 @@ class Material:
         mhmat file loader, TODO; cleanup in the end
         """
         self.filename = path
-        self.objdir = os.path.dirname(path)
+        self.mhmatdir = os.path.dirname(path)
 
         self.env.logLine(8, "Loading material " + path)
         try:
@@ -144,9 +152,18 @@ class Material:
             elif key in [ "transparent", "alphaToCoverage", "backfaceCull" ]:
                 setattr (self, key, words[1].lower() in ["yes", "enabled", "true"])
 
+            elif key in [ "colorationMethod" ]:
+                try:
+                    val = int(words[1])
+                except:
+                    val = 0
+                if val > 2:
+                    val = 0
+                setattr (self, key, val)
+
             # colors
             #
-            elif key in ["ambientColor", "diffuseColor", "emissiveColor", "specularColor" ]:
+            elif key in ["ambientColor", "diffuseColor", "emissiveColor", "specularColor", "colorationColor" ]:
                 setattr (self, key, [float(w) for w in words[1:4]])
 
             # intensities (all kind of floats)
@@ -201,7 +218,7 @@ class Material:
         path name always in URI syntax, needed as a base
         """
         path = self.env.formatPath(path)
-        fobjdir = self.env.formatPath(self.objdir)
+        fobjdir = self.env.formatPath(self.mhmatdir)
 
         if path.startswith(fobjdir):
             relpath = path[len(fobjdir)+1:]
@@ -224,8 +241,19 @@ class Material:
             relpath = os.path.basename(path)
         return(self.env.formatPath(relpath))
 
+    def roundColor(self, color):
+        for i, elem in enumerate(color):
+            color[i] = round(elem, 4)
+
     def saveMatFile(self, path):
         self.env.logLine(8, "Saving material " + path)
+
+        # avoid too many digits
+        #
+        self.roundColor(self.ambientColor)
+        self.roundColor(self.diffuseColor)
+        self.roundColor(self.specularColor)
+        self.roundColor(self.emissiveColor)
 
         if hasattr(self, "diffuseTexture"):
             diffuse = "diffuseTexture " + self.textureRelName(self.diffuseTexture) + "\n"
@@ -264,6 +292,13 @@ class Material:
 
         shader = "shader " + self.shader + "\n"
 
+        if self.colorationMethod != 0:
+            self.roundColor(self.colorationColor)
+            coloration = "colorationMethod " + str(self.colorationMethod) + \
+                    f"\ncolorationColor  {self.colorationColor[0]} {self.colorationColor[1]} {self.colorationColor[2]}\n"
+        else:
+            coloration = ""
+
         try:
             fp = open(path, "w", encoding="utf-8", errors='ignore')
         except IOError as err:
@@ -285,7 +320,7 @@ transparent {self.transparent}
 alphaToCoverage {self.alphaToCoverage}
 backfaceCull {self.backfaceCull}
 
-{diffuse}{normal}{occl}{metrough}{emissive}
+{diffuse}{normal}{occl}{metrough}{emissive}{coloration}
 
 {shader}{litsphere}
 
@@ -300,7 +335,7 @@ backfaceCull {self.backfaceCull}
 
     def listAllMaterials(self, objdir = None):
         if objdir is None:
-            objdir = self.objdir
+            objdir = self.mhmatdir
         
         materialfiles=[]
         for (root, dirs, files) in  os.walk(objdir):
@@ -479,6 +514,13 @@ backfaceCull {self.backfaceCull}
             else:
                 ogl_texture = self.tex_diffuse.stdcolor()   # grey
         return ogl_texture
+
+    def saveDiffuse(self):
+        if hasattr(self, 'diffuseTexture') and self.tex_diffuse:
+            filename = self.tex_diffuse.save_png(self.colorationColor)
+            self.env.logLine(8, "temporary file saved to " + filename)
+            return filename
+        return None
 
     def freeTexture(self, attrib):
         """
