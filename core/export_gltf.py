@@ -420,9 +420,14 @@ class gltfExport:
             roughtex = material.metallicRoughnessTexture
             self.debug ("Metallic-Roughness " + roughtex)
 
-        if  hasattr(material, "diffuseTexture"):
+        if hasattr(material, "diffuseTexture"):
             self.debug ("Diffuse " + material.diffuseTexture)
-            pbr = self.addDiffuseTexture(material.diffuseTexture, material.metallicFactor, material.roughnessFactor, roughtex)
+            if material.colorationMethod > 0:
+                diffusename = material.saveDiffuse()
+            else:
+                diffusename = material.diffuseTexture
+
+            pbr = self.addDiffuseTexture(diffusename, material.metallicFactor, material.roughnessFactor, roughtex)
         else:   
             pbr = self.pbrMaterial(material.diffuseColor, material.metallicFactor, material.roughnessFactor, roughtex)
 

@@ -129,7 +129,12 @@ class objExport:
                 return False
 
         if hasattr(material, "diffuseTexture"):
-            if self.addImage("map_Kd", material.diffuseTexture) is False:
+            if material.colorationMethod > 0:
+                diffusename = material.saveDiffuse()
+            else:
+                diffusename = material.diffuseTexture
+
+            if self.addImage("map_Kd", diffusename) is False:
                 return False
 
         # metallic roughness are two channels

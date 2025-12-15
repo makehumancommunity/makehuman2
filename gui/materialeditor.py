@@ -280,7 +280,7 @@ class MHMaterialEditor(QWidget):
 
         # define box coloration
 
-        gb = QGroupBox("Base texture coloration (only Blender export works!)")
+        gb = QGroupBox("Base texture coloration")
         gb.setObjectName("subwindow")
         hlayout = QHBoxLayout()
 
@@ -392,6 +392,7 @@ class MHMaterialEditor(QWidget):
     def updateDependencies(self, texmap, used):
         if texmap == "diffuseTexture":
             self.colorwheel.setEnabled(used)
+            self.colorwheel.setToolTip("Colorate base texture" if used else "Select base texture before")
             self.colorationButton.setVisible(used)
             for radbut in self.colorationmethods:
                 radbut[0].setVisible(used)
