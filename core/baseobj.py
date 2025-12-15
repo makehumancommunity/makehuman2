@@ -481,7 +481,7 @@ class baseClass():
         if elem is None:
             return
 
-        self.glob.openGLWindow.deleteObject(elem.obj, delproxymat=True)
+        self.glob.openGLWindow.deleteObject(elem.obj)
         self.glob.openGLWindow.Tweak()
         self.attachedAssets.remove(elem)
         self.glob.markAssetByFileName(filename, False)

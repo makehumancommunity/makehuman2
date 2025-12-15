@@ -10,11 +10,12 @@
 """
 import time
 import numpy as np
+
 from PySide6.QtGui import QVector3D, QMatrix4x4
 
 from PySide6.QtOpenGL import (QOpenGLBuffer, QOpenGLShader,
                               QOpenGLShaderProgram, QOpenGLTexture)
-# from opengl.info import openGLError
+from opengl.info import openGLError
 
 # Constants from OpenGL GL_TRIANGLES, GL_FLOAT
 # 
@@ -360,7 +361,11 @@ class RenderedObject:
 
         functions.glLineWidth(1)
         functions.glEnable(gl.GL_DEPTH_TEST)
-        gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
+        try:
+            gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
+        except Exception as ex:
+            print(f"Exception {ex}: Clearing any OpenGL errors left by the failed call")
+            openGLError()
         functions.glDrawElements(gl.GL_TRIANGLES, len(indices), gl.GL_UNSIGNED_INT, indices)
 
         functions.glEnable(gl.GL_CULL_FACE)

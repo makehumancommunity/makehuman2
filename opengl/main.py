@@ -195,10 +195,10 @@ class OpenGLView(QOpenGLWidget):
         obj.openGL = RenderedObject(self, obj, boundingbox, glbuffer, pos=QVector3D(0, 0, 0))
         self.objects.insert(cnt, obj.openGL)
 
-    def deleteObject(self,obj, delproxymat=False):
+    def deleteObject(self,obj, delMaterial=True):
         if obj.openGL is not None:
             obj.openGL.delete()
-            if obj.type != "proxy" or delproxymat is True:
+            if delMaterial:
                 obj.material.freeTextures()
             self.objects.remove(obj.openGL)
             obj.openGL = None
@@ -377,15 +377,15 @@ class OpenGLView(QOpenGLWidget):
         else:
             self.camera.setCenter((0.0, 0.0, 0.0), 20)
 
-    def noGLObjects(self, leavebase=False, delproxymat=False):
+    def noGLObjects(self, leavebase=False, delMaterial=True):
         """
         should be called with block
         """
         for elem in self.glob.baseClass.attachedAssets:
-            self.deleteObject(elem.obj, delproxymat=delproxymat)
+            self.deleteObject(elem.obj, delMaterial=delMaterial)
 
         if leavebase is False:
-            self.deleteObject(self.glob.baseClass.baseMesh)
+            self.deleteObject(self.glob.baseClass.baseMesh, delMaterial=delMaterial)
 
         start = 1 if leavebase else 0
         for glbuffer in self.buffers[start:]:

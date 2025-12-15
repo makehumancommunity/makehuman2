@@ -272,6 +272,7 @@ class Renderer(QVBoxLayout):
             self.prog_window = None
             for obj in self.s_objects:
                 self.view.createObject(obj)
+
             self.glob.openGLBlock = False
             self.view.setYRotation(float(self.values.angle))
             self.view.Tweak()
@@ -283,9 +284,9 @@ class Renderer(QVBoxLayout):
             self.prog_window.progress.forceShow()
             self.glob.openGLBlock = True
             if self.bc.proxy is None:
-                self.view.noGLObjects()
+                self.view.noGLObjects(delMaterial=False)
             else:
-                self.view.noGLObjects(leavebase=True,  delproxymat=True)
+                self.view.noGLObjects(leavebase=True,  delMaterial=False)
             self.glob.parallel = WorkerThread(self.Subdivide)
             self.glob.parallel.start()
             self.glob.parallel.finished.connect(self.finishSubdivide)
@@ -298,12 +299,12 @@ class Renderer(QVBoxLayout):
         self.glob.openGLBlock = True
 
         if self.bc.proxy is None:
-            self.view.noGLObjects()
+            self.view.noGLObjects(delMaterial=False)
             self.bc.baseMesh = self.n_objects[0]
             self.view.createObject(self.bc.baseMesh)
             n = 1
         else:
-            self.view.noGLObjects(leavebase=True, delproxymat=True)
+            self.view.noGLObjects(leavebase=True, delMaterial=False)
             n = 0
 
         for elem in self.glob.baseClass.attachedAssets:
