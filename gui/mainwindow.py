@@ -1047,7 +1047,7 @@ class MHMainWindow(QMainWindow):
         if self.glob.baseClass is None:
             return
         directory = self.env.stdUserPath()
-        freq = MHFileRequest("Database export for backup", "Json-files (*.json)", directory, save=".json")
+        freq = MHFileRequest(self.glob, "Database export for backup", "Json-files (*.json)", directory, save=".json")
         filename = freq.request()
         if filename is not None:
             if self.env.fileCache.exportUserInfo(filename):
@@ -1059,7 +1059,7 @@ class MHMainWindow(QMainWindow):
         if self.glob.baseClass is None:
             return
         directory = self.env.stdUserPath()
-        freq = MHFileRequest("Database import to restore tags", "Json-files (*.json)", directory)
+        freq = MHFileRequest(self.glob, "Database import to restore tags", "Json-files (*.json)", directory)
         filename = freq.request()
         if filename is not None:
             if self.env.fileCache.importUserInfo(filename):

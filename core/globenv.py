@@ -31,6 +31,7 @@ class globalObjects():
         self.subwindows = {}
         self.openGLWindow = None
         self.openGLBlock  = True
+        self.openGLWinUpdate = True
         self.midColumn    = None
         self.centralWidget= None
         self.baseClass = None

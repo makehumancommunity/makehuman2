@@ -268,7 +268,6 @@ class OpenGLView(QOpenGLWidget):
         #self.setCameraCenter()  # new calculation of size
         self.camera.customView(direction)
         self.paintGL()
-        self.update()
 
     def getCamera(self):
         return(self.camera)
@@ -276,12 +275,10 @@ class OpenGLView(QOpenGLWidget):
     def modifyDistance(self, distance):
         self.camera.modifyDistance(distance)
         self.paintGL()
-        self.update()
 
     def togglePerspective(self, mode):
         self.camera.togglePerspective(mode)
         self.paintGL()
-        self.update()
 
     def arcBallCamStart(self, x, y):
         self.camera.setLastMousePosition(x, y)
@@ -289,27 +286,22 @@ class OpenGLView(QOpenGLWidget):
     def arcBallCamera(self, x, y):
         self.camera.arcBallRotation(x, y)
         self.paintGL()
-        self.update()
 
     def mousePanning(self, x, y):
         self.camera.mousePanning(x,y)
         self.paintGL()
-        self.update()
 
     def keyPanning(self, mx, my):
         self.camera.panning(mx,my)
         self.paintGL()
-        self.update()
 
     def keyRotation(self, xAngle, yAngle):
         self.camera.rotation(xAngle, yAngle)
         self.paintGL()
-        self.update()
 
     def modifyFov(self, value):
         self.camera.setFocalLength(value)
         self.paintGL()
-        self.update()
 
     def paintGL(self):
         if self.glob.openGLBlock:
@@ -363,12 +355,13 @@ class OpenGLView(QOpenGLWidget):
 
         if self.marker is not None:
             self.marker.draw(proj_view_matrix)
+        if self.glob.openGLWinUpdate:
+            self.update()
 
     def Tweak(self):
         for glbuffer in self.buffers:
             glbuffer.Tweak()
         self.paintGL()
-        self.update()
 
     def setCameraCenter(self):
         if self.glob.baseClass is not None:
@@ -413,7 +406,6 @@ class OpenGLView(QOpenGLWidget):
             self.scene.prepareSkeleton(False)
             self.setCameraCenter()
             self.paintGL()
-            self.update()
 
     def resizeGL(self, w, h):
         self.window_width = w

@@ -10,7 +10,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QGridLayout, QGroupBox, QCheckBox
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
-from gui.common import IconButton, WorkerThread, ErrorBox, MHFileRequest
+from gui.common import IconButton, WorkerThread, ErrorBox
 from gui.slider import SimpleSlider
 from obj3d.animation import PosePrims, MHPose
 import os

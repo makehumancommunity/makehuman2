@@ -243,7 +243,7 @@ class ExportLeftPanel(QVBoxLayout):
 
     def selectfolder(self):
         folder = self.foldername.text()
-        freq = MHFileRequest("Select export folder", None, folder, save=".")
+        freq = MHFileRequest(self.glob, "Select export folder", None, folder, save=".")
         name = freq.request()
         if name is not None:
             self.foldername.setText(name)

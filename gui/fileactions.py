@@ -657,7 +657,7 @@ class DownLoadImport(QVBoxLayout):
                 #
                 # part of the path is known, create a file request box
 
-                freq = MHFileRequest("Select a directory to save additional materials", None, path, save=".")
+                freq = MHFileRequest(self.glob, "Select a directory to save additional materials", None, path, save=".")
                 path = freq.request()
                 if path is None:
                     return              # cancel

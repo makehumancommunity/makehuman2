@@ -65,7 +65,7 @@ class MHSceneWindow(QWidget):
         self.ambLuminance = SimpleSlider("Luminance: ", 0, 100, self.ambChanged)
         vlayout.addWidget(self.ambLuminance )
 
-        self.ambColor = ColorButton("Color: ", self.ambColorChanged, horizontal=True)
+        self.ambColor = ColorButton(self.glob, "Color: ", self.ambColorChanged, horizontal=True)
         vlayout.addWidget(self.ambColor)
         l.setLayout(vlayout)
 
@@ -97,7 +97,7 @@ class MHSceneWindow(QWidget):
         l.setObjectName("subwindow")
         vlayout = QVBoxLayout()
 
-        self.clearColor = ColorButton("Background color: ", self.clearColorChanged)
+        self.clearColor = ColorButton(self.glob, "Background color: ", self.clearColorChanged)
         vlayout.addWidget(self.clearColor)
 
         self.skybox = QPushButton("Skybox")
@@ -161,7 +161,7 @@ class MHSceneWindow(QWidget):
             widget[0] = SimpleSlider("Luminance: ", 0, 100, self.lChanged, ident=l)
             vlayout.addWidget(widget[0])
 
-            widget[1] = ColorButton("Color: ", self.lColorChanged, horizontal=True, ident=l)
+            widget[1] = ColorButton(self.glob, "Color: ", self.lColorChanged, horizontal=True, ident=l)
             vlayout.addWidget(widget[1])
             hlayout.addLayout(vlayout)
 

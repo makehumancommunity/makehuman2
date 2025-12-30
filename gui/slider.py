@@ -369,11 +369,12 @@ class SimpleSlider(QWidget):
         self.setInfoText(value)
 
 class ColorButton(QWidget):
-    def __init__(self, labeltext, callback, parent=None, horizontal=False, ident=None):
+    def __init__(self, glob, labeltext, callback, parent=None, horizontal=False, ident=None):
         super().__init__()
         self.labeltext = labeltext
         self.callback = callback
         self.ident = ident
+        self.glob = glob
         self.info = QLabel(self)
         self.button = QPushButton()
         self.button.setFixedSize(80,20)
@@ -395,7 +396,9 @@ class ColorButton(QWidget):
         self.button.setStyleSheet("background-color : " + color.name())
 
     def getColor(self):
+        self.glob.openGLWinUpdate = False
         color = QColorDialog.getColor()
+        self.glob.openGLWinUpdate = True
         self.setColorValue(color)
         if self.ident is None:
             self.callback(color)

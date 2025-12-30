@@ -319,7 +319,7 @@ class GenericPoseEdit():
 
     def loadButton(self, path, convert=None):
         directory = self.env.stdUserPath(path)
-        freq = MHFileRequest(path.capitalize(), path + " files (*.mhpose)", directory)
+        freq = MHFileRequest(self.glob, path.capitalize(), path + " files (*.mhpose)", directory)
         filename = freq.request()
         if filename is not None:
             pose = MHPose(self.glob, self.units, "dummy")
@@ -349,7 +349,7 @@ class GenericPoseEdit():
 
     def saveButton(self, path):
         directory = self.env.stdUserPath(path)
-        freq = MHFileRequest(path.capitalize(), path + " files (*.mhpose)", directory, save=".mhpose")
+        freq = MHFileRequest(self.glob, path.capitalize(), path + " files (*.mhpose)", directory, save=".mhpose")
         filename = freq.request()
         if filename is not None:
             print ("Save " + filename)

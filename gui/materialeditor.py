@@ -78,7 +78,7 @@ class TextureBox(QGroupBox):
             self.intensity2 = None
 
         if self.altcolor:
-            self.colorbutton = ColorButton("Color: ", self.altColorChanged)
+            self.colorbutton = ColorButton(self.glob, "Color: ", self.altColorChanged)
             self.setAltColor()
             vlayout.addWidget(self.colorbutton)
             self.colorbutton.setVisible(not hasattr(self.material, self.attrib))
@@ -144,7 +144,7 @@ class TextureBox(QGroupBox):
 
     def setMap(self):
         directory = self.material.mhmatdir
-        freq = MHFileRequest("Texture (PNG/JPG)", "Images (*.png *.jpg *.jpeg)", directory)
+        freq = MHFileRequest(self.glob, "Texture (PNG/JPG)", "Images (*.png *.jpg *.jpeg)", directory)
         filename = freq.request()
         if filename is not None:
 
@@ -284,7 +284,7 @@ class MHMaterialEditor(QWidget):
         gb.setObjectName("subwindow")
         hlayout = QHBoxLayout()
 
-        self.colorationButton = ColorButton("Color: ", self.colorationChanged)
+        self.colorationButton = ColorButton(self.glob, "Color: ", self.colorationChanged)
         hlayout.addWidget(self.colorationButton)
 
         vlayout = QVBoxLayout()
@@ -467,7 +467,7 @@ class MHMaterialEditor(QWidget):
         if self.checkLitsphere() is False:
             return
         directory = self.material.mhmatdir
-        freq = MHFileRequest("Material (MHMAT)", "material files (*.mhmat)", directory, save=".mhmat")
+        freq = MHFileRequest(self.glob, "Material (MHMAT)", "material files (*.mhmat)", directory, save=".mhmat")
         filename = freq.request()
         if filename is not None:
             self.material.name = self.namebox.text()

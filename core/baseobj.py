@@ -497,9 +497,13 @@ class baseClass():
         attach = attachedAsset(self.glob, eqtype)
         (res, err) = attach.load(path)
         if res == 0:
+            if self.glob.centralWidget is None:         # for startup
+                exit(21)
             ErrorBox(self.glob.centralWidget, err)
             return (None)
         if res == 1:
+            if self.glob.centralWidget is None:         # for startup
+                exit(21)
             ErrorBox(self.glob.centralWidget, err)
 
         self.glob.markAssetByFileName(path, True)

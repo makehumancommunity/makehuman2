@@ -248,9 +248,10 @@ class MHBusyWindow(QWidget):
         self.progress.setValue(l)
 
 class MHFileRequest(QFileDialog):
-    def __init__(self, ftext, pattern, directory, save=None):
+    def __init__(self, glob, ftext, pattern, directory, save=None):
         super(MHFileRequest, self).__init__()
         self.save = save
+        self.glob = glob
 
         if pattern is not None:
             self.setNameFilters([pattern, "Any files (*)"])
@@ -274,7 +275,9 @@ class MHFileRequest(QFileDialog):
             self.setAcceptMode(QFileDialog.AcceptSave)
 
     def request(self):
+        self.glob.openGLWinUpdate = False
         success = self.exec()
+        self.glob.openGLWinUpdate = True
         if success:
             filename = self.selectedFiles()[0]
 

@@ -13,7 +13,7 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QHBoxLayout, QVBoxLayout, QFrame
 from PySide6.QtCore import Qt, QObject, QEvent, QPointF
-from PySide6.QtGui import QPainter, QPainterPath, QPixmap, QPaintEvent, QPen, QBrush, QColor, QColor, QFont, QFontMetrics
+from PySide6.QtGui import QPainter, QPainterPath, QPixmap, QPaintEvent, QPen, QBrush, QColor, QFont, QFontMetrics
 
 class MapInputWidget(QFrame):
     def __init__(self, size, framewidth, info, initialValue, callback, displayfunc=None, drawcenter=False, ident=None):

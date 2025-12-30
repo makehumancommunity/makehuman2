@@ -338,7 +338,7 @@ class Renderer(QVBoxLayout):
 
     def saveImage(self):
         directory = self.env.stdUserPath()
-        freq = MHFileRequest("Image (PNG)", "image files (*.png)", directory, save=".png")
+        freq = MHFileRequest(self.glob, "Image (PNG)", "image files (*.png)", directory, save=".png")
         filename = freq.request()
         if filename is not None:
             self.image.save(filename, "PNG", -1)
