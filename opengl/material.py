@@ -420,6 +420,15 @@ backfaceCull {self.backfaceCull}
         return self.tex_litsphere.load(self.sp_litsphereTexture, modify=modify)
 
     def loadAOMap(self, white, modify, obj):
+        """
+        load a new AO-MAP
+        """
+        # in case of PHONG shader for system assets return standard texture
+        # to avoid deletion
+        #
+        if self.type == "system":
+            return white
+
         if self.mapChanged('aomapTexture', self.tex_aomap):
             return self.tex_aomap.getTexture()
 
