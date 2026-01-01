@@ -23,13 +23,10 @@ class OffScreenRender:
         self.height = 0
         self.oldheight = self.view.window_height
         self.oldwidth = self.view.window_width
-        self.oldfunctions = self.view.context().functions()
         self.context = None
 
     def renderObject(self, obj, proj_view_matrix, campos):
-        obj.setFunctions(self.context.functions())
         obj.draw(proj_view_matrix, campos, self.view.light)
-        obj.setFunctions(self.oldfunctions)
 
     def getBuffer(self, width, height):
         self.width = width
@@ -50,20 +47,23 @@ class OffScreenRender:
 
         self.context = QOpenGLContext()
         self.context.setFormat(sformat)
+        self.context.setShareContext(self.view.context())
 
         self.surface = QOffscreenSurface()
         self.surface.setFormat(self.view.format())
         self.surface.create()
+
+        if not self.context.create():
+            self.env.logLine(1, "OffScreenRender: Failed to create OpenGL context")
+            return
         self.context.makeCurrent(self.surface)
+        ogl = self.context.functions()
 
         self.framebuffer = QOpenGLFramebufferObject(width, height, self.bufformat)
         self.framebuffer.bind()
-        ogl = self.context.functions()
 
         self.view.camera.resizeViewPort(width, height)
         proj_view_matrix = self.view.camera.calculateProjMatrix()
-        ogl.initializeOpenGLFunctions()
-
         ogl.glViewport(0, 0, width, height)
 
         c = self.view.light.glclearcolor
@@ -93,17 +93,17 @@ class OffScreenRender:
 
         for obj in self.view.objects[start:]:
             self.renderObject(obj, proj_view_matrix, campos)
-        self.glob.openGLBlock = False
 
     def bufferToImage(self):
         if self.glob.env.noalphacover is False:
-            img =  self.framebuffer.toImage()
+            img =  self.framebuffer.toImage().copy()
 
             # to avoid artifacts, we need to copy the image once
             #
-            img = QImage(img.constBits(), img.width(), img.height(), QImage.Format_ARGB32)
+            img = QImage(img.constBits(), img.width(), img.height(), QImage.Format_ARGB32).copy()
         else:
-            img =  self.framebuffer.toImage()
+            img =  self.framebuffer.toImage().copy()
+        self.glob.openGLBlock = False
 
         # now add alpha of body again, otherwise the character is transparent also, when wearing
         # transparent clothes
@@ -115,7 +115,6 @@ class OffScreenRender:
             for x in range(0, self.height* self.width):
                 if alphadest[x] < self.alphamask[x]:
                     ptr[x*4+3] = self.alphamask[x]
-
 
         imgmode = QImage.Format_RGBA8888 if self.transparent else QImage.Format_RGB888
         img =  img.convertToFormat(imgmode)

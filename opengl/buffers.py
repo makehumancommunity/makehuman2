@@ -139,9 +139,6 @@ class RenderedObject:
     def __str__(self):
         return("GL Object " + str(self.name))
 
-    def setFunctions(self, functions):
-        self.functions = functions
-
     def delete(self):
         self.glbuffers.Delete()
 
