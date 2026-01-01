@@ -362,7 +362,7 @@ class ImageBox(QDialog):
         layout = QVBoxLayout()
         imglabel = QLabel()
         if color is not None:
-            col = hex((int(color.x() * 256) <<16) +  (int(color.y() * 256) <<8) + int(color.z() *256))[2:]
+            col = hex((int(color.x() * 255) <<16) +  (int(color.y() * 255) <<8) + int(color.z() *255))[2:]
             imglabel.setStyleSheet("background-color: #" + col + ";")
         imglabel.setPixmap(QPixmap.fromImage(image))
 
