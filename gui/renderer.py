@@ -70,15 +70,16 @@ class Renderer(QVBoxLayout):
         self.s_objects = []
 
         glayout = QGridLayout()
-        glayout.addWidget(QLabel("Width"), 0, 0)
+        glayout.addWidget(QLabel("Render to offscreen canvas of size:"), 0, 0, 1, 2)
+        glayout.addWidget(QLabel("Width"), 1, 0)
         self.width = QLineEdit()
         self.width.editingFinished.connect(self.acceptIntegers)
-        glayout.addWidget(self.width, 0, 1)
+        glayout.addWidget(self.width, 1, 1)
 
-        glayout.addWidget(QLabel("Height"), 1, 0)
+        glayout.addWidget(QLabel("Height"), 2, 0)
         self.height = QLineEdit()
         self.height.editingFinished.connect(self.acceptIntegers)
-        glayout.addWidget(self.height, 1, 1)
+        glayout.addWidget(self.height, 2, 1)
         self.addLayout(glayout)
 
         self.transButton = QCheckBox("transparent canvas")
@@ -121,8 +122,8 @@ class Renderer(QVBoxLayout):
         button.clicked.connect(self.render)
         self.addWidget(button)
 
-        self.saveButton = IconButton(1,  os.path.join(self.env.path_sysicon, "f_save.png"), "save image", self.saveImage)
-        self.viewButton = IconButton(2,  os.path.join(self.env.path_sysicon, "render.png"), "show image", self.viewImage)
+        self.saveButton = IconButton(1,  os.path.join(self.env.path_sysicon, "f_save.png"), "save rendered image", self.saveImage)
+        self.viewButton = IconButton(2,  os.path.join(self.env.path_sysicon, "render.png"), "show rendered image", self.viewImage)
         self.addWidget(self.viewButton)
         self.addWidget(self.saveButton)
 
