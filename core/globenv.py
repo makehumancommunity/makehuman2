@@ -299,6 +299,11 @@ class programInfo():
             return None
         return self.pathToUnicode(os.path.normpath(path).replace("\\", "/"))
 
+    def fullPath(self, path: str) -> str:
+        if self.osindex == 0:
+            path = os.path.normcase()
+        return os.path.expanduser(os.path.normpath(path).replace("\\", "/"))
+
     def normalizeName(self, path: str) -> str:
         """
         change a name to lower case, only allow a-z 0-9 - + _ =

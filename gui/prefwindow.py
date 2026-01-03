@@ -31,6 +31,7 @@ class MHPrefWindow(QWidget):
         env = parent.env
 
         self.localKeys = self.genLocalKeys(self.parent.glob.keyDict)
+        self.old_homepath = env.path_home
 
         self.setWindowTitle("Preferences")
         self.resize (500, 600)
@@ -40,7 +41,6 @@ class MHPrefWindow(QWidget):
 
         self.redirect_bool = env.config["redirect_messages"]
         self.redirect_path = env.path_error
-
 
         layout = QVBoxLayout()
         self.tab_widget = QTabWidget()
@@ -128,7 +128,8 @@ class MHPrefWindow(QWidget):
         fo_layout = QGridLayout()
         fo_layout.addWidget(QLabel("MakeHuman user home"), 0, 0, 1, 2)
         self.ql_path_home = QLineEdit(env.path_home)
-        self.ql_path_home.setToolTip('if you change this, be aware to move existent data to new folder')
+        self.ql_path_home.setToolTip('must be different to ' + env.path_sys + '\nif you change this, be aware to move existent data to new folder')
+        self.ql_path_home.editingFinished.connect(self.test_homepath)
         fo_layout.addWidget(self.ql_path_home, 1, 0, 1, 2)
         fo_layout.addWidget(QLabel("Errors and logging"), 2, 0)
         self.cb_redirect = QCheckBox("Redirect")
@@ -286,6 +287,16 @@ class MHPrefWindow(QWidget):
         self.textlabel.setText(self.keyTable.item(row,0).text())
         self.keylabel.setText('')
 
+    def test_homepath(self):
+        """
+        test the pathname, it should not be equal to installation path and longer than 3
+        """
+        up = self.parent.env.fullPath(self.ql_path_home.text())
+        sp = self.parent.env.fullPath(self.parent.env.path_sys)
+        if sp == up or len(up) < 3:
+            up = self.old_homepath
+        self.ql_path_home.setText(up)
+
     def changekey_call(self):
         row = self.keyTable.currentRow()
         col = self.keyTable.currentColumn()
@@ -346,8 +357,6 @@ class MHPrefWindow(QWidget):
             basename = None
         env.config["basename"] = basename
 
-        env.config["units"] = self.u_metric.text().lower() if self.u_metric.isChecked() else self.u_imperial.text().lower()
-        env.config["remember_session"] = self.cb_keep.isChecked()
         env.config["units"] = self.u_metric.text().lower() if self.u_metric.isChecked() else self.u_imperial.text().lower()
         env.config["remember_session"] = self.cb_keep.isChecked()
 

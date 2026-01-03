@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, j_jones
 
     Function:
     * ErrorBox
@@ -350,9 +350,8 @@ class ImageBox(QDialog):
         h = size.height()
         scrollbars = (w > 1024) or (h > 768)
 
-        if winframe is False or not scrollbars:
-            self.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint | Qt.WindowTitleHint)
-        else:
+        # Allow resizing and dragging for all cases
+        if scrollbars:
             self.setWindowFlag(Qt.WindowMaximizeButtonHint, True)
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
@@ -365,6 +364,7 @@ class ImageBox(QDialog):
             col = hex((int(color.x() * 255) <<16) +  (int(color.y() * 255) <<8) + int(color.z() *255))[2:]
             imglabel.setStyleSheet("background-color: #" + col + ";")
         imglabel.setPixmap(QPixmap.fromImage(image))
+        imglabel.setScaledContents(True)  # Allow image to scale with window resize
 
         if scrollbars:
             scroll = QScrollArea(self)
@@ -375,13 +375,19 @@ class ImageBox(QDialog):
             offset = 50
             w = 1024 if w > 1024-offset else w+offset
             h = 768 if h > 768-offset else h+offset
-            self.setMinimumWidth(w)
-            self.setMinimumHeight(h)
+            self.resize(w, h)
         else:
             layout.addWidget(imglabel)
+            # Set initial size to image size but allow resizing smaller
+            self.resize(w, h + 50)  # +50 for button box
+
         layout.addWidget( buttonBox)
 
         self.setLayout(layout)
-        self.setWindowModality(Qt.WindowModal)
+        # Set a reasonable minimum size that allows shrinking
+        self.setMinimumSize(200, 150)
+        self.setSizeGripEnabled(True)  # Enable resize grip
+        # Use non-modal so the window can be freely moved and resized
+        self.setWindowModality(Qt.NonModal)
         self.setAttribute(Qt.WA_DeleteOnClose, True)
         self.show()
