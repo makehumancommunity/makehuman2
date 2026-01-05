@@ -496,14 +496,19 @@ class baseClass():
         # print ("Attach: " + path + " of " + eqtype)
         attach = attachedAsset(self.glob, eqtype)
         (res, err) = attach.load(path)
+
+        # handle error, for startup without a screen when loading a mesh exit
+        #
         if res == 0:
-            if self.glob.centralWidget is None:         # for startup
+            if self.glob.centralWidget is None:
+                print ("Try to start program with option -r")
                 exit(21)
             ErrorBox(self.glob.centralWidget, err)
             return (None)
-        if res == 1:
-            if self.glob.centralWidget is None:         # for startup
-                exit(21)
+
+        # handle bad geometry, skip error in case of startup
+        #
+        if res == 1 and self.glob.centralWidget is not None:
             ErrorBox(self.glob.centralWidget, err)
 
         self.glob.markAssetByFileName(path, True)

@@ -352,10 +352,13 @@ class attachedAsset:
             self.bWeights.approxWeights(self, self.glob.baseClass.pose_skeleton.bWeights)
         return True, None
 
-    def load(self, filename, use_ascii=False):
+    def load(self, filename: str, use_ascii=False) -> int:
         """
         load mhclo or mhbin
         if not ASCII must be use and .mhbin is newer than .mhclo load .mhbin
+        :param str filename: name of the file to read from
+        :param bool use_ascii: determines if ASCII must be used
+        :return: int 0 = error, 1 = bad geometry, 2 = okay
         """
         if use_ascii is False and (filename.endswith(".mhclo") or filename.endswith(".proxy")):
             binfile = filename[:-5] + "mhbin"

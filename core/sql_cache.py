@@ -4,15 +4,30 @@
 
     classes:
     * FileCache
+
+    The sqllite database consists of 2 tables
+
+    table 'filecache':
+    name, uuid, path, folder, obj_file, thumbfile, author, tags
+
+    table userinformation:
+    uuid, tags
+
+    the index to connect is uuid. User-information can be saved
 """
+
 import sqlite3
 import os
 import json
-#
-# TODO could be that this might change to a primary index later using uuid
-#
+
 class FileCache:
-    def __init__(self, env, name):
+    """
+    constructor of FileCache, get time of file
+
+   :param programInfo env: pointer to user-environment
+   :param str name: filename of the database
+    """
+    def __init__(self, env, name: str):
         self.env = env
         self.con = sqlite3.connect(name)
         self.cur = self.con.cursor()
@@ -20,11 +35,16 @@ class FileCache:
         self.time = int(os.stat(name).st_mtime)
         self.env.logTime(self.time, "last change repository: " + name)
 
-    def createCache(self, latest, subdir=None):
+    def createCache(self, latest: int, subdir=None, force=False):
         """
         creates filecache and userinformation if non existent
         deletes complete filecache entries in case a file is newer
         or filecache entries when subdir is mentioned
+
+        :param int latest: timestamp as integer
+        :param str subdir: optional name of a subdirectory
+        :param force bool: recreate cache always
+        :return: bool, true if changed
         """
         res = self.cur.execute("SELECT name FROM sqlite_master WHERE name='userinformation'")
         if res.fetchone() is None:
@@ -38,7 +58,7 @@ class FileCache:
             return(True)
 
         if subdir is None:
-            if latest > self.time:
+            if latest > self.time or force:
                 self.env.logLine(8, "Delete current filecache completely")
                 self.cur.execute("DELETE FROM filecache")
                 return (True)

@@ -36,6 +36,10 @@ def main():
         without multisampling normal blend function is used'''))
     parser.add_argument("-l", action="store_true", help="force to write to log file")
     parser.add_argument("-b", "--base", type=str, help="preselect base mesh use 'none' for no preselection")
+    parser.add_argument("-r", "--repository", action="store_true", help=textwrap.dedent('''\
+        create a new database repository. It is needed when repository seems to have
+        missing entries or when user space was moved to a new location. The manually
+        entered data (new tags for categorization) is not deleted.'''))
     parser.add_argument("-A", '--admin', action="store_true", help="Support administrative tasks ('Admin'). Command will write into program folder, where makehuman is installed.")
     parser.add_argument("-v", "--verbose",  type=int, default = 1, help= textwrap.dedent('''\
             bitwise verbose option (add values)

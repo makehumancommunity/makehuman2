@@ -176,6 +176,9 @@ Currently syntax is like this:
                                 without multisampling normal blend function is used
           -l                    force to write to log file
           -b BASE, --base BASE  preselect base mesh use 'none' for no preselection
+          -r, --repository      create a new database repository. It is needed when repository seems to have
+                                missing entries or when user space was moved to a new location. The manually
+                                entered data (new tags for categorization) is not deleted.
           -A, --admin           Support administrative tasks ('Admin'). Command will write into program folder, where makehuman is installed.
           -v VERBOSE, --verbose VERBOSE
                         bitwise verbose option (add values)

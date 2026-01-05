@@ -211,6 +211,7 @@ class programInfo():
         self.verbose = args.verbose
         self.admin = args.admin
         self.noalphacover = args.nomultisampling    # in reality it means not to use alpha to coverage
+        self.recreate_repo = args.repository
         self.uselog  = args.l
         self.frozen  = frozen
         self.path_sys = path_sys
@@ -785,9 +786,11 @@ class programInfo():
             (latest, files) = self.subDirsBaseFolder(".bvh", "poses")
         else:
             (latest, files) = self.subDirsBaseFolder(".mhclo", subdir)
+
+        # check date of repository db, after force reset parameter
         #
-        # check date of db?
-        reread = self.fileCache.createCache(latest, subdir)
+        reread = self.fileCache.createCache(latest, subdir, self.recreate_repo)
+        self.recreate_repo = False
         if reread is True:
             self.logLine (1, "Recreate repo is " + str(reread))
             data = []
