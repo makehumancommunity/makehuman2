@@ -1,0 +1,29 @@
+{
+	"pynsistfile": "/tmp/pynsist.cfg",
+	"mhconfigfile": "../data/makehuman2_version.json",
+	"pynsist": {
+		"Application": {
+			"name": "TITLE",
+			"version": "VERSION",
+			"publisher": "PUBLISHER",
+			"script": "mh2start.py",
+			"icon": "ICON"
+		},
+		"Python": {
+			"version": "3.9.13",
+			"bitness": 64,
+			"format": "bundled"
+		},
+		"Include": {
+			 "pypi_wheels": {
+				 "PySide6": "6.5.0",
+				 "PyOpenGL": "3.1.0",
+				 "numpy": "1.17.4",
+				 "psutil": "5.9.0"
+			},
+			"files": [
+				"makehuman2"
+			]
+		}
+	}
+}
