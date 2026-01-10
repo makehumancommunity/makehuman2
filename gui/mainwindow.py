@@ -2,6 +2,8 @@
     License information: data/licenses/makehuman_license.txt
     Author: black-punkduck
 
+    The mainwindow containing menus, left, center and right column
+
     Classes:
     * MHMainWindow
 """

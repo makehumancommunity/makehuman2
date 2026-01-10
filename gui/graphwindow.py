@@ -2,6 +2,9 @@
     License information: data/licenses/makehuman_license.txt
     Author: black-punkduck
 
+    contains the center column of the application window and OpenGL-widget,
+    handles all navigation events and perspective changes
+
     Classes:
     * NavigationEvent
     * MHGraphicWindow
@@ -19,15 +22,29 @@ from opengl.main import OpenGLView
 import os
 
 class NavigationEvent(QObject):
-    def __init__(self, callback):
-        self.win = callback
+    """
+    Handle navigation events, calls functions in parent object:
+        keyToFunction, screenPosArc, screenPosPan, setPos, zoom
+
+    :param parent: QWidget object containing mentioned functions
+    :return: bool value: True means event is accepted, False otherwise
+    """
+    def __init__(self, parent):
+        self.win = parent
         super().__init__()
 
     def eventFilter(self, widget, event):
+        """
+        handle the event
 
+        :param widget: widget
+        :param event: event to check
+        """
         if not hasattr(event, "type"):
             return False
 
+        # key events
+        #
         if event.type() == QEvent.ShortcutOverride:
             key = QKeySequence(event.keyCombination()).toString()
             self.win.keyToFunction(key)
@@ -38,6 +55,8 @@ class NavigationEvent(QObject):
                 event.accept()
                 return True
 
+        # mouse events
+        #
         elif event.type() == QEvent.MouseMove:
             if event.buttons() == Qt.MouseButton.LeftButton:
                 self.win.screenPosArc(event.globalPosition())
@@ -288,6 +307,7 @@ class MHGraphicWindow(QWidget):
 
         self.glob.openGLWindow = self.view
         hlayout = QHBoxLayout()
+        hlayout.setSpacing(1)
         hlayout.addWidget(self.view)
 
         vlayout = QVBoxLayout()
