@@ -11,9 +11,6 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QGridLayout, QPushButton, QGridLayout
 from PySide6.QtGui import QColor
 
-import sys
-import re
-
 class MHCharMeasWindow(QWidget):
     """
     Message window for logfiles and errors

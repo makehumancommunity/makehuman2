@@ -18,7 +18,6 @@ from PySide6.QtGui import QColor, QPixmap
 from gui.common import IconButton, ErrorBox, ImageBox
 
 import sys
-import re
 import os
 
 class MemTableModel(QAbstractTableModel):

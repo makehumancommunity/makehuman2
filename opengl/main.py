@@ -13,7 +13,6 @@ from PySide6.QtGui import QMatrix4x4, QVector3D
 
 # try to keep only constants here
 #
-import re
 import os
 from OpenGL import GL as gl
 from opengl.info import GLDebug

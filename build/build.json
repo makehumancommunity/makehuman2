@@ -1,13 +1,17 @@
 {
-	"pynsistfile": "/tmp/pynsist.cfg",
+	"pynsistdir": "pynsist-work",
+	"pynsistfile": "pynsist.cfg",
 	"mhconfigfile": "../data/makehuman2_version.json",
+	"reponame": "makehuman2",
+	"ignoredirs": ["__pycache__", "build"],
+	"ignorefiles": [".*\\.pyc", "^\\..*", ".*\\.mhbin", ".*\\.npz"],
 	"pynsist": {
 		"Application": {
 			"name": "TITLE",
 			"version": "VERSION",
 			"publisher": "PUBLISHER",
-			"script": "mh2start.py",
-			"icon": "ICON"
+			"script": "winstart.py",
+			"icon": "../data/icons/makehuman2logo.ico"
 		},
 		"Python": {
 			"version": "3.9.13",
@@ -22,7 +26,7 @@
 				 "psutil": "5.9.0"
 			},
 			"files": [
-				"makehuman2"
+				"_REPODIR_"
 			]
 		}
 	}
