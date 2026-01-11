@@ -9,6 +9,7 @@ import shutil
 import json
 import argparse
 import tempfile
+import subprocess
 
 class winBuilder():
     def __init__(self, tmp, path, verbose):
@@ -60,7 +61,6 @@ class winBuilder():
             self.cleanexit(2, str(error))
         
     def createPynsistCfg(self, text):
-        self.mkdir(self.pynsistdir)
         path = os.path.join(self.pynsistdir, self.pynsistcfg)
         if self.verbose:
             print ("+ write config for pynsist to " + path)
@@ -93,6 +93,7 @@ class winBuilder():
         if "mhconfigfile" not in json_object:
             self.cleanexit(3, "Missing 'mhconfigfile' in " + self.conf)
 
+        self.mkdir(self.pynsistdir)
         mhconfig = json_object["mhconfigfile"]
         mhobject = self.readJSON(mhconfig)
 
@@ -152,9 +153,13 @@ class winBuilder():
                 incl = pynsist["Include"]
                 for item in ("packages", "pypi_wheels", "files"):
                     if item == "pypi_wheels":
-                        outtext += "pypi_wheels= "
+                        outtext += "pypi_wheels="
                         for elem in incl["pypi_wheels"]:
-                            outtext += elem + "==" + incl["pypi_wheels"][elem] + "\n"
+                            outtext += " " + elem + "==" + incl["pypi_wheels"][elem] + "\n"
+                    elif item == "packages":
+                        outtext += "packages="
+                        for elem in incl["packages"]:
+                            outtext += " " + elem + "\n"
                     elif item == "files":
                         outtext += "\nfiles= "
                         for elem in incl["files"]:
@@ -171,13 +176,10 @@ class winBuilder():
         self.mkdir(self.repodir)
 
         for root, dirs, files in os.walk(source, topdown=True):
-            print (root, dirs, files)
             if root.startswith(source):
                 destdir = os.path.join(self.repodir, root[l+1:])
-            print (destdir)
 
             for elem in dirs:
-                print (elem)
                 dontcreate = False
                 for pat in self.ignoredirs:
                     if re.match(pat, elem):
@@ -196,6 +198,10 @@ class winBuilder():
                     if not dontcreate:
                         self.copyfile(os.path.join(root, elem), os.path.join(destdir, elem))
 
+    def pynsistCall(self):
+        if self.verbose:
+            print ("+ calling pynsist self.pynsistcfg")
+        subprocess.call(["pynsist", self.pynsistcfg], cwd=self.pynsistdir)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -213,5 +219,6 @@ if __name__ == '__main__':
     outtext = wb.evaluatePynsistCfg()
     wb.createPynsistCfg(outtext)
     wb.copyRepo()
+    wb.pynsistCall()
 
 exit(0)
