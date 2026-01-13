@@ -53,6 +53,18 @@ class UserEnvironment():
         return(platform.machine(), platform.processor(), platform.uname()[2])
 
     def GetUserConfigFilenames(self, osindex=None, create=False):
+        """
+        gets of creates user config filenames
+
+        :param int osindex: if None self.osindex is used, otherwise 0-2
+        :param bool create: should folder be created?
+
+        :return: name of conf-file and session-file - or None when mkdir fails
+        """
+
+        # generic subfolder in makehuman2, for apple it should be Makehuman2
+        #
+        subfolder = "makehuman2"
         if osindex is None:
             osindex = self.osindex
         if osindex == 0:
@@ -60,11 +72,12 @@ class UserEnvironment():
         elif osindex == 1:
             path = os.path.expanduser('~/.config')
         else:
-            path = os.path.expanduser('~/Library/Application Support/MakeHuman')
+            path = os.path.expanduser('~/Library/Application Support')
+            subfolder = "Makehuman2"
 
         #
         # create of subfolder
-        folder = os.path.join(path, 'makehuman2')
+        folder = os.path.join(path, subfolder)
         if create is True:
             if not os.path.isdir(folder):
                 try:

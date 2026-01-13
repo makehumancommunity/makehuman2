@@ -118,8 +118,9 @@ QPushButton::checked {
 }
 
 QPushButton::disabled {
-    background: #400000;
-    border-color: #200000;
+    background: #808080;
+    border-color: #606060;
+    color: #a0a0a0;
 }
 
 QMenuBar {

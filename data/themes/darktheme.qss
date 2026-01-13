@@ -110,7 +110,8 @@ QPushButton::checked {
 }
 
 QPushButton::disabled {
-    background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4, radius: 1.35, stop: 0 #888, stop: 1 #000);
+    background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4, radius: 1.35, stop: 0 #555, stop: 1 #333);
+    color: #666;
 }
 
 QMenuBar {
