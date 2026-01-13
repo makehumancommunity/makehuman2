@@ -64,10 +64,17 @@ class NavigationEvent(QObject):
                 self.win.screenPosPan(event.globalPosition())
         elif event.type() == QEvent.MouseButtonPress:
             self.win.setPos(event.globalPosition())
+
         elif event.type() == QEvent.Wheel:
-            y = event.angleDelta().y()
-            direction = 1 if y > 0 else -1
-            self.win.zoom(direction)
+
+            # accept wheel only when in view
+            #
+            (b, x, y) = self.win.mouseInView(event.globalPosition())
+            if b:
+                y = event.angleDelta().y()
+                direction = 1 if y > 0 else -1
+                self.win.zoom(direction)
+                event.accept()
 
         return False
 
@@ -440,6 +447,12 @@ class MHGraphicWindow(QWidget):
         self.rotate(0.0, -5.0)
 
     def mouseInView(self, pos):
+        """
+        check in mouse in view
+
+        :param QPoint pos: Position
+        :return: bool, xpos, ypos   returns False, 0, 0 if outside
+        """
         window= self.view.mapToGlobal(self.view.pos())
         mx = int(pos.x())
         my = int(pos.y())
@@ -448,9 +461,9 @@ class MHGraphicWindow(QWidget):
         hx = wx + self.view.width()
         hy = wy + self.view.height()
         if mx >= wx and my >=wy and mx < hx and my < hy:
-            return (True, mx-wx, my-wy)
+            return True, mx-wx, my-wy
         else:
-            return (False, 0, 0)
+            return False, 0, 0
 
     def screenPosArc(self, pos):
         """
