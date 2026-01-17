@@ -41,7 +41,7 @@ You need to setup python and get some libraries.
 
 For Linux you should install a virtual environment. The reason is, that Linux already has a python and libraries installed and in development stage it might be dangerous to overwrite the system environment.
 
-### Linux only: build a virtual environment
+### Linux and MacOS only: build a virtual environment
 
 Change to the newly created directory
 
@@ -49,18 +49,23 @@ Change to the newly created directory
 cd makehuman2
 ```
 
-Create a virtual environment (must be done once)
+Create a virtual environment (must be done once). It is sufficient to use -m venv, but also the package virtualenv works fine
 
-```
+```bash
 python3 -m venv venv
 ```
+-or -
+```bash
+virtualenv venv
+```
+
 
 Activate the virtual environment (must be done always)
 
-```
+```bash
 source venv/bin/activate
 ```
-Your prompt should change to indicate the activated environment. 
+After activation, your command prompt should be prefixed with `(venv)`.
 
 ### Windows only
 
@@ -201,9 +206,23 @@ To find this file simply display the version, it is presented in the last line:
 
 	python3 makehuman -V
 
-- Do not wonder about the path for Windows, this is a special python sandbox to hold your %APPDATA%.
-- Linux is more or less standard inside the ~/.config folder.
-- MacOS uses standard folder ~/Library/Application Support/MakeHuman.
+**Windows:**
+```text
+%APPDATA%/makehuman2/makehuman2.conf.
+```
+Do not wonder about the path for Windows, this is a special python APPDATA sandbox to hold the file.
+
+**Linux:**
+```text
+~/.config/makehuman2/makehuman2.conf
+```
+which is the standard-method for Linux.
+
+**MacOS:**
+```text
+~/Library/Application Support/MakeHuman2/makehuman2.conf
+```
+which is the standard-method for MacOS.
 
 ##  Blender plugin
 

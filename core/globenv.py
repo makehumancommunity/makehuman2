@@ -260,6 +260,7 @@ class programInfo():
         print (self.release_info["name"] + " Version " + ".".join(str(x) for x in self.release_info["version"]))
         print ("Status: " + self.release_info["status"])
         print ("Copyright: " + self.release_info["copyright"])
+        print ("URL: " + self.release_info["url_mhcommunity"])
         if hasattr(self, "path_userconf"):
             print ("\nUser configuration file is: " + self.path_userconf)
             if self.osindex == 0:

@@ -21,7 +21,7 @@ B. The license for the source code as such
 ------------------------------------------
 
 The MakeHuman source code is defined as files that contain program logic.
-This includes python files, bat scripts, shell scripts and glsl shaders.
+This includes python files, shell scripts and glsl shaders.
 
 Image files required for the user interface as such are also covered. This
 includes images for buttons, icons, and slider images.
@@ -79,8 +79,8 @@ limitation on what you can do with this combined output.
 To make it clear, the MakeHuman project makes no claim whatsoever over output
 such as:
 
-* Exports to files (FBX, OBJ, DAE, MHX2...)
-* Exports via direct integration (import via MPFB)
+* Exports to files (STL, OBJ, GLTF...)
+* Exports via direct integration (MH2B format or socket to Blender)
 * Graphical data generated via scripting or plugins
 * Renderings
 * Screenshots

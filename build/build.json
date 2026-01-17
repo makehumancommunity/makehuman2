@@ -11,6 +11,7 @@
 			"version": "VERSION",
 			"publisher": "PUBLISHER",
 			"script": "winstart.py",
+			"license_file": "../data/licenses/makehuman_license.txt",
 			"icon": "../data/icons/makehuman2logo.ico"
 		},
 		"Python": {

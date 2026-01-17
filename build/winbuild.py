@@ -16,9 +16,14 @@ class winBuilder():
         self.tmp = tmp
         self.conf = path
         self.verbose= verbose
+        self.makensis = "/usr/bin/makensis"
         self.pynsistcfg = None
         self.pynsistdir = None
         self.reponame = None
+        self.name = None
+        self.script = None
+        self.icon = None
+        self.nsifile = None
         self.ignoredirs = []
         self.ignorefiles = []
 
@@ -72,6 +77,9 @@ class winBuilder():
         if self.verbose:
             print ("+ evaluate " + self.conf)
 
+        if not os.access(self.makensis, os.X_OK):
+            self.cleanexit(1, self.makensis + " is not an executable program")
+
         if "pynsistfile" not in json_object:
             self.cleanexit(3, "Missing 'pynsistfile' in " + self.conf)
         self.pynsistcfg = json_object["pynsistfile"]
@@ -94,6 +102,8 @@ class winBuilder():
             self.cleanexit(3, "Missing 'mhconfigfile' in " + self.conf)
 
         self.mkdir(self.pynsistdir)
+        self.nsifile = os.path.join(self.pynsistdir, "build", "nsis", "installer.nsi")
+
         mhconfig = json_object["mhconfigfile"]
         mhobject = self.readJSON(mhconfig)
 
@@ -110,13 +120,14 @@ class winBuilder():
             outtext += "\n[" + cat + "]\n"
             if cat == "Application":
                 appl = pynsist["Application"]
-                for item in ("name", "version", "publisher", "script", "icon"):
+                for item in ("name", "version", "license_file", "publisher", "script", "icon"):
                     if item not in appl:
                         self.cleanexit(4, "Missing " + item + " in " + cat)
 
                     if item == "name":
                         if "name" not in mhobject:
                             self.cleanexit(4, "Missing name in " + mhconfig)
+                        self.name = mhobject["name"]
                         outtext += "name=" + mhobject["name"] + "\n"
 
                     elif item == "version":
@@ -129,15 +140,20 @@ class winBuilder():
                             self.cleanexit(4, "Missing copyright in " + mhconfig)
                         outtext += "publisher=" + mhobject["copyright"] + "\n"
 
+                    elif item == "license_file":
+                        license_file = os.path.basename(appl[item])
+                        self.copyfile(appl[item], os.path.join(self.pynsistdir, license_file))
+                        outtext += item + "=" + license_file + "\n"
+
                     elif item == "icon":
-                        icon = os.path.basename(appl[item])
-                        self.copyfile(appl[item], os.path.join(self.pynsistdir, icon))
-                        outtext += item + "=" + icon + "\n"
+                        self.icon = os.path.basename(appl[item])
+                        self.copyfile(appl[item], os.path.join(self.pynsistdir, self.icon))
+                        outtext += item + "=" + self.icon + "\n"
 
                     elif item == "script":
-                        script = os.path.basename(appl[item])
-                        self.copyfile(appl[item], os.path.join(self.pynsistdir, script))
-                        outtext += item + "=" + script + "\n"
+                        self.script = os.path.basename(appl[item])
+                        self.copyfile(appl[item], os.path.join(self.pynsistdir, self.script))
+                        outtext += item + "=" + self.script + "\n"
 
                     else:
                         outtext += item + "=" + appl[item] + "\n"
@@ -198,10 +214,37 @@ class winBuilder():
                     if not dontcreate:
                         self.copyfile(os.path.join(root, elem), os.path.join(destdir, elem))
 
+    def createDeskTopShortCut(self):
+        if self.verbose:
+            print ("+ placing desktop shortcut in installer.nsi")
+        shortcut = '    CreateShortCut "$Desktop\\' + self.name + \
+            '.lnk" \'"$INSTDIR\Python\pythonw.exe" "$INSTDIR\\' + self.script + '"\' "$INSTDIR\\' + self.icon + '"\n\n'
+        with open(self.nsifile, 'r') as ifile:
+            data = ifile.readlines()
+
+        notadded = True
+        with open(self.nsifile, 'w') as ifile:
+            for l in data:
+                if notadded and "CreateShortCut" in l:
+                    ifile.write(shortcut)
+                    notadded = False
+                ifile.write(l)
+
     def pynsistCall(self):
         if self.verbose:
             print ("+ calling pynsist self.pynsistcfg")
-        subprocess.call(["pynsist", self.pynsistcfg], cwd=self.pynsistdir)
+        try:
+            subprocess.call(["pynsist", "--no-makensis", self.pynsistcfg], cwd=self.pynsistdir)
+        except Exception as e:
+            self.cleanexit (10, "pynsist --no-makensis " + self.pynsistcfg + " failed!")
+
+    def makensisCall(self):
+        if self.verbose:
+            print ("+ calling makensis")
+        try:
+            subprocess.call([self.makensis, self.nsifile], cwd=self.pynsistdir)
+        except Exception as e:
+            self.cleanexit (11, self.makensis + " " + self.nsifile + " failed!")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -220,5 +263,7 @@ if __name__ == '__main__':
     wb.createPynsistCfg(outtext)
     wb.copyRepo()
     wb.pynsistCall()
+    wb.createDeskTopShortCut()
+    wb.makensisCall()
 
 exit(0)
