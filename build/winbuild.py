@@ -214,21 +214,38 @@ class winBuilder():
                     if not dontcreate:
                         self.copyfile(os.path.join(root, elem), os.path.join(destdir, elem))
 
-    def createDeskTopShortCut(self):
+    def modifyInstaller(self):
+        """
+        replace the shortcut
+        """
         if self.verbose:
             print ("+ placing desktop shortcut in installer.nsi")
-        shortcut = '    CreateShortCut "$Desktop\\' + self.name + \
-            '.lnk" \'"$INSTDIR\Python\pythonw.exe" "$INSTDIR\\' + self.script + '"\' "$INSTDIR\\' + self.icon + '"\n\n'
+        shortcut = '    CreateShortCut "$DESKTOP\\' + self.name + \
+            '.lnk" "$INSTDIR\Python\python.exe" \'"$INSTDIR\\' + self.script + '"\' "$INSTDIR\\' + self.icon + '"\n\n'
+
+        delshortcut = '     Delete "$DESKTOP\MakeHuman II.lnk"\n'
+
         with open(self.nsifile, 'r') as ifile:
             data = ifile.readlines()
 
-        notadded = True
+        added = 0
         with open(self.nsifile, 'w') as ifile:
             for l in data:
-                if notadded and "CreateShortCut" in l:
+                if added == 1:
+                    added = 2
+                    continue
+                if "%HOMEDRIVE%\%HOMEPATH%" in l:
+                    ifile.write( "  SetOutPath \"$INSTDIR\"\n")
+                elif added == 0 and "CreateShortCut" in l:
                     ifile.write(shortcut)
-                    notadded = False
-                ifile.write(l)
+                    if l.endswith("\\\n"):
+                        added = 1
+                    else:
+                        added = 2
+                elif ".lnk" in l:
+                    ifile.write(delshortcut)
+                else:
+                    ifile.write(l)
 
     def pynsistCall(self):
         if self.verbose:
@@ -263,7 +280,7 @@ if __name__ == '__main__':
     wb.createPynsistCfg(outtext)
     wb.copyRepo()
     wb.pynsistCall()
-    wb.createDeskTopShortCut()
+    wb.modifyInstaller()
     wb.makensisCall()
 
 exit(0)

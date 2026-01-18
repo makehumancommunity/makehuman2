@@ -162,6 +162,9 @@ python3 makehuman.py
 
 It is possible to start MakeHuman2 the common way. An icon is supplied in the data/icons folder: makehuman2logo.ico. Make sure a suffix .py starts your python3 interpreter (mostly visual studio might be opened). Of course only do that, if you do not need visual studio ..
 
+Meanwhile the builder creates a running windows version when pynsist and nsis are installed (only for Linux/MacOS). In the end there will be an .exe. But
+at the moment it is just a test, esp. I used older libraries which will be replaced later.
+
 
 ## Internals:
 
@@ -210,7 +213,8 @@ To find this file simply display the version, it is presented in the last line:
 ```text
 %APPDATA%/makehuman2/makehuman2.conf.
 ```
-Do not wonder about the path for Windows, this is a special python APPDATA sandbox to hold the file.
+Do not wonder about the path for Windows, this is a special python APPDATA sandbox to hold the file, when using the development workflow.
+The .exe file works with the normal %APPDATA% path already.
 
 **Linux:**
 ```text

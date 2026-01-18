@@ -9,8 +9,9 @@ import sys
 from time import sleep
 
 from PySide6.QtWidgets import QApplication
-
 from PySide6.QtCore import QEventLoop
+
+sys.path.insert(0, ".") # used for windows
 
 from core.globenv import programInfo, globalObjects
 from gui.mainwindow import  MHMainWindow
