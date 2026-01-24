@@ -6,6 +6,7 @@ build a windows version (not yet finished)
 import os
 import re
 import shutil
+import sys
 import json
 import argparse
 import tempfile
@@ -16,7 +17,6 @@ class winBuilder():
         self.tmp = tmp
         self.conf = path
         self.verbose= verbose
-        self.makensis = "/usr/bin/makensis"
         self.pynsistcfg = None
         self.pynsistdir = None
         self.reponame = None
@@ -26,6 +26,20 @@ class winBuilder():
         self.nsifile = None
         self.ignoredirs = []
         self.ignorefiles = []
+        #
+        # get installer path according to OS
+        #
+        if not sys.platform.startswith('win'):
+            self.makensis = "/usr/bin/makensis"
+        else:
+            # get windows version
+            import winreg
+            try:
+                nsis_dir = winreg.QueryValue(winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\NSIS')
+            except OSError:
+                nsis_dir = winreg.QueryValue(winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\Wow6432Node\\NSIS')
+            self.makensis = os.path.join(nsis_dir, "makensis.exe")
+
 
     def cleanexit(self, num, text):
         print (text)
