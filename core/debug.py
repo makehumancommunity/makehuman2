@@ -28,7 +28,7 @@ class measureTime():
 def memInfo():
     process = psutil.Process()
     mem = int(process.memory_info().rss / 1024)
-    print ("\n--- Current memory usage in kbytes: " + str(mem) + "\n")
+    return "Current memory usage in kbytes: " + str(mem)
 
 def dumper(mclass):
     text = ""

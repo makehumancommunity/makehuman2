@@ -82,10 +82,9 @@ def exportObj3dBinary(filename, obj, content = {}):
     try:
         f = open(filename, "wb")
         np.savez_compressed(f, **content)
+        f.close()
     except OSError as error:
         return (False, str(error))
-    finally:
-        f.close()
 
     return(True, None)
 

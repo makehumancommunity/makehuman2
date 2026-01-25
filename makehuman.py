@@ -44,12 +44,12 @@ def main():
     parser.add_argument("-A", '--admin', action="store_true", help="Support administrative tasks ('Admin'). Command will write into program folder, where makehuman is installed.")
     parser.add_argument("-v", "--verbose",  type=int, default = 1, help= textwrap.dedent('''\
             bitwise verbose option (add values)
-            1 low log level (standard)
+            1 low log level (default)
             2 mid log level
             4 memory management
             8 file access
-            16 enable numpy runtime error messages
-            32 JSON for e.g glTF or to get lines for face or body poses when loading bvh file'''))
+            16 high level and numpy runtime error messages
+            32 JSON (e.g glTF) or to get lines for face or body poses when loading bvh file'''))
 
     args = parser.parse_args()
 

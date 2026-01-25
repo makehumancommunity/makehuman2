@@ -256,6 +256,18 @@ class programInfo():
         """
         return  json.dumps(self.__dict__, indent=4, sort_keys=True)
 
+    def setVerboseBit(self, bit):
+        self.verbose |= bit
+
+    def resetVerboseBit(self, bit):
+        self.verbose &= ~bit
+
+    def helpVerbose(self):
+        verbosedefinition = [(1, "low log level"), (2, "mid log level"), (4, "memory management"),
+            (8, "file access"), (16, "high level and numpy runtime error messages"),
+            (32, "JSON (e.g glTF) or to get lines for face or body poses when loading bvh file")]
+        return verbosedefinition
+
     def showVersion(self):
         print (self.release_info["name"] + " Version " + ".".join(str(x) for x in self.release_info["version"]))
         print ("Status: " + self.release_info["status"])

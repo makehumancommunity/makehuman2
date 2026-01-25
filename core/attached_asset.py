@@ -208,8 +208,7 @@ class attachedAsset:
 
         fp.close()
 
-        if self.env.verbose & 16:
-            print (self)
+        self.env.logLine(16, str(self))
 
         if self.obj_file is None:
             return(False, "Obj-File is missing")
@@ -221,8 +220,7 @@ class attachedAsset:
         else:
             self.standard_material = ""
 
-        if self.env.verbose & 16:
-            print("Material: " + str(self.material))
+        self.env.logLine(16, "Material: " + str(self.material))
 
 
         # finally create the numpy arrays here
@@ -254,8 +252,6 @@ class attachedAsset:
             pos1 = mesh.getPosition(v1)
             pos2 = mesh.getPosition(v2)
             self.scaleMat[n][n] = abs(pos1[n] - pos2[n]) / div
-        if self.env.verbose & 16:
-            print (self.scaleMat)
 
     def getScaleData(self, words):
         return ((int(words[1]), int(words[2]), float(words[3])))
@@ -391,8 +387,7 @@ class attachedAsset:
         #
         (res, err) = self.textLoad(filename)
         if res is True:
-            if self.env.verbose & 16:
-                print ("Object is:" + self.obj_file)
+            self.env.logLine(16, "Object is:" + self.obj_file)
 
             # create object and load obj file
             #

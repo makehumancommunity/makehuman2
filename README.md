@@ -162,8 +162,7 @@ python3 makehuman.py
 
 It is possible to start MakeHuman2 the common way. An icon is supplied in the data/icons folder: makehuman2logo.ico. Make sure a suffix .py starts your python3 interpreter (mostly visual studio might be opened). Of course only do that, if you do not need visual studio ..
 
-Meanwhile the builder creates a running windows version when pynsist and nsis are installed (only for Linux/MacOS). In the end there will be an .exe. But
-at the moment it is just a test, esp. I used older libraries which will be replaced later.
+Meanwhile the builder creates a running windows version when pynsist and nsis are installed (tested only for Linux/MacOS, may work on Windows as well). In the end there will be an .exe. But at the moment it is just a test, esp. I used older libraries which will be replaced later.
 
 
 ## Internals:
@@ -189,13 +188,13 @@ Currently syntax is like this:
                                 entered data (new tags for categorization) is not deleted.
           -A, --admin           Support administrative tasks ('Admin'). Command will write into program folder, where makehuman is installed.
           -v VERBOSE, --verbose VERBOSE
-                        bitwise verbose option (add values)
-                        1 low log level (standard)
+                       bitwise verbose option (add values)
+                        1 low log level (default)
                         2 mid log level
                         4 memory management
                         8 file access
-                        16 enable numpy runtime error messages
-                        32 JSON for e.g glTF or to get lines for face or body poses when loading bvh file
+                        16 high level and numpy runtime error messages
+                        32 JSON (e.g glTF) or to get lines for face or body poses when loading bvh file
 
 *Hint: there is still output which do not follow the verbose rules for debugging.*
 
@@ -234,7 +233,9 @@ At the moment the blender plugin io_makehuman is already included in the softwar
 
 zip this folder with either
 
+```text
 zip -r io_makehuman.zip io_makehuman
+```
 
 on Linux or do that with a tool on Windows (when unzipped, the io_makehuman path must be created).
 

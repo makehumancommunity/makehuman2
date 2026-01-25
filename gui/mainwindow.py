@@ -196,9 +196,23 @@ class MHMainWindow(QMainWindow):
         act_menu.addAction(act)
         act.triggered.connect(self.socket_call)
 
-        act = QAction('Debug camera', act_menu, checkable=True)
+        act = QAction('Display camera position', act_menu, checkable=True)
         act_menu.addAction(act)
         act.triggered.connect(self.deb_cam)
+
+        deb_menu = act_menu.addMenu("Debug messages")
+
+        for num, text in self.env.helpVerbose():
+            checked = ((self.env.verbose & num) != 0)
+            act = QAction(text, deb_menu, checkable=True, checked=checked)
+            deb_menu.addAction(act)
+            act.triggered.connect(self.loglevel_call)
+            act.setData(num)
+
+        act = QAction('mid level messages', deb_menu, checkable=True)
+        deb_menu.addAction(act)
+        act.triggered.connect(self.loglevel_call)
+        act.setData(2)
 
         info_menu = menu_bar.addMenu("&Information")
         self.addActCallBack(info_menu, "Character Info", self.measure_call)
@@ -1106,6 +1120,13 @@ class MHMainWindow(QMainWindow):
 
     def floor_call(self):
         self.graph.view.scene.setFloor(self.sender().isChecked())
+
+    def loglevel_call(self):
+        bit = self.sender().data()
+        if self.sender().isChecked():
+            self.env.setVerboseBit(bit)
+        else:
+            self.env.resetVerboseBit(bit)
 
     def socket_call(self):
         if self.sender().isChecked() and self.glob.apiSocket is None:

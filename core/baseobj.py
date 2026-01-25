@@ -66,7 +66,7 @@ class baseClass():
         self.default_skeleton = None
         self.floorCalcMethod = 0
         self.reset()
-        memInfo()
+        self.env.logLine(4, memInfo())
 
     def __str__(self):
         return(dumper(self))
@@ -792,7 +792,7 @@ class baseClass():
             self.baseMesh.loadMaterial(None)
         self.glob.openGLBlock = False
 
-        memInfo()
+        self.env.logLine(4, memInfo())
         return (True)
 
     def getInitialCopyForSlider(self, factor, decr, incr):

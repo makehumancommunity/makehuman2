@@ -43,6 +43,7 @@ class BaseSelect(QVBoxLayout):
         self.basewidget.setFixedSize(240, 200)
         self.basewidget.addItems(self.baseResultList.keys())
         self.basewidget.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.basewidget.itemDoubleClicked.connect(callback)
         if self.env.basename is not None:
             items = self.basewidget.findItems(self.env.basename,Qt.MatchExactly)
             if len(items) > 0:
@@ -373,16 +374,25 @@ class DownLoadImport(QVBoxLayout):
         # name and link
         #
         ilayout = QVBoxLayout()
+        ilayout.addWidget(QLabel("Select asset pack:"))
+
+        combo = QComboBox()
+        combo.addItems(["", "Standard Asset Pack", "Additional Makehuman2 Asset Pack"])
+        combo.setToolTip("An asset pack is a zip file,\nDownload of the standard assets can be done here.\nThey also can be downloaded manually\nand extracted with extract button below")
+        combo.currentIndexChanged.connect(self.packNameChanged)
+
+        ilayout.addWidget(combo)
+
         hlayout = QHBoxLayout()
-        hlayout.addWidget(QLabel("Check name of asset pack here:"))
+        hlayout.addWidget(QLabel("or select and copy an URL from:"))
         linklabel = QLabel()
         ltext = "<a href='" + self.env.release_info["url_assetpacks"] + "'>Asset Packs</a>"
+        linklabel.setToolTip("Opens browser to search for asset packs.\nAn asset pack usually ends with .zip")
         linklabel.setText(ltext)
         linklabel.setOpenExternalLinks(True)
         hlayout.addWidget(linklabel)
         ilayout.addLayout(hlayout)
 
-        ilayout.addWidget(QLabel("then copy URL into this box, press Download:"))
         self.packname = QLineEdit("")
         self.packname.editingFinished.connect(self.packinserted)
         ilayout.addWidget(self.packname)
@@ -409,7 +419,7 @@ class DownLoadImport(QVBoxLayout):
             ilayout.addWidget(self.systembutton)
 
 
-        ilayout.addWidget(QLabel("\nAfter download use the filename inserted by\nprogram or type in a name of an already\ndownloaded file and press extract:"))
+        ilayout.addWidget(QLabel("\nAfter download use the filename inserted by\nprogram or type in a name of an already\ndownloaded asset pack and press extract:"))
         self.filename = QLineEdit("")
         self.filename.editingFinished.connect(self.fnameinserted)
         self.filename.setText(self.parent.glob.lastdownload)
@@ -428,6 +438,16 @@ class DownLoadImport(QVBoxLayout):
         self.singleinserted()
         self.packinserted()
         self.fnameinserted()
+
+    def packNameChanged(self, index):
+        if index == 1:
+            f = self.env.release_info["url_fileserver"] + "/" + self.env.release_info["url_systemassets"]
+        elif index == 2:
+            f = self.env.release_info["url_fileserver"] +  "/" +self.env.release_info["url_systemassets2"]
+        else:
+            f = ""
+        self.packname.setText(f)
+        self.packinserted()
 
     def setMethod(self, value):
         if self.userbutton.isChecked():
