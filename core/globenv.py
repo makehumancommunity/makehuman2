@@ -315,7 +315,7 @@ class programInfo():
 
     def fullPath(self, path: str) -> str:
         if self.osindex == 0:
-            path = os.path.normcase()
+            path = os.path.normcase(path)
         return os.path.expanduser(os.path.normpath(path).replace("\\", "/"))
 
     def normalizeName(self, path: str) -> str:
