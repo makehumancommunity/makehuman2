@@ -275,27 +275,54 @@ class MHMainWindow(QMainWindow):
         return entry
 
     def createImageSelection(self):
+        """
+        called once to create all image-selections for baseclass
+        """
         binfo = self.glob.baseClass.baseInfo
 
+        # clear equipment menu in case of change
+        #
         self.equip.clear()
+
+        # create equipment button row according to base.json, at least: clothes
+        # (is done by setting h to True if "ref" is part of the dictionary)
+        #
         eqrow = self.category_buttons[2]
         equipment = binfo["equipment"] if "equipment" in binfo else ["clothes"]
         for elem in eqrow:
             elem["h"] = not ("ref" in elem and elem["ref"] in equipment)
+
         for elem in self.equipment:
             if elem["name"] in equipment:
                 elem["func"] = ImageSelection(self, self.glob.cachedInfo, elem["name"], elem["mode"], self.equipCallback, doubleclick=True)
                 elem["func"].prepare()
                 elem["menu"] = self.addActCallBack(self.equip, elem["name"], self.equip_call)
+            else:
+                elem["func"] = None         # reset unsused functions
 
+        # always create models collection
+        #
         self.charselect = ImageSelection(self, self.glob.cachedInfo, "models", 0, self.loadByIconCallback, 3, True)
         self.charselect.prepare()
 
+        # create selection of rigs, poses, animation ... pose-editor
+        #
         self.animenu.clear()
         for elem in self.animation:
             elem["func"] = ImageSelection(self, self.glob.cachedInfo, elem["name"], elem["mode"], self.animCallback, doubleclick=True)
             elem["func"].prepare()
             elem["menu"] = self.addActCallBack(self.animenu, elem["name"], self.anim_call)
+
+    def redoPrepareAll(self):
+        """
+        might be used after asset-pack download
+        """
+        for elem in self.equipment:
+            if elem["func"] is not None:
+                elem["func"].prepare()
+        self.charselect.prepare()
+        for elem in self.animation:
+            elem["func"].prepare()
 
     def setWindowTitle(self, text):
         title = self.env.release_info["name"] + " (" + text + ")"

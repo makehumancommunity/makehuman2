@@ -8,7 +8,7 @@
 
 from PySide6.QtWidgets import (
         QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QPushButton, QRadioButton, QGroupBox, QCheckBox, QSizePolicy,
-        QListWidget, QAbstractItemView, QGridLayout
+        QListWidget, QAbstractItemView, QGridLayout, QScrollArea
         )
 
 from PySide6.QtCore import Qt
@@ -31,6 +31,8 @@ class MHSceneWindow(QWidget):
         self.view = self.glob.openGLWindow 
         self.scene = self.view.scene
         self.light = self.view.light
+        self.setMinimumWidth(900)
+        self.setMinimumHeight(600)
         y1 = self.light.min_coords[1]
         y2 = self.light.max_coords[1]
         self.setWindowTitle("Scene and Lighting")
@@ -49,19 +51,27 @@ class MHSceneWindow(QWidget):
                 [None, None, None, None, None, None]
         ]
 
+        layout = QVBoxLayout()
+        layout.setSpacing(1)
+
         # main layout, gridlayout + buttons
         #
-        layout = QVBoxLayout()
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(True)
+        scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scrollContainer = QWidget()
 
         # Gridlayout, 1st row of 3 columns: Ambient/Phong, Background, Floor
         # light-sources as row 2-x
         #
         glayout = QGridLayout()
+        glayout.setSpacing(1)
 
         l = QGroupBox("Ambient Light")
         l.setObjectName("subwindow")
 
         vlayout = QVBoxLayout()
+        vlayout.setSpacing(1)
         self.ambLuminance = SimpleSlider("Luminance: ", 0, 100, self.ambChanged)
         vlayout.addWidget(self.ambLuminance )
 
@@ -77,6 +87,7 @@ class MHSceneWindow(QWidget):
         l.setObjectName("subwindow")
 
         vlayout = QVBoxLayout()
+        vlayout.setSpacing(1)
         self.specFocus = SimpleSlider("Specular light, Focus: ", 1, 64, self.specFocChanged)
         vlayout.addWidget(self.specFocus )
 
@@ -96,6 +107,7 @@ class MHSceneWindow(QWidget):
         l = QGroupBox("Background")
         l.setObjectName("subwindow")
         vlayout = QVBoxLayout()
+        vlayout.setSpacing(1)
 
         self.clearColor = ColorButton(self.glob, "Background color: ", self.clearColorChanged)
         vlayout.addWidget(self.clearColor)
@@ -127,6 +139,7 @@ class MHSceneWindow(QWidget):
         l.setObjectName("subwindow")
 
         vlayout = QVBoxLayout()
+        vlayout.setSpacing(1)
         vlayout.addWidget(QLabel("Floor geometry:"))
 
         self.floorSize = SimpleSlider("Floor Size: ", 5, 50, self.floorSizeChanged)
@@ -157,7 +170,9 @@ class MHSceneWindow(QWidget):
             lg = QGroupBox("Light Source " + str(l))
             lg.setObjectName("subwindow")
             hlayout = QHBoxLayout()
+            hlayout.setSpacing(1)
             vlayout = QVBoxLayout()
+            vlayout.setSpacing(1)
             widget[0] = SimpleSlider("Luminance: ", 0, 100, self.lChanged, ident=l)
             vlayout.addWidget(widget[0])
 
@@ -181,9 +196,12 @@ class MHSceneWindow(QWidget):
             lg.setLayout(hlayout)
             glayout.addWidget(lg, 2+l, 0, 1, 3)
 
-        layout.addLayout(glayout)
+        scrollContainer.setLayout(glayout)
+        scrollArea.setWidget(scrollContainer)
+        layout.addWidget(scrollArea)
 
         hlayout = QHBoxLayout()
+        hlayout.setSpacing(1)
         button1 = QPushButton("Cancel")
         button1.clicked.connect(self.cancel_call)
         button2 = QPushButton("Default")
@@ -198,6 +216,13 @@ class MHSceneWindow(QWidget):
         hlayout.addWidget(button4)
         layout.addLayout(hlayout)
         self.setLayout(layout)
+
+        # Set a reasonable maximum height based on available screen geometry
+        # Get available screen height and limit window to 90% of it
+        screen_geometry = self.glob.app.getScreensize()
+        max_height = int(screen_geometry[1] * 0.9)
+        self.setMaximumHeight(max_height)
+
         self.getValues()
 
     def xzdisplay(self, x,y ):
