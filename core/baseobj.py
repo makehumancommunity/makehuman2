@@ -72,6 +72,7 @@ class baseClass():
         return(dumper(self))
 
     def reset(self):
+        self.mhmfilename = None     # last loaded mhm file
         self.skinMaterialName = None
         self.skinMaterial = None
         self.proxy = None
@@ -135,6 +136,7 @@ class baseClass():
 
         self.attachedAssets = []
         self.baseMesh.setNoPose()
+        self.mhmfilename = filename
 
         if verbose is not None:
             verbose.setLabelText("Load " + filename)
@@ -259,17 +261,7 @@ class baseClass():
         if loaded.skeleton is not None:
             skelpath = self.env.existDataFile("rigs", self.env.basename, loaded.skeleton)
             if skelpath is not None:
-                if self.pose_skelpath == skelpath:  # reuse pose-skeleton
-                    self.skeleton = self.pose_skeleton
-                    self.glob.markAssetByFileName(skelpath, True)
-                else:
-                    if verbose is not None:
-                        verbose.setLabelText("Load: " + skelpath)
-                    self.skeleton = skeleton(self.glob, loaded.skeleton)
-                    if self.skeleton.loadJSON(skelpath):
-                        self.glob.markAssetByFileName(skelpath, True)
-                    else:
-                        self.skeleton = None
+                self.addSkeleton(loaded.skeleton, skelpath, verbose)
 
         # recalculate pose-skeleton
         #
@@ -476,6 +468,25 @@ class baseClass():
                 cnt += 1
         return (cnt)
 
+    def markAllAttachedAssets(self):
+        names = []
+        for elem in self.attachedAssets:
+            names.append(elem.filename)
+
+        if self.pose_skelpath:
+            names.append(self.pose_skelpath)
+        if self.mhmfilename:
+            names.append(self.mhmfilename)
+        if self.bvh:
+            names.append(self.bvh.filename)
+        if self.posemodifier:
+            names.append(self.posemodifier.filename)
+        if self.expression:
+            names.append(self.expression.filename)
+
+        for name in names:
+            self.glob.markAssetByFileName(name, True)
+
     def delAsset(self, filename):
         elem = self.getAttachedByFilename(filename)
         if elem is None:
@@ -561,24 +572,39 @@ class baseClass():
             self.glob.openGLWindow.createObject(asset.obj)
             self.glob.openGLWindow.Tweak()
 
-    def addSkeleton(self, name, path):
+    def addSkeleton(self, name, path, verbose=None):
         """
-        first delete old skeleton, then add new one
-        """
-        if self.skeleton is not None:
-            self.glob.markAssetByFileName(self.skeleton.filename, False)
-            self.glob.openGLWindow.scene.delSkeleton()
+        add a new skeleton from a json file
 
-        # reuse pose-skeleton in case of identical selection
-        if self.pose_skelpath == path:
+        :param str name: name of the skeleton
+        :param str path: path of JSON file
+        :param verbose: displays in progress view that skeleton is loaded
+        """
+        if self.pose_skelpath == path:                  # reuse available pose-skeleton
             self.skeleton = self.pose_skeleton
             self.glob.markAssetByFileName(path, True)
         else:
+            if verbose is not None:
+                verbose.setLabelText("Load: " + path)
             self.skeleton = skeleton(self.glob, name)
             if self.skeleton.loadJSON(path):
                 self.glob.markAssetByFileName(path, True)
             else:
                 self.skeleton = None
+
+
+    def modSkeleton(self, name, path):
+        """
+        modSkeleton, first delete old skeleton, then add new one
+
+        :param str name: name of the skeleton
+        :param str path: path of JSON file
+        """
+        if self.skeleton is not None:
+            self.glob.markAssetByFileName(self.skeleton.filename, False)
+            self.glob.openGLWindow.scene.delSkeleton()
+
+        self.addSkeleton(name, path)
         self.glob.openGLWindow.scene.prepareSkeleton()
         self.glob.midColumn.setSizeInfo()
 

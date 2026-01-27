@@ -345,7 +345,7 @@ class MHMainWindow(QMainWindow):
             if selected.status == 0:
                 self.glob.baseClass.delSkeleton(selected.filename)
             else:
-                self.glob.baseClass.addSkeleton(selected.name, selected.filename)
+                self.glob.baseClass.modSkeleton(selected.name, selected.filename)
         elif eqtype == "poses":
             if selected.status == 0:
                 self.glob.baseClass.delPose(selected.filename)

@@ -837,8 +837,7 @@ class ImageSelection():
         """
         self.assetrepo = self.parent.glob.rescanAssets(self.type)
         self.picwidget.layout.removeAllWidgets()
-        for elem in self.parent.glob.baseClass.attachedAssets:
-            self.parent.glob.markAssetByFileName(elem.filename, True)
+        self.parent.glob.baseClass.markAllAttachedAssets()
         self.prepareRepo()
         self.picwidget.layout.newAssetList(self.asset_category)
         self.picwidget.populate(None, None)
