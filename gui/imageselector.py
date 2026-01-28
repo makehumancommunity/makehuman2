@@ -738,11 +738,14 @@ class ImageSelection():
                 elem.tag = self.taglogic.completeTags(elem.name, elem.tag)
                 self.asset_category.append(MHPictSelectable(elem.name, elem.thumbfile, elem.path,  elem.author, elem.tag))
 
-    def prepare(self):
+    def prepare(self, assetrepo=None):
         """
+        :param assetrepo: used after rescan
         load filter from file according to base mesh and type, the filter in user folder can replace system folder
         then create an asset-category repo for this folder and convert it by taglogic
         """
+        if assetrepo:
+            self.assetrepo = assetrepo
         path = self.env.stdUserPath(self.type, "selection_filter.json")
         self.filterjson = self.env.readJSON(path)
         if self.filterjson is None:

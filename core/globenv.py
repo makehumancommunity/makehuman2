@@ -29,6 +29,7 @@ class globalObjects():
         self.app = None
         self.shaderInit = None
         self.subwindows = {}
+        self.MainWindow = None
         self.openGLWindow = None
         self.openGLBlock  = True
         self.openGLWinUpdate = True
@@ -114,8 +115,8 @@ class globalObjects():
     def getAssetByFilename(self, path):
         for elem in self.cachedInfo:
             if elem.path == path:
-                return (elem)
-        return(None)
+                return elem
+        return None
 
     def hasAssetFolder(self, folder):
         for elem in self.cachedInfo:
@@ -129,7 +130,7 @@ class globalObjects():
         if asset_type is None or  asset_type  == "models":
             self.env.fileScanFolderMHM()
         self.getCacheData()
-        return(self.cachedInfo)
+        return self.cachedInfo
 
     def markAssetByFileName(self, path, value):
         for elem in self.cachedInfo:
@@ -148,6 +149,8 @@ class globalObjects():
     def setApplication(self, app):
         self.app = app
 
+    def setMainWindow(self, win):
+        self.MainWindow = win
     
     def setTextSlot(self, num, target):
         if 0 < num <=5:

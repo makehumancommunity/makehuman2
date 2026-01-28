@@ -128,6 +128,7 @@ def main():
         base.prepareClass(modelfile)
 
     mainwin = MHMainWindow(glob)
+    glob.setMainWindow(mainwin)
     mainwin.show()
     mainwin.move(app.topLeftCentered(mainwin))
     loading.close()

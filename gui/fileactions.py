@@ -76,7 +76,7 @@ class BaseSelect(QVBoxLayout):
         self.infobutton.setEnabled(enabled)
 
     def getCurrentMaterial(self):
-        return (self.parent.glob.baseClass.skinMaterial)
+        return self.parent.glob.baseClass.skinMaterial
         
     def assetCallback(self):
         material = self.getCurrentMaterial()
@@ -477,7 +477,7 @@ class DownLoadImport(QVBoxLayout):
     def par_unzip(self, bckproc, *args):
         tempdir = self.assets.unZip(self.filename.text())
         destpath = self.env.path_sysdata if self.use_userpath is False else self.env.path_userdata
-        print (tempdir, destpath, self.env.basename)
+        self.env.logLine(1, "Unzip into: " + tempdir + " >" + destpath + " Mesh: " + self.env.basename)
         self.assets.copyAssets(tempdir, destpath, self.env.basename)
 
     def finishUnzip(self):
@@ -485,16 +485,21 @@ class DownLoadImport(QVBoxLayout):
         if self.prog_window is not None:
             self.prog_window.progress.close()
             self.prog_window = None
+
+        # recreate internal repos to avoid a new start
+        #
+        self.glob.MainWindow.redoImageSelectionRepos()
+
         QMessageBox.information(self.parent, "Done!", self.bckproc.finishmsg)
         self.bckproc = None
 
     def extractZip(self):
-        print ("extract Zipfile")
         fname = self.filename.text()
         if not fname.endswith(".zip"):
             ErrorBox(self.parent, "Filename should have the suffix .zip")
             return
 
+        self.env.logLine(1, "Extract zip: " + fname)
         if self.bckproc == None:
             self.prog_window = MHBusyWindow("Extract ZIP file", "extracting ...")
             self.prog_window.progress.forceShow()
@@ -507,8 +512,7 @@ class DownLoadImport(QVBoxLayout):
         tempdir = args[0][0]
         filename = args[0][1]
         self.error = None
-        print (tempdir)
-        print (filename)
+        self.env.logLine(1, "Download " + filename + " to " + tempdir)
         (err, text) = self.assets.getAssetPack(self.packname.text(), tempdir, filename)
         self.error = text
 
@@ -536,7 +540,6 @@ class DownLoadImport(QVBoxLayout):
 
 
     def downLoad(self):
-        print ("Download")
         url = self.packname.text()
         if not (url.startswith("ftp:") or url.startswith("http:") or url.startswith("https:")):
             ErrorBox(self.parent, "URL must start with a known protocol [http, https, ftp]")

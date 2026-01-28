@@ -313,16 +313,19 @@ class MHMainWindow(QMainWindow):
             elem["func"].prepare()
             elem["menu"] = self.addActCallBack(self.animenu, elem["name"], self.anim_call)
 
-    def redoPrepareAll(self):
+    def redoImageSelectionRepos(self):
         """
-        might be used after asset-pack download
+        this function is used after e.g. a download took place
         """
+        cache = self.glob.rescanAssets()
         for elem in self.equipment:
             if elem["func"] is not None:
-                elem["func"].prepare()
-        self.charselect.prepare()
+                elem["func"].prepare(cache)
+        self.charselect.prepare(cache)
         for elem in self.animation:
-            elem["func"].prepare()
+            elem["func"].prepare(cache)
+        self.glob.baseClass.markAllAttachedAssets()
+
 
     def setWindowTitle(self, text):
         title = self.env.release_info["name"] + " (" + text + ")"
