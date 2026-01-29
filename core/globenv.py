@@ -55,7 +55,7 @@ class globalObjects():
             for elem in k:
                 self.keyDict[elem] = k[elem]
 
-        self.guiPresets = {"Randomizer": None, "Animplayer": None, "Renderer": None }
+        self.guiPresets = {"Randomizer": None, "Animplayer": None, "Renderer": None, "Exporter": None }
 
         self.textureRepo = TextureRepo(self)
         self.apiSocket = None              # will contain socket for applications

@@ -3,6 +3,7 @@
     Author: black-punkduck
 
     Classes:
+    * ExporterValues
     * ExportLeftPanel
     * ExportRightPanel
 """
@@ -20,6 +21,15 @@ from core.export_bvh import bvhExport
 from core.blender_communication import blendCom
 
 import os
+
+class ExporterValues():
+    """
+    class to keep the values, when called again
+    """
+    def __init__(self, glob):
+        self.export_folder = glob.env.stdUserPath("exports")
+        self.texture_folder = "textures"
+        self.export_type = ".glb"
 
 class ExportLeftPanel(QVBoxLayout):
     """
@@ -39,7 +49,8 @@ class ExportLeftPanel(QVBoxLayout):
         self.animation = False
         self.inpose = False
         self.savehiddenverts = False
-        self.export_type = ".glb"
+        self.values = self.glob.guiPresets["Exporter"]
+        etype = self.values.export_type
         super().__init__()
         self.scale_items = [
             [ 0.1, "Meter"],
@@ -62,11 +73,11 @@ class ExportLeftPanel(QVBoxLayout):
         ilayout.addWidget(QLabel("Export folder:"))
         self.addLayout(ilayout)
 
-        self.foldername = QLabel("")
+        self.foldername = QLabel(self.values.export_folder)
         self.addWidget(self.foldername)
 
         self.addWidget(QLabel("\nTexture folder (inside export folder):"))
-        self.texfolder = QLineEdit("textures")
+        self.texfolder = QLineEdit(self.values.texture_folder)
         self.texfolder.setToolTip("Folder name will be converted to lowercase, certain characters replaced by '_'")
 
         self.texfolder.editingFinished.connect(self.newtexfolder)
@@ -75,7 +86,7 @@ class ExportLeftPanel(QVBoxLayout):
         # filename
         #
         self.addWidget(QLabel("\nFilename:"))
-        self.filename = QLineEdit(self.bc.name + self.export_type)
+        self.filename = QLineEdit(self.bc.name + etype)
         self.filename.editingFinished.connect(self.newfilename)
         self.addWidget(self.filename)
 
@@ -147,7 +158,7 @@ class ExportLeftPanel(QVBoxLayout):
         #
         # start with glb
         #
-        self.setExportType(self.export_type)
+        self.setExportType(etype)
 
     def leave(self):
         if self.animmode is not None:
@@ -179,38 +190,41 @@ class ExportLeftPanel(QVBoxLayout):
 
         # set options according to type
         #
-        self.export_type = etype
+        self.values.export_type = etype
+        attr = expAttrib[etype]
+
         self.newfilename()
         self.newfoldername()
-        if expAttrib[self.export_type]["binmode"] != "both":
-            self.binsave.setChecked(expAttrib[self.export_type]["binmode"])
-        self.binsave.setEnabled(expAttrib[self.export_type]["binset"])
 
-        if expAttrib[self.export_type]["imgmode"] != "both":
-            self.binimg.setChecked(expAttrib[self.export_type]["imgmode"])
-        self.binimg.setEnabled(expAttrib[self.export_type]["imgset"])
+        if attr["binmode"] != "both":
+            self.binsave.setChecked(attr["binmode"])
+        self.binsave.setEnabled(attr["binset"])
+
+        if attr["imgmode"] != "both":
+            self.binimg.setChecked(attr["imgmode"])
+        self.binimg.setEnabled(attr["imgset"])
         #
-        self.hverts.setChecked(expAttrib[self.export_type]["hiddenmode"])
-        self.hverts.setEnabled(expAttrib[self.export_type]["hiddenset"])
+        self.hverts.setChecked(attr["hiddenmode"])
+        self.hverts.setEnabled(attr["hiddenset"])
 
-        self.helperw.setChecked(expAttrib[self.export_type]["helpmode"])
-        self.helperw.setEnabled(expAttrib[self.export_type]["helpset"])
+        self.helperw.setChecked(attr["helpmode"])
+        self.helperw.setEnabled(attr["helpset"])
 
-        self.norm.setChecked(expAttrib[self.export_type]["normmode"])
-        self.norm.setEnabled(expAttrib[self.export_type]["normset"])
+        self.norm.setChecked(attr["normmode"])
+        self.norm.setEnabled(attr["normset"])
 
         if self.bc.bvh and self.bc.skeleton:
-            self.anim.setChecked(expAttrib[self.export_type]["animmode"])
-            self.anim.setEnabled(expAttrib[self.export_type]["animset"])
+            self.anim.setChecked(attr["animmode"])
+            self.anim.setEnabled(attr["animset"])
         else:
             self.anim.setChecked(False)
             self.anim.setEnabled(False)
 
-        self.posed.setChecked(expAttrib[self.export_type]["posemode"])
-        self.posed.setEnabled(expAttrib[self.export_type]["poseset"])
+        self.posed.setChecked(attr["posemode"])
+        self.posed.setEnabled(attr["poseset"])
 
-        self.scalebox.setCurrentIndex(expAttrib[self.export_type]["num"])
-        self.scalebox.setToolTip(expAttrib[self.export_type]["tip"])
+        self.scalebox.setCurrentIndex(attr["num"])
+        self.scalebox.setToolTip(attr["tip"])
 
     def changeBinary(self, param):
         self.binmode = param
@@ -247,6 +261,7 @@ class ExportLeftPanel(QVBoxLayout):
         name = freq.request()
         if name is not None:
             self.foldername.setText(name)
+            self.values.export_folder = name
 
     def newfoldername(self):
         """
@@ -254,16 +269,18 @@ class ExportLeftPanel(QVBoxLayout):
         """
         folder = self.foldername.text()
         if folder is None or folder == "":
-            self.foldername.setText(self.env.stdUserPath("exports"))
+            folder = self.env.stdUserPath("exports")
+            self.foldername.setText(folder)
+        self.values.export_folder = folder
 
     def newfilename(self):
         """
         not empty, always ends with export type
         """
         text = self.filename.text()
-        if not text.endswith(self.export_type):
+        if not text.endswith(self.values.export_type):
             text = os.path.splitext(text)[0]
-            self.filename.setText(text + self.export_type)
+            self.filename.setText(text + self.values.export_type)
 
     def newtexfolder(self):
         """
@@ -271,9 +288,11 @@ class ExportLeftPanel(QVBoxLayout):
         """
         folder = self.texfolder.text()
         if folder is None or folder == "":
-            self.texfolder.setText("textures")
+            folder = "textures"
         else:
-            self.texfolder.setText(self.env.normalizeName(folder))
+            folder = self.env.normalizeName(folder)
+        self.texfolder.setText(folder)
+        self.values.texture_folder = folder
 
     def exportfile(self):
         """
@@ -294,31 +313,32 @@ class ExportLeftPanel(QVBoxLayout):
         current = self.scalebox.currentIndex()
         scale = self.scale_items[current][0]
 
-        if self.export_type == ".glb":
+        etype = self.values.export_type
+        if etype == ".glb":
             gltf = gltfExport(self.glob, folder, texfolder, self.imgmode, self.savehiddenverts, self.onground,  self.animation, scale)
             success = gltf.binSave(self.bc, path)
 
-        elif self.export_type == ".stl":
+        elif etype == ".stl":
             stl = stlExport(self.glob, folder, self.savehiddenverts, scale)
             if self.binmode:
                 success = stl.binSave(self.bc, path)
             else:
                 success = stl.ascSave(self.bc, path)
 
-        elif self.export_type == ".mh2b":
+        elif etype == ".mh2b":
             blcom = blendCom(self.glob, folder, texfolder, self.savehiddenverts, self.onground, self.animation, scale)
             success = blcom.binSave(self.bc, path)
 
-        elif self.export_type == ".obj":
+        elif etype == ".obj":
             obj = objExport(self.glob, folder, texfolder, self.savehiddenverts, self.onground, self.helper, self.normals, scale)
             success = obj.ascSave(self.bc, path)
 
-        elif self.export_type == ".bvh":
+        elif etype == ".bvh":
             bvh = bvhExport(self.glob, self.onground, scale)
             success = bvh.ascSave(self.bc, path)
 
         else:
-            print ("not yet implemented")
+            self.env.logLine(1, "not yet implemented")
             return
 
         if success:
@@ -345,35 +365,40 @@ class ExportRightPanel(QVBoxLayout):
             b["button"] = IconButton(n, os.path.join(self.env.path_sysicon, b["icon"]), b["tip"], b["func"], 130, checkable=True)
             self.addWidget(b["button"])
 
-        self.setChecked(0)
+        self.setCheckedByName(self.leftPanel.values.export_type)
         self.addStretch()
+
+    def setCheckedByName(self, name):
+        l = [".glb", ".stl", ".mh2b", ".obj", ".bvh"]
+        if name in l:
+            self.setChecked(l.index(name))
 
     def setChecked(self, num):
         for i, elem in enumerate(self.exportimages):
             elem["button"].setChecked(i==num)
 
     def exportgltf(self):
-        print ("export GLTF called")
+        self.env.logLine(2, "export GLTF called")
         self.leftPanel.setExportType(".glb")
         self.setChecked(0)
 
     def exportstl(self):
-        print ("export STL called")
+        self.env.logLine(2, "export STL called")
         self.leftPanel.setExportType(".stl")
         self.setChecked(1)
 
     def exportmh2b(self):
-        print ("export MH2B called")
+        self.env.logLine(2, "export MH2B called")
         self.leftPanel.setExportType(".mh2b")
         self.setChecked(2)
 
     def exportobj(self):
-        print ("export OBJ called")
+        self.env.logLine(2, "export OBJ called")
         self.leftPanel.setExportType(".obj")
         self.setChecked(3)
 
     def exportbvh(self):
-        print ("export BVH called")
+        self.env.logLine(2, "export BVH called")
         self.leftPanel.setExportType(".bvh")
         self.setChecked(4)
 

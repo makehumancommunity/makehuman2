@@ -22,7 +22,7 @@ from gui.scenewindow import  MHSceneWindow
 from gui.graphwindow import  MHGraphicWindow, NavigationEvent
 from gui.randomwindow import RandomForm, RandomValues
 from gui.fileactions import BaseSelect, SaveMHMForm, DownLoadImport
-from gui.exporter import ExportLeftPanel, ExportRightPanel
+from gui.exporter import ExportLeftPanel, ExportRightPanel, ExporterValues
 from gui.poseactions import AnimPlayer, AnimPlayerValues, AnimMode
 from gui.poseeditor import AnimExpressionEdit, AnimPoseEdit
 from gui.slider import ScaleComboArray
@@ -771,6 +771,7 @@ class MHMainWindow(QMainWindow):
         self.glob.guiPresets["Randomizer"] = RandomValues(self.glob)
         self.glob.guiPresets["Animplayer"] = AnimPlayerValues(self.glob)
         self.glob.guiPresets["Renderer"] = RendererValues(self.glob)
+        self.glob.guiPresets["Exporter"] = ExporterValues(self.glob)
 
     def deb_cam(self):
         self.graph.setDebug(self.sender().isChecked())
