@@ -157,7 +157,8 @@ class MHGraphicWindow(QWidget):
         # create a grid layout for the buttons and generate them from array
         #
         glayout = QGridLayout()
-        glayout.setSpacing(1)
+        glayout.setVerticalSpacing(10)
+        glayout.setContentsMargins(0,0,0,0)
 
         for i in range(len(self.buttons)):
             r = self.buttons[i]

@@ -60,24 +60,22 @@ if the asset list itself was downloaded again after this window was openend.
 
 <h2>Download an asset pack</h2>
 <p>
-<i><b>Important</b>: The asset pack functionality is currently only loading the pack without extracting the zip-package.
-This is done not to overwrite assets when under development and will be changed later.</i>
+We also provide the possibility to download complete asset packs or to unzip and install already downloaded packs.
 <p>
-We also provide the possibility to download complete asset packs. In this case you need to open a
-web browser, to do that, click on the link provided. Select the pack you need.<p>
-For the link: right click on mirror1 or mirror2 and use "copy link address". Paste that address into
-the Download box. Then download the asset pack. Technically a folder in a temporary directory is
-created and the zip-file is downloaded. This may take some time.
+There are 2 asset packs predefined, the makehuman standard assets and an additional one for MakeHuman 2, these can be selected directly.
+If you do that, the name above "Download Asset Pack" will change.
+<p>
+If you already downloaded a differnt pack, simply enter the name above "Extract" button, then press 'Extract'.
+<p>
+In case you need to load other packs and do not know the name, press on the link, which opens the browser. You can then navigate into the folder you need. An HTML page will be displayed. There is always a link on top which contains a zip-file. This should be copied and inserted into the textbox above "Download Asset Pack".
+<p>
+Download may take some time. The name of the zip-file will appear above the extract button as a fully qualified path. Do not wonder about the name of the temporary folder, this depends on your operating system.
 <p>
 Only in case of using the -A ("administrator") option when makehuman was startet, you can
 extract the files also to the system folder. In all other cases the destination is the user folder.
 <b>It is not recommended to extract into the system folder.</b>
 <p>
-Usually the filename to extract from is inserted after download into the extract box. However it is
-also possible to extract from a file you already downloaded manually. In this case, just enter the
-name into this box.
-<p>
-The extract procedure should extract all files and put them into the appropriate folders.
-<b>- This is currently disabled. -</b>
+The extract procedure handles all files and put them into the appropriate folders.
+Files already existing will not be overwritten! In the end the cache (repository) is recreated,
 <p>
 "Clean Up" will delete the temporary folder, which is not needed any more.

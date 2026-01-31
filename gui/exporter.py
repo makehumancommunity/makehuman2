@@ -31,6 +31,16 @@ class ExporterValues():
         self.texture_folder = "textures"
         self.export_type = ".glb"
 
+        self.onground = True     # common preset
+        self.scale_index = 0     # rest of the presets are for glb (1st selected icon)
+        self.binmode = True
+        self.imgmode = False
+        self.savehiddenverts = False
+        self.helper = False
+        self.normals = True
+        self.inpose = False
+        self.animation = False
+
 class ExportLeftPanel(QVBoxLayout):
     """
     create a form with filename (+ other features later)
@@ -41,14 +51,6 @@ class ExportLeftPanel(QVBoxLayout):
         self.env = self.glob.env
         self.bc  = parent.glob.baseClass
         self.animmode = None        # will keep animation mode
-        self.binmode = True
-        self.imgmode = False
-        self.onground = True
-        self.helper = False
-        self.normals = False
-        self.animation = False
-        self.inpose = False
-        self.savehiddenverts = False
         self.values = self.glob.guiPresets["Exporter"]
         etype = self.values.export_type
         super().__init__()
@@ -93,62 +95,63 @@ class ExportLeftPanel(QVBoxLayout):
         self.binsave= QCheckBox("binary mode")
         self.binsave.setLayoutDirection(Qt.LeftToRight)
         self.binsave.toggled.connect(self.changeBinary)
-        self.binsave.setChecked(True)
+        self.binsave.setChecked(self.values.binmode)
         self.binsave.setToolTip('Some exports offer binary and ASCII modes, binary mode is usually faster and smaller')
         self.addWidget(self.binsave)
 
         self.binimg= QCheckBox("pack textures into file")
         self.binimg.setLayoutDirection(Qt.LeftToRight)
         self.binimg.toggled.connect(self.changeImg)
-        self.binimg.setChecked(False)
+        self.binimg.setChecked(self.values.imgmode)
         self.binimg.setToolTip('Some exports offer to embed textures into the binary file, otherwise they will be exported as extra files')
         self.addWidget(self.binimg)
 
         self.ground= QCheckBox("feet on ground")
         self.ground.setLayoutDirection(Qt.LeftToRight)
         self.ground.toggled.connect(self.changeGround)
-        self.ground.setChecked(True)
+        self.ground.setChecked(self.values.onground)
         self.ground.setToolTip('When characters origin is not at the ground, this option corrects the position')
         self.addWidget(self.ground)
 
         self.posed= QCheckBox("character posed")
         self.posed.setLayoutDirection(Qt.LeftToRight)
         self.posed.toggled.connect(self.changePosed)
-        self.posed.setChecked(True)
+        self.posed.setChecked(self.values.inpose)
         self.posed.setToolTip('Export character posed instead of default pose (set pose in animation)')
         self.addWidget(self.posed)
 
         self.hverts= QCheckBox("save hidden vertices")
         self.hverts.setLayoutDirection(Qt.LeftToRight)
         self.hverts.toggled.connect(self.changeHVerts)
-        self.hverts.setChecked(False)
+        self.hverts.setChecked(self.values.savehiddenverts)
         self.hverts.setToolTip('Export of hidden vertices is only useful, when destination is able to edit mesh')
         self.addWidget(self.hverts)
 
         self.anim= QCheckBox("save animation")
         self.anim.setLayoutDirection(Qt.LeftToRight)
         self.anim.toggled.connect(self.changeAnim)
-        self.anim.setChecked(False)
+        self.anim.setChecked(self.values.animation)
         self.anim.setToolTip('Append animation to export [also includes corrections]<br>Skeleton and animation must be selected.')
         self.addWidget(self.anim)
         
         self.helperw= QCheckBox("save helper")
         self.helperw.setLayoutDirection(Qt.LeftToRight)
         self.helperw.toggled.connect(self.changeHelper)
-        self.helperw.setChecked(False)
+        self.helperw.setChecked(self.values.helper)
         self.helperw.setToolTip('For special purposes the invisible helper can be exported, vertices of the body are NOT hidden in this case')
         self.addWidget(self.helperw)
 
         self.norm= QCheckBox("normals")
         self.norm.setLayoutDirection(Qt.LeftToRight)
         self.norm.toggled.connect(self.changeNormals)
-        self.norm.setChecked(False)
+        self.norm.setChecked(self.values.normals)
         self.norm.setToolTip('Some applications need the vertex normals to create a smoothed mesh')
         self.addWidget(self.norm)
 
         self.addWidget(QLabel("Scaling:"))
         self.scalebox = QComboBox()
         self.scalebox.addItems(scaletexts)
+        self.scalebox.currentIndexChanged.connect(self.changeScale)
         self.scalebox.setToolTip('MakeHuman works with decimeter system, destination system usually differs')
         self.addWidget(self.scalebox)
 
@@ -188,55 +191,70 @@ class ExportLeftPanel(QVBoxLayout):
                 "helpset": False, "helpmode": False, "normset": False, "normmode": False}
             }
 
-        # set options according to type
+
+        # set options according to type, only change it, if mode is changed
         #
-        self.values.export_type = etype
         attr = expAttrib[etype]
+
+        if self.values.export_type != etype:
+            self.values.export_type = etype
+            self.values.scale_index = attr["num"]
+            if attr["binmode"] != "both":
+                self.values.binmode = attr["binmode"]
+            if attr["imgmode"] != "both":
+                self.values.imgmode = attr["imgmode"]
+            self.values.savehiddenverts = attr["hiddenmode"]
+            self.values.helper = attr["helpmode"]
+            self.values.normals = attr["normmode"]
+            self.values.inpose = attr["posemode"]
+            self.values.animation = attr["animmode"]
 
         self.newfilename()
         self.newfoldername()
 
-        if attr["binmode"] != "both":
-            self.binsave.setChecked(attr["binmode"])
+        self.binsave.setChecked(self.values.binmode)
         self.binsave.setEnabled(attr["binset"])
 
-        if attr["imgmode"] != "both":
-            self.binimg.setChecked(attr["imgmode"])
+        self.binimg.setChecked(self.values.imgmode)
         self.binimg.setEnabled(attr["imgset"])
         #
-        self.hverts.setChecked(attr["hiddenmode"])
+        self.hverts.setChecked(self.values.savehiddenverts)
         self.hverts.setEnabled(attr["hiddenset"])
 
-        self.helperw.setChecked(attr["helpmode"])
+        self.helperw.setChecked(self.values.helper)
         self.helperw.setEnabled(attr["helpset"])
 
-        self.norm.setChecked(attr["normmode"])
+        self.norm.setChecked(self.values.normals)
         self.norm.setEnabled(attr["normset"])
 
-        if self.bc.bvh and self.bc.skeleton:
-            self.anim.setChecked(attr["animmode"])
-            self.anim.setEnabled(attr["animset"])
-        else:
+        if self.bc.bvh is None or self.bc.skeleton is None:
             self.anim.setChecked(False)
             self.anim.setEnabled(False)
+            self.values.animation = False
+        else:
+            self.anim.setChecked(self.values.animation)
+            self.anim.setEnabled(attr["animset"])
 
-        self.posed.setChecked(attr["posemode"])
+        self.posed.setChecked(self.values.inpose)
         self.posed.setEnabled(attr["poseset"])
 
-        self.scalebox.setCurrentIndex(attr["num"])
+        self.scalebox.setCurrentIndex(self.values.scale_index)
         self.scalebox.setToolTip(attr["tip"])
 
+    def changeScale(self, param):
+        self.values.scale_index = param
+
     def changeBinary(self, param):
-        self.binmode = param
+        self.values.binmode = param
 
     def changeImg(self, param):
-        self.imgmode = param
+        self.values.imgmode = param
 
     def changeHVerts(self, param):
-        self.savehiddenverts = param
+        self.values.savehiddenverts = param
 
     def changeGround(self, param):
-        self.onground = param
+        self.values.onground = param
 
     def changePosed(self, param):
         if self.animmode is None:
@@ -244,16 +262,16 @@ class ExportLeftPanel(QVBoxLayout):
         else:
             self.animmode.leave()
             self.animmode = None
-        self.inpose = param
+        self.values.inpose = param
 
     def changeHelper(self, param):
-        self.helper = param
+        self.values.helper = param
 
     def changeNormals(self, param):
-        self.normals = param
+        self.values.normals = param
 
     def changeAnim(self, param):
-        self.animation = param
+        self.values.animation = param
 
     def selectfolder(self):
         folder = self.foldername.text()
@@ -315,26 +333,29 @@ class ExportLeftPanel(QVBoxLayout):
 
         etype = self.values.export_type
         if etype == ".glb":
-            gltf = gltfExport(self.glob, folder, texfolder, self.imgmode, self.savehiddenverts, self.onground,  self.animation, scale)
+            gltf = gltfExport(self.glob, folder, texfolder, self.values.imgmode, self.values.savehiddenverts,
+                    self.values.onground,  self.values.animation, scale)
             success = gltf.binSave(self.bc, path)
 
         elif etype == ".stl":
-            stl = stlExport(self.glob, folder, self.savehiddenverts, scale)
-            if self.binmode:
+            stl = stlExport(self.glob, folder, self.values.savehiddenverts, scale)
+            if self.values.binmode:
                 success = stl.binSave(self.bc, path)
             else:
                 success = stl.ascSave(self.bc, path)
 
         elif etype == ".mh2b":
-            blcom = blendCom(self.glob, folder, texfolder, self.savehiddenverts, self.onground, self.animation, scale)
+            blcom = blendCom(self.glob, folder, texfolder, self.values.savehiddenverts,
+                    self.values.onground, self.values.animation, scale)
             success = blcom.binSave(self.bc, path)
 
         elif etype == ".obj":
-            obj = objExport(self.glob, folder, texfolder, self.savehiddenverts, self.onground, self.helper, self.normals, scale)
+            obj = objExport(self.glob, folder, texfolder, self.values.savehiddenverts,
+                    self.values.onground, self.values.helper, self.values.normals, scale)
             success = obj.ascSave(self.bc, path)
 
         elif etype == ".bvh":
-            bvh = bvhExport(self.glob, self.onground, scale)
+            bvh = bvhExport(self.glob, self.values.onground, scale)
             success = bvh.ascSave(self.bc, path)
 
         else:
