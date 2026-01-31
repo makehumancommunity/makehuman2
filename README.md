@@ -114,23 +114,28 @@ When you exit Makehuman2 the preferences will be written to a configuration file
 
 ## Additional assets
 
-To work with makehuman you need to get the assets otherwise it would be pretty boring, this is done by:
+To work with makehuman you need to get the assets otherwise it would be pretty boring, so we added some asset packs on MakeHuman fileservers.
+These are assets which are shared with MPFB2 and own assets like cubemaps and poses, floors and animations. Loading assets might take some time.
 
+It could be done by makehuman itself.  Use download button and load predefined asset packs.
+
+Then extract the pack (check context help).
+
+You can also download both packets by script:
 ```
 python3 getpackages.py 
 ```
 
 Choose "user space".
 
-The program now does a download from MakeHuman fileserver (assets which are shared with MPFB2 and own assets like cubemaps and poses, floors and animations).
-This might take some time.
-
 
 ## Optimizations
 
 makehuman 2 can either work with ASCII or compiled targets. Compiled targets are much faster to load.
-Also the meshes should be compiled (mhclo + obj will be compiled to mhbin) to work faster. Therefore you should use the following commands:
+Also the meshes should be compiled (mhclo + obj will be compiled to mhbin) to work faster.
+However in the beginning makehuman 2 will try to optimize the targets automatically, so first start will take more time.
 
+For completeness we also added extra commands to do that manually:
 
 ```
 python3 compile_targets.py    # to compile system targets first.
@@ -140,7 +145,7 @@ python3 compile_meshes.py     # to compile meshes on both system + user folder. 
 **compile_targets** should be used to compile system targets first. 
 **compile_meshes** should be used to compile meshes on both system + user folder. In system folder the base mesh itself is compiled.
 
-You can also compile the meshes from  makehuman GUI, also the download can be done from there. Since system space is usually protected (esp. on Linux), a special option "-A" has to be used. Then you need to have the correct user permissions as well.
+You can also compile the meshes from  makehuman GUI. Since system space is usually protected (esp. on Linux), a special option "-A" has to be used. Then you need to have the correct user permissions as well.
 
 *New meshes (mostly clothes) in user folder will be compiled, when the mesh is used first time. New targets in user folder should be compiled via GUI from time to time.*
 

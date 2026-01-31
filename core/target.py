@@ -640,6 +640,18 @@ class Targets:
             if os.path.exists(bintargets):
                 self.env.logLine(8, "Load binary targets: " + bintargets)
                 x["targets"] = np.load(bintargets)
+            else:
+                self.env.logLine(8, "Try to create binary targets: " + bintargets)
+                ta = TargetASCII()
+                if (ta.allowToWrite(bintargets)):
+                    num = ta.compressAllTargets(x["targetpath"], bintargets, 0)
+                    if num > 0:
+                        self.env.logLine(8, str(num) + " targets compressed. Binary targets will be used on next restart")
+                    else:
+                        self.env.logLine(8, "No targets for " + bintargets)
+                else:
+                    self.env.logLine(8, "Writing binary targets: no permission")
+
 
         # load macrotargets, use folder, where the macro-defition was found
         #

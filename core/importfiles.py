@@ -334,6 +334,14 @@ class TargetASCII():
                 data.append((vertIndex, translationVector))
             return(True, np.asarray(data, dtype=dtype))
 
+    def allowToWrite(self, filename):
+        try:
+            fp = open(filename, "w")
+        except PermissionError:
+            return False
+        else:
+            return True
+
     def saveCompressed(self, filename, content):
         f = open(filename, "wb")
         np.savez_compressed(f, **content)
@@ -360,15 +368,19 @@ class TargetASCII():
                 if filename.startswith(path):
                     name = filename[l+1:]
                     content[name[:-7]] = arr
-        return (content)
+        return content
 
     def compressAllTargets(self, sourcefolder, destfile, verbose=0):
         content = self.loadAllTargets(sourcefolder, verbose)
-        if len(content) > 0:
+        howmany = len(content)
+        if howmany > 0:
             if verbose > 0:
                 print ("save compressed: " + destfile)
             self.saveCompressed(destfile, content)
         else:
             if verbose > 0:
                 print ("No content for: " + destfile)
+            if os.path.exists(destfile):
+                os.remove(destfile)
+        return howmany
 
