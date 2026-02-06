@@ -213,6 +213,7 @@ class AssetPack():
     def getAssetPack(self, url, save_path, filename, unzip=False):
         """
         get URL and extract zipfile
+        :return: bool True if loaded and err or None
         """
         url = url.replace(' ', '%20')
         try:

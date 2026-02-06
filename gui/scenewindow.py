@@ -142,10 +142,10 @@ class MHSceneWindow(QWidget):
         vlayout.setSpacing(1)
         vlayout.addWidget(QLabel("Floor geometry:"))
 
-        self.floorSize = SimpleSlider("Floor Size: ", 5, 50, self.floorSizeChanged)
+        self.floorSize = SimpleSlider("Floor Size: ", 5, 100, self.floorSizeChanged)
         vlayout.addWidget(self.floorSize )
 
-        self.floorThickness = SimpleSlider("Floor Thickness: ", 1, 50, self.floorThicknessChanged)
+        self.floorThickness = SimpleSlider("Floor Thickness: ", 1, 100, self.floorThicknessChanged)
         vlayout.addWidget(self.floorThickness )
 
         vlayout.addWidget(QLabel("Floor texture:"))

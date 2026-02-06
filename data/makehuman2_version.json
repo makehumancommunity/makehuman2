@@ -16,6 +16,7 @@
 	"url_mirrorserver":  "https://files2.makehumancommunity.org",
 	"url_assetpacks":  "https://mirror1.makehuman.net/asset_packs/",
 	"url_assetlist": "http://www.makehumancommunity.org/sites/default/files/assets.json",
+	"url_assetpacklist": "https://mirror1.makehuman.net/functional/assetpacks.json",
     	"url_systemassets": "asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip",
 	"url_systemassets2": "functional/makehuman2_additional_assets/makehuman2_additional_assets_cc0.zip",
 	"url_license_code": "https://github.com/makehumancommunity/makehuman/blob/master/LICENSE.CODE.md",
