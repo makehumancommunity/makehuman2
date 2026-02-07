@@ -16,7 +16,7 @@ from obj3d.skeleton import skeleton
 from obj3d.animation import BVH, MHPose, PosePrims, MHPoseFaceConverter
 from core.debug import memInfo, dumper
 from core.target import Modelling
-from gui.common import WorkerThread, ErrorBox
+from gui.common import WorkerThread, ErrorBox, WarningBox
 
 class MakeHumanModel():
     def __init__(self):
@@ -520,7 +520,7 @@ class baseClass():
         # handle bad geometry, skip error in case of startup
         #
         if res == 1 and self.glob.centralWidget is not None:
-            ErrorBox(self.glob.centralWidget, err)
+            WarningBox(self.glob.centralWidget, err)
 
         self.glob.markAssetByFileName(path, True)
         if eqtype == "proxy":

@@ -52,20 +52,20 @@ class DownLoadImport(QVBoxLayout):
         else:
             self.asdlbutton=QPushButton("Replace Current Asset Lists [" + self.latest + "]")
         self.asdlbutton.clicked.connect(self.listDownLoad)
-        self.asdlbutton.setToolTip("The asset list is needed to load single assets.<br>This must be done once.<br>Usually you only need to reload the list if new assets are available.")
+        self.asdlbutton.setToolTip("Asset list are needed to load single assets or assetpacks.<br>This must be done once.<br>Usually you only need to reload lists if new assets are available.")
         self.addWidget(self.asdlbutton)
 
         gb = QGroupBox("Single Asset")
         gb.setObjectName("subwindow")
         vlayout = QVBoxLayout()
 
-        vlayout.addWidget(QLabel("\nEnter title or URL of asset [copy/paste from browser]<br>or select from list"))
+        vlayout.addWidget(QLabel("\nBrowse in list to find your asset.\n(Alternatively you can enter the title of the asset directly)"))
         hlayout = QHBoxLayout()
-        self.selbutton=QPushButton("Select")
-        self.selbutton.setEnabled(self.latest is not None)
-        self.selbutton.clicked.connect(self.selectfromList)
-        self.selbutton.setToolTip("Select asset from asset list.")
-        hlayout.addWidget(self.selbutton)
+        self.browsebutton=QPushButton("Browse")
+        self.browsebutton.setEnabled(self.latest is not None)
+        self.browsebutton.clicked.connect(self.selectfromList)
+        self.browsebutton.setToolTip("Browse downloaded asset list.")
+        hlayout.addWidget(self.browsebutton)
         self.singlename = QLineEdit("")
         self.singlename.editingFinished.connect(self.singleinserted)
         hlayout.addWidget(self.singlename)
@@ -272,7 +272,7 @@ class DownLoadImport(QVBoxLayout):
             QMessageBox.information(self.parent, "Done!", self.bckproc.finishmsg)
         self.bckproc = None
         self.latest = self.assets.testAssetList(self.assetlistpath)
-        self.selbutton.setEnabled(self.latest is not None)
+        self.browsebutton.setEnabled(self.latest is not None)
 
         # add the new items to combobox
         #

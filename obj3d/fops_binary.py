@@ -143,7 +143,8 @@ def importObjValues(npzfile, obj):
         msg = None
     else:
         res = 1
-        msg = "Bad geometry, at least one normal vector of face with size 0 cannot be calculated."
+        msg = "Bad geometry, at least one normal vector of face with size 0 cannot be calculated. " + \
+                "This can result in artifacts in certain programs. Makehuman2 can deal with it."
 
     return (res, msg)
 

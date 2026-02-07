@@ -10,13 +10,13 @@ assets than the date of the last download of your list.
 <p>
 Now there are two possibilities for a download:
 <ol>
-<li>when you want to browse the current asset list, press "Select" to get a window for searching.</li>
+<li>when you want to browse the current asset list, press "Browse" to get a window for searching.</li>
 <i>Hint: Since the list is longer, it may take some time to open that window first time.</i>
 <li>when you just browse the "user contributed assets" pages in a web-browser, you can open one
-of these pages and copy the title or the URL into the input box near the "Select" button.</li>
+of these pages and copy the title into the input box near the "Browse" button.</li>
 </ol>
-"Download Single Asset" will be activated, when the input box contains data. In case you use the
-selection by window, this box will contain a number preceeded by a "%".
+"Download Single Asset" will be activated, when the input box contains data. In case you used the search window,
+this box will contain a number preceeded by a "%".
 <p>
 According to the asset, the program is able to find the folder, where the asset should be placed.
 In this case it downloads the asset without interaction. In all other cases (mainly material assets)
@@ -62,12 +62,11 @@ if the asset list itself was downloaded again after this window was openend.
 <p>
 We also provide the possibility to download complete asset packs or to unzip and install already downloaded packs.
 <p>
-There are 2 asset packs predefined, the makehuman standard assets and an additional one for MakeHuman 2, these can be selected directly.
-If you do that, the name above "Download Asset Pack" will change.
+There are 2 asset packs predefined, the makehuman standard assets and an additional one for MakeHuman 2, these can be selected directly. If you already loaded the asset list, all known packs will be displayed. Select the pack you need, doing that, the URL above "Download Asset Pack" will be filled.
 <p>
-If you already downloaded a differnt pack, simply enter the name above "Extract" button, then press 'Extract'.
+If you already downloaded a pack, simply enter the filename above "Extract" button, then press 'Extract'.
 <p>
-In case you need to load other packs and do not know the name, press on the link, which opens the browser. You can then navigate into the folder you need. An HTML page will be displayed. There is always a link on top which contains a zip-file. This should be copied and inserted into the textbox above "Download Asset Pack".
+In case you need information about the packs before, press on the link, which opens a browser. You can then navigate into the folder you need. An HTML page will be displayed. There is always a link on top which contains a zip-file. This could be copied and inserted into the textbox above "Download Asset Pack" as well.
 <p>
 Download may take some time. The name of the zip-file will appear above the extract button as a fully qualified path. Do not wonder about the name of the temporary folder, this depends on your operating system.
 <p>

@@ -33,6 +33,10 @@ def ErrorBox(qw, text):
     box = QMessageBox.critical(qw, "An error occured!", text, buttons=QMessageBox.Close)
     QMessageBox()
 
+def WarningBox(qw, text):
+    box = QMessageBox.warning(qw, "Warning", text, buttons=QMessageBox.Close)
+    QMessageBox()
+
 def HintBox(qw, text):
     box = QMessageBox.information(qw, "Information", text, buttons=QMessageBox.Close)
     QMessageBox()

@@ -148,6 +148,13 @@ class AssetPack():
         return(json)
 
     def alistGetKey(self, json, search):
+        """
+        get asset number and folder to be used for saving
+        search by number or by title
+
+        :param json: json structure
+        :param search: search string: if starting wit % a number is expected
+        """
         if search.startswith("%"):
             key = search[1:]
             if key in json:
@@ -155,16 +162,11 @@ class AssetPack():
                 return key, item.get("folder")
             return None, None
 
-        elif "/" in search:
-            search = os.path.split(search)[1]
-            search = os.path.splitext(search)[0]
-            for key, item in json.items():
-                folder = item.get("folder")
-                if folder == search:
-                    return key, folder
-
         for key, item in json.items():
-            if item.get("title") == search:
+            title = item.get("title")
+            if title == search:
+                return key, item.get("folder")
+            if title.lower() == search:
                 return key, item.get("folder")
         return None, None
 
