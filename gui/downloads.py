@@ -413,7 +413,10 @@ class DownLoadImport(QVBoxLayout):
             ErrorBox(self.parent, "Supported classes until now: " + str(supportedclasses))
             return
 
-        print (key, mtype, flist, folder)
+        self.env.logLine(8, "Assets of type " + mtype + " >" + folder)
+        for elem in flist:
+            self.env.logLine(8, " " + elem)
+
         if mtype == "material":
             #
             # for materials the parent asset is needed and the path should be calculated

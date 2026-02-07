@@ -129,7 +129,7 @@ def importWaveFront(path, obj):
     n_uvs = len(uvs)
     vertex_uv = np.full(n_verts, 0xffffffff, dtype=np.uint32)
 
-    uvsize = n_verts*3      # try to find a buffer sufficient for the uv-values
+    uvsize = n_verts*4      # try to find a buffer sufficient for the uv-values
     max_uv = n_uvs * 3 
     if max_uv > uvsize:
         uvsize = max_uv
