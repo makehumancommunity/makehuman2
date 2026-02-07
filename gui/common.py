@@ -213,20 +213,20 @@ class MHProgWindow():
     def __init__(self, title, maximum):
         self.progress = QProgressDialog("started", None, 0, maximum, None)
         self.progress.setWindowTitle(title)
-        self.progress.setMinimumWidth(600)
+        self.progress.setMinimumWidth(800)
         self.progress.setMinimumDuration(500)
         self.progress.setWindowModality(Qt.WindowModal)
         self.progress.setAttribute(Qt.WA_DeleteOnClose, True)
 
     def setValueAndText(self, l, text):
         self.progress.setValue(l)
-        self.progress.setLabelText(text)
+        self.progress.setLabelText(text[:120])
 
     def setValue(self, l):
         self.progress.setValue(l)
 
     def setLabelText(self, text):
-        self.progress.setLabelText(text)
+        self.progress.setLabelText(text[:120])
 
     def setMaximum(self, l):
         self.progress.setMaximum(l)
@@ -239,14 +239,14 @@ class MHBusyWindow(QWidget):
     def __init__(self, title, text):
         self.progress = QProgressDialog(text, None, 0, 0, None)
         self.progress.setWindowTitle(title)
-        self.progress.setMinimumWidth(600)
+        self.progress.setMinimumWidth(800)
         self.progress.setMinimumDuration(200)
         self.progress.setWindowModality(Qt.WindowModal)
         self.progress.setAttribute(Qt.WA_DeleteOnClose, True)
 
     def setLabelText(self, text):
         time.sleep(0.1)     # to avoid blocking (?)
-        self.progress.setLabelText(text)
+        self.progress.setLabelText(text[:120])
 
     def setValue(self, l):
         self.progress.setValue(l)
