@@ -85,13 +85,15 @@ class object3d:
         self.filename = path
         (success, text) = importObjFromFile(path, self, use_obj)
         if success > 0:
-            self.initMaterial(path)
+            self.initMaterial()
         return (success, text)
 
     def setZDepth(self, z_depth):
         self.z_depth = z_depth
 
-    def initMaterial(self, filename):
+    def initMaterial(self, filename=None):
+        if filename is None:
+            filename = self.filename
         self.material = Material(self.glob, os.path.dirname(filename), self.type)
 
     def listAllMaterials(self):
@@ -117,7 +119,7 @@ class object3d:
 
         if self.material is not None:
              self.material.freeTextures()
-        self.initMaterial(self.filename)
+        self.initMaterial()
         return(self.material.loadMatFile(pathname))
 
     def getMaterialFilename(self):

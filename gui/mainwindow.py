@@ -875,6 +875,7 @@ class MHMainWindow(QMainWindow):
             gl.noGLObjects(leavebase=True)
             self.glob.textureRepo.cleanup()
             self.glob.baseClass.reset()
+            self.glob.baseClass.baseMesh.initMaterial()
             self.prog_window = MHBusyWindow("Load character", "start")
             self.prog_window.progress.forceShow()
             self.glob.parallel = WorkerThread(self.parallelLoad, filename)

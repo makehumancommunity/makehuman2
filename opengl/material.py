@@ -505,6 +505,10 @@ backfaceCull {self.backfaceCull}
         return alternative
 
     def loadDiffuse(self, modify, obj):
+        """
+        loadDiffuse is able to toggle between a diffuse color and a diffuse texture
+        it should always free the old texture
+        """
         if self.mapChanged('diffuseTexture', self.tex_diffuse):
             return self.tex_diffuse.getTexture()
 
@@ -514,7 +518,7 @@ backfaceCull {self.backfaceCull}
             ogl_texture = self.tex_diffuse.load(self.diffuseTexture, modify=modify)
         else:
             if self.colorChanged('diffuseColor', self.tex_diffuse):
-               return self.tex_diffuse.getTexture()
+                return self.tex_diffuse.getTexture()
 
             self.freeTexture("diffuseTexture")
             if hasattr(self, 'diffuseColor'):
