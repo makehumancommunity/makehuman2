@@ -278,6 +278,12 @@ class AssetPack():
                     if category == "proxymeshes":
                         category = "proxy"
                     folder = os.path.join(dest, category, mesh)
+
+                    # for subfolders we always change that to material
+                    #
+                    if len(dirs) > 2:
+                        dirs[2] = "materials"
+
                     restdirs = os.sep.join(dirs[1:])
                     destfolder = os.path.join(folder, restdirs)
                     sourcefolder = os.path.join(source, root)
