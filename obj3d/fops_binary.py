@@ -157,14 +157,21 @@ def importObjFromFile(path, obj, use_obj=False):
     """
     check if binary file exists
     """
-    if use_obj is False and obj.filename.endswith(".obj"):
-        binfile = path[:-3] + "mhbin"
-        if os.path.isfile(binfile):
-            return(importObj3dBinary(binfile, obj))
+    if use_obj is False:
+        if obj.filename.endswith(".mhbin"):
+            if os.path.isfile(obj.filename):
+                return importObj3dBinary(obj.filename, obj)
+            else:
+                return 0, "cannot load " + obj.filename
+
+        if obj.filename.endswith(".obj"):
+            binfile = path[:-3] + "mhbin"
+            if os.path.isfile(binfile):
+                return importObj3dBinary(binfile, obj)
 
     # only ASCII
     #
     obj.env.logLine(8, "Load: " + path)
-    return(importWaveFront(path, obj))
+    return importWaveFront(path, obj)
 
 

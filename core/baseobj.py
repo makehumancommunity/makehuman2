@@ -761,7 +761,11 @@ class baseClass():
             return (False)
         self.env.initFileCache()
 
-        name = self.env.existDataFile("base", self.env.basename, "base.obj")
+        # base could be either mhbin or obj mesh
+        #
+        name = self.env.existDataFile("base", self.env.basename, "base.mhbin")
+        if name is None:
+            name = self.env.existDataFile("base", self.env.basename, "base.obj")
 
         self.baseMesh = object3d(self.glob, self.baseInfo, "base")
         (res, err) = self.baseMesh.load(name)

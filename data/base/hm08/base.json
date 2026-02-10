@@ -1,5 +1,6 @@
 {
 	"visible groups": [ "body"],
+	"numverts": 19158,
 	"target-opposites": {
 		"decr": "incr",
         	"down": "up",

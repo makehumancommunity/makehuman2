@@ -22,7 +22,6 @@
 	"url_license_code": "https://github.com/makehumancommunity/makehuman/blob/master/LICENSE.CODE.md",
 	"url_license_assets": "https://github.com/makehumancommunity/makehuman/blob/master/LICENSE.ASSETS.md",
     	"standardmesh" : "hm08",
-	"standardnumverts": 19158,
 	"support_urls": {
 		"Website": "url_mhcommunity",
 		"FaceBook page": "url_mhfacebook",

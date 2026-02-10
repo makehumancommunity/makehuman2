@@ -6,10 +6,16 @@
     * object3d
 """
 
+import os
+import sys
 import numpy as np 
 from obj3d.fops_binary import exportObj3dBinary, importObjFromFile
-from opengl.material import Material
-import os
+
+# only import material when not used for mesh compiler
+#
+__bname__ = os.path.basename(sys.argv[0])
+if not __bname__.startswith("compile_meshes"):
+    from opengl.material import Material
 
 class object3d:
     def __init__(self, glob, baseinfo, eqtype ):
@@ -84,7 +90,7 @@ class object3d:
         """
         self.filename = path
         (success, text) = importObjFromFile(path, self, use_obj)
-        if success > 0:
+        if success > 0 and not __bname__.startswith("compile_meshes"):
             self.initMaterial()
         return (success, text)
 

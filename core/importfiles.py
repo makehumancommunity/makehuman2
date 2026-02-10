@@ -235,8 +235,11 @@ class AssetPack():
         else:
             if not unzip:
                 outpath = os.path.join(save_path, filename) if filename else save_path
-                with open(outpath, mode="wb") as ifile:
-                    ifile.write(response.read())
+                try:
+                    with open(outpath, mode="wb") as ifile:
+                        ifile.write(response.read())
+                except Exception as err:
+                    return (False, str(err))
             else:
                 with ZipFile(BytesIO(response.read())) as zfile:
                     zfile.extractall(self.unzipdir)

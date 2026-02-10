@@ -228,6 +228,33 @@ class winBuilder():
                     if not dontcreate:
                         self.copyfile(os.path.join(root, elem), os.path.join(destdir, elem))
 
+    def compileMeshCall(self, mesh, filename):
+        if self.verbose:
+            print ("+ calling compile_meshes.py " + mesh + " " + filename)
+        try:
+            subprocess.call(["./compile_meshes.py", "-b", mesh, "-f", filename], cwd="..")
+        except Exception as e:
+            self.cleanexit (20, "compile_meshes " + mesh + " " + filename + " failed!")
+
+    def compileAssets(self):
+        """
+        compile base meshes and assets
+        """
+        basedirs = os.path.join(self.repodir, "data", "base")
+        for base in os.listdir(basedirs):
+            fname = os.path.join(basedirs, base, "base.obj")
+            self.compileMeshCall(base, fname)
+
+            for folder in ["clothes", "eyebrows", "eyelashes", "eyes", "hair", "proxy", "teeth", "tongue"]:
+                absfolder = os.path.join(self.repodir, "data", folder, base)
+                if os.path.isdir(absfolder):
+                    for root, dirs, files in os.walk(absfolder, topdown=True):
+                        for name in files:
+                            if name.endswith(".mhclo") or name.endswith(".proxy"):
+                                fname = os.path.join(root, name)
+                                self.compileMeshCall(base, fname)
+
+
     def modifyInstaller(self):
         """
         replace the shortcut
@@ -293,6 +320,7 @@ if __name__ == '__main__':
     outtext = wb.evaluatePynsistCfg()
     wb.createPynsistCfg(outtext)
     wb.copyRepo()
+    wb.compileAssets()
     wb.pynsistCall()
     wb.modifyInstaller()
     wb.makensisCall()

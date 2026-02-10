@@ -2,6 +2,7 @@
 import os
 import json
 import argparse
+
 from core.importfiles import UserEnvironment
 from core.attached_asset import attachedAsset
 from obj3d.object3d import object3d
@@ -19,14 +20,50 @@ def logLine(level, line):
     if level & 8:
         print (line)
 
+def getNumVerts(basename, systemspace, userspace):
+    """
+    get numverts from base.json
+    """
+
+    bfile = os.path.join(userspace, "base", basename, "base.json")
+    if not os.path.isfile(bfile):
+        bfile = os.path.join(systemspace, "base", basename, "base.json")
+
+    if os.path.isfile(bfile):
+        with open(bfile, 'r') as f:
+            baselines = json.load(f)
+            if "numverts" in baselines:
+                return baselines["numverts"]
+    return -1
+
 def compressFile(glob, eqtype, path, source):
     filename = os.path.join(path, source)
     asset =  attachedAsset(glob, eqtype, glob.env.numverts)
     asset.mhcloToMHBin(filename)
 
+def compressSingleFile(glob, name):
+    if name.endswith(".obj"):
+        basemesh = object3d(glob, None, "base")
+        (res, err) = basemesh.load(name, True)
+        if res == 0:
+            print (err)
+            exit(10)
+        basemesh.exportBinary()
+    elif name.endswith(".mhclo") or name.endswith(".proxy"):
+        p, f = os.path.split(name)
+        p, sd = os.path.split(p)
+        p, m = os.path.split(p)
+        p, eqtype = os.path.split(p)
+        asset =  attachedAsset(glob, eqtype, glob.env.numverts)
+        asset.mhcloToMHBin(name)
+
 if __name__ == '__main__':
     # get predefined environment parameters (standardmesh)
     #
+    dirname = os.path.abspath(os.path.dirname(__file__))
+    os.chdir(dirname)
+    systemspace = os.path.join(dirname,"data")
+
     release_info = os.path.join("data", "makehuman2_version.json")
     if os.path.isfile(release_info):
         with open(release_info, 'r') as f:
@@ -41,7 +78,7 @@ if __name__ == '__main__':
     uenv.logLine = logLine                          # the function we supply directly
     uenv.verbose = 0                                # do not print comments from makehuman2
     uenv.basename = release["standardmesh"]         # the meshname
-    uenv.numverts = release["standardnumverts"]     # use to determine delete bool array
+
 
     conffile = uenv.GetUserConfigFilenames()[0]
     userspace = None
@@ -49,10 +86,12 @@ if __name__ == '__main__':
         with open(conffile, 'r') as f:
             conf = json.load(f)
             userspace = os.path.join(conf["path_home"], "data")
-    systemspace = os.path.join(os.path.dirname(os.path.abspath(__file__)),"data")
 
-    parser = argparse.ArgumentParser(description="Compile objects (mhclo + obj) to binary form (mhbin) (usually works interactive). Currently it only works with standard mesh.")
+    parser = argparse.ArgumentParser(description="Compile objects (mhclo + obj) to binary form (mhbin) (usually works interactive).")
     parser.add_argument("-s", action="store_true", help="compile system space objects")
+    parser.add_argument("-b", "--base", type=str, default=uenv.basename, help="preselect base mesh")
+    parser.add_argument("-f", "--file", type=str, help="compile only this file")
+
     if userspace is not None:
         parser.add_argument("-u", action="store_true", help="compile user space instead of system space")
 
@@ -60,6 +99,23 @@ if __name__ == '__main__':
     parser.add_argument("filename", nargs="?", type=str, help="compile only assets which are similar to this filename")
 
     args = parser.parse_args()
+
+    # without knowing the base it self we have to know the number of vertices
+    # for creating the delete-bool-array for clothes, so it is parameter of base.json
+    #
+
+    uenv.numverts = getNumVerts(args.base, systemspace, userspace)
+    if uenv.numverts < 0:
+        print ("Cannot evaluate number of vertices from 'base.json'")
+        exit (2)
+
+    # first handle the case where only one file should be compiled
+    #
+    if args.file:
+        glob = globalObjects(uenv)
+        compressSingleFile(glob, args.file)
+        exit(0)
+
 
     space = None
     if args.u:
@@ -69,6 +125,7 @@ if __name__ == '__main__':
         space = userspace
     if args.s:
         space = systemspace
+
 
     # no decision, ask user
     #
@@ -103,7 +160,7 @@ if __name__ == '__main__':
     # first compile base if added to user space or system space
     #
     num = 0
-    base =  os.path.join(space, "base", uenv.basename, "base.obj")
+    base =  os.path.join(space, "base", args.base, "base.obj")
     if os.path.isfile (base):
         if args.filename is None or "base" in args.filename:
             print ("Found: " + base)
@@ -116,7 +173,7 @@ if __name__ == '__main__':
             num += 1
 
     for folder in ["clothes", "eyebrows", "eyelashes", "eyes", "hair", "proxy", "teeth", "tongue"]:
-        absfolder = os.path.join(space, folder, uenv.basename)
+        absfolder = os.path.join(space, folder, args.base)
         if os.path.isdir(absfolder):
             for root, dirs, files in os.walk(absfolder, topdown=True):
                 for name in files:

@@ -1,5 +1,6 @@
 {
 	"visible groups": [ "mh_default" ],
+	"numverts": 7267,
 	"pose-skeleton": "default.mhskel",
 	"equipment": [ "clothes" ],
         "target-opposites": {
