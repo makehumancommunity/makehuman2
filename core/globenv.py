@@ -629,11 +629,16 @@ class programInfo():
 
     def isSourceFileNewer(self, destination, source):
         """
-        should return true when: destination is not there
-        destination is older
+        function used to test if compilation is needed
+
+        :param destination: name of destination file
+        :param source: name of source file
+        :return: True when destination is not there, destination is older. False when only destination file is there
         """
         if not os.path.isfile(destination):
             return (True)
+        if not os.path.isfile(source):
+            return (False)
         sourcedate = int(os.stat(source).st_mtime)
         destdate   = int(os.stat(destination).st_mtime)
         return (sourcedate > destdate)

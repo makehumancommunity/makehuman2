@@ -26,6 +26,7 @@ class winBuilder():
         self.nsifile = None
         self.ignoredirs = []
         self.ignorefiles = []
+        self.remove_ascii_targets = False
         #
         # get installer path according to OS
         #
@@ -125,6 +126,9 @@ class winBuilder():
             self.cleanexit(4, "Missing 'pynsist' in " + self.conf)
 
         pynsist = json_object["pynsist"]
+
+        if "remove_ascii_targets" in json_object:
+            self.remove_ascii_targets = json_object["remove_ascii_targets"]
 
         outtext = ""
         for cat in "Application", "Python", "Include":
@@ -254,6 +258,41 @@ class winBuilder():
                                 fname = os.path.join(root, name)
                                 self.compileMeshCall(base, fname)
 
+    def compileTargetCall(self, filename):
+        if self.verbose:
+            print ("+ calling compile_targets.py " + filename)
+        try:
+            subprocess.call(["./compile_targets.py", "-f", filename], cwd="..")
+        except Exception as e:
+            self.cleanexit (20, "compile_target " + filename + " failed!")
+
+    def compileTargets(self):
+        """
+        compile targets
+        """
+        basedirs = os.path.join(self.repodir, "data", "target")
+        for base in os.listdir(basedirs):
+            fname = os.path.join(basedirs, base)
+            self.compileTargetCall(fname)
+
+    def removeASCIITargets(self):
+        if self.remove_ascii_targets is False:
+            return
+        basedirs = os.path.join(self.repodir, "data", "target")
+        for base in os.listdir(basedirs):
+            dname = os.path.join(basedirs, base)
+            if self.verbose:
+                print ("delete targets in " + dname)
+            for root, dirs, files in os.walk(dname, topdown=True):
+                for name in files:
+                    if name.endswith(".target"):
+                        fname = os.path.join(root, name)
+                        os.remove(fname)
+
+            walk = list(os.walk(dname))
+            for path, _, _ in walk[::-1]:
+                if len(os.listdir(path)) == 0:
+                    os.rmdir(path)
 
     def modifyInstaller(self):
         """
@@ -320,6 +359,8 @@ if __name__ == '__main__':
     outtext = wb.evaluatePynsistCfg()
     wb.createPynsistCfg(outtext)
     wb.copyRepo()
+    wb.compileTargets()
+    wb.removeASCIITargets()
     wb.compileAssets()
     wb.pynsistCall()
     wb.modifyInstaller()

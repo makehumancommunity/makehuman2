@@ -644,7 +644,11 @@ class Targets:
                 self.env.logLine(8, "Try to create binary targets: " + bintargets)
                 ta = TargetASCII()
                 if (ta.allowToWrite(bintargets)):
-                    num = ta.compressAllTargets(x["targetpath"], bintargets, 0)
+
+                    # avoid remove when no ASCII targets are there
+                    #
+                    remove = not (i == self.target_sysindex)
+                    num = ta.compressAllTargets(x["targetpath"], bintargets, verbose=0, remove=remove)
                     if num > 0:
                         self.env.logLine(8, str(num) + " targets compressed. Binary targets will be used on next restart")
                     else:
@@ -685,18 +689,18 @@ class Targets:
             sourcefolder = self.env.stdSysPath("target")
             destfile = self.env.stdSysPath("target", "compressedtargets.npz")
             self.env.logLine (8, "Compress system targets in " + sourcefolder + " to "+  destfile)
-            ta.compressAllTargets(sourcefolder, destfile)
+            ta.compressAllTargets(sourcefolder, destfile, remove=False)
 
         if sys_user & 2:
             sourcefolder = self.env.stdUserPath("target")
             destfile = self.env.stdUserPath("target", "compressedtargets.npz")
             self.env.logLine (8, "Compress user targets in " + sourcefolder + " to "+  destfile)
-            ta.compressAllTargets(sourcefolder, destfile)
+            ta.compressAllTargets(sourcefolder, destfile, remove=True)
             if self.target_sysindex == 2:
                 sourcefolder = self.env.stdUserPath("contarget")
                 destfile = self.env.stdUserPath("contarget", "compressedtargets.npz")
                 self.env.logLine (8, "Compress user constant targets in " + sourcefolder + " to "+  destfile)
-                ta.compressAllTargets(sourcefolder, destfile)
+                ta.compressAllTargets(sourcefolder, destfile, remove=False)
 
     def setSkinDiffuseColor(self):
         for target in self.modelling_targets:

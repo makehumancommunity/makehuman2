@@ -7,6 +7,10 @@ from core.importfiles import UserEnvironment, TargetASCII
 if __name__ == '__main__':
     # get environment parameters (standardmesh)
     #
+    dirname = os.path.abspath(os.path.dirname(__file__))
+    os.chdir(dirname)
+    systemhome = os.path.join(dirname,"data", "target")
+
     release_info = os.path.join("data", "makehuman2_version.json")
     if os.path.isfile(release_info):
         with open(release_info, 'r') as f:
@@ -22,17 +26,23 @@ if __name__ == '__main__':
         with open(conffile, 'r') as f:
             conf = json.load(f)
             userhome = os.path.join(conf["path_home"], "data")
-    systemhome = os.path.join(os.path.dirname(os.path.abspath(__file__)),"data", "target")
 
     parser = argparse.ArgumentParser(description="Compile targets to binary form (usually works interactive)")
     parser.add_argument("base", type=str, nargs='?', help="if mentioned, targets of a different base mesh will be compiled, otherwise " + mesh)
     parser.add_argument("-s", action="store_true", help="compile system space targets")
+    parser.add_argument("-f", "--file", type=str, help="compile only this file")
     if userhome is not None:
         parser.add_argument("-u", action="store_true", help="compile user space instead of system space")
 
     parser.add_argument("-n", action="store_true", help="compile non interactive")
 
     args = parser.parse_args()
+
+    if args.file:
+        at = TargetASCII()
+        dest = os.path.join(args.file, "compressedtargets.npz")
+        at.compressAllTargets(args.file, dest, 1)
+        exit(0)
 
     space = None
     if args.u:

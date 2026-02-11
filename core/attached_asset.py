@@ -475,5 +475,13 @@ class attachedAsset:
         return exportObj3dBinary(filename, self.obj, content)
 
     def mhcloToMHBin(self, path):
+        """
+        convert mhclo/proxy file to binary, also avoids to create mhbin if no source file is there
+
+        :param path: file to covert
+        :return: err-code, error-text
+        """
+        if not os.path.isfile(path):
+            return (0, err)
         return(self.load(path, True))
 

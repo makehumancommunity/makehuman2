@@ -382,7 +382,7 @@ class TargetASCII():
                     content[name[:-7]] = arr
         return content
 
-    def compressAllTargets(self, sourcefolder, destfile, verbose=0):
+    def compressAllTargets(self, sourcefolder, destfile, verbose=0, remove=True):
         content = self.loadAllTargets(sourcefolder, verbose)
         howmany = len(content)
         if howmany > 0:
@@ -392,7 +392,8 @@ class TargetASCII():
         else:
             if verbose > 0:
                 print ("No content for: " + destfile)
-            if os.path.exists(destfile):
-                os.remove(destfile)
+            if remove:
+                if os.path.exists(destfile):
+                    os.remove(destfile)
         return howmany
 

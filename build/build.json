@@ -3,6 +3,7 @@
 	"pynsistfile": "pynsist.cfg",
 	"mhconfigfile": "../data/makehuman2_version.json",
 	"reponame": "makehuman2",
+	"remove_ascii_targets": true,
 	"ignoredirs": ["__pycache__", "build"],
 	"ignorefiles": [".*\\.pyc", "^\\..*", ".*\\.mhbin", ".*\\.npz"],
 	"pynsist": {
