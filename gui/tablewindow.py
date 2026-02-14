@@ -300,8 +300,8 @@ class MHSelectAssetWindow(QWidget):
         columns = ["id", "Name", "Category", "Author", "Faces"]
         self.thumbpath = os.path.join(self.env.path_userdata, "downloads", self.env.basename, "thumb.png")
         self.renderpath = os.path.join(self.env.path_userdata, "downloads", self.env.basename, "render")
+        self.dbutton = None
 
-        self.textboxfill = None
         self.tables = []
 
         self.query = QLineEdit()
@@ -330,10 +330,11 @@ class MHSelectAssetWindow(QWidget):
         gb.setObjectName("subwindow")
         hlayout = QHBoxLayout()
         self.query.returnPressed.connect(self.applySearch)
-        #hlayout.addWidget(QLabel("Filter:"))
         hlayout.addWidget(self.query)
         hlayout.addWidget(QLabel("Column:"))
         hlayout.addWidget(self.columnNum)
+        rbutton = IconButton(3,  os.path.join(self.env.path_sysicon, "rescan.png"), "Rescan list.", self.redisplay_call)
+        hlayout.addWidget(rbutton)
         gb.setLayout(hlayout)
         vlayout.addWidget(gb)
         layout.addLayout(vlayout)
@@ -376,9 +377,9 @@ class MHSelectAssetWindow(QWidget):
         assetgb.setLayout(gblayout)
         vlayout.addWidget(assetgb)
 
-        rbutton = QPushButton("Redisplay")
-        rbutton.clicked.connect(self.redisplay_call)
-        vlayout.addWidget(rbutton)
+        self.dbutton = QPushButton("Download")
+        self.dbutton.clicked.connect(self.download_call)
+        vlayout.addWidget(self.dbutton)
 
         button = QPushButton("Close")
         button.clicked.connect(self.close_call)
@@ -387,7 +388,12 @@ class MHSelectAssetWindow(QWidget):
         layout.addLayout(vlayout)
         self.setLayout(layout)
         self.fillComboBox()
+        self.activateDownload()
 
+    def activateDownload(self):
+        if self.dbutton is not None:
+            self.dbutton.setEnabled(self.current_asset is not None)
+        
     def fillComboBox(self):
         if len(self.tables) == 0:
             return
@@ -398,6 +404,11 @@ class MHSelectAssetWindow(QWidget):
         self.columnNum.addItems(cols[1:])
 
     def tabChanged(self):
+        self.current_asset = None
+        if len(self.tables) > 0:
+            tindex = self.tab.currentIndex()
+            self.tables[tindex].clearSelection()
+        self.activateDownload()
         self.query.setText("")
         self.fillComboBox()
 
@@ -408,9 +419,6 @@ class MHSelectAssetWindow(QWidget):
         if col == 0:
             col = -1
         self.tables[tindex].addFilter(col, text)
-
-    def setParam(self, callback):
-        self.textboxfill = callback
 
     def displayThumb(self, name):
         if name is None:
@@ -425,7 +433,7 @@ class MHSelectAssetWindow(QWidget):
             m = self.json[v]
             if "thumb" in m["files"]:
                 thumb_url = m["files"]["thumb"]
-                print ("Load thumb", thumb_url)
+                self.env.logLine(8, "Load thumb " + thumb_url)
                 self.parent.assets.getUrlFile(thumb_url, self.thumbpath)
                 self.displayThumb(self.thumbpath)
             else:
@@ -439,7 +447,7 @@ class MHSelectAssetWindow(QWidget):
                 url = m["files"]["render"]
                 (base, ext) = os.path.splitext(url)
                 path = self.renderpath + ext
-                print ("Load render", url, " to ", path)
+                self.env.logLine(8, "Load render " + url + " to " + path)
                 self.parent.assets.getUrlFile(url, path)
                 ImageBox(self, "Demo image", path)
             else:
@@ -450,6 +458,7 @@ class MHSelectAssetWindow(QWidget):
             if value != self.current_asset:
                 self.current_asset = value
                 self.displayThumb(None)
+            self.activateDownload()
             m = self.json[value]
             self.camera.setEnabled("thumb" in m["files"])
             self.render.setEnabled("render" in m["files"])
@@ -467,10 +476,7 @@ class MHSelectAssetWindow(QWidget):
                         elif "belongs_to_title" in b:
                             text = b["belongs_to_title"]
             self.attached.setText(text)
-                    
             self.description.setText(m["description"])
-
-            self.textboxfill(value)
 
     def refreshGeneric(self, dtype):
         data = []
@@ -503,6 +509,10 @@ class MHSelectAssetWindow(QWidget):
             data = [["no " + dtype + " discovered"]]
         return (data)
 
+    def download_call(self):
+        if self.current_asset is not None:
+            self.env.logLine(8, "Download asset " + self.current_asset)
+            self.parent.singleDownLoad(self.current_asset)
 
     def redisplay_call(self):
         """

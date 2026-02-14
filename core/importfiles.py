@@ -147,29 +147,6 @@ class AssetPack():
 
         return(json)
 
-    def alistGetKey(self, json, search):
-        """
-        get asset number and folder to be used for saving
-        search by number or by title
-
-        :param json: json structure
-        :param search: search string: if starting wit % a number is expected
-        """
-        if search.startswith("%"):
-            key = search[1:]
-            if key in json:
-                item = json[key]
-                return key, item.get("folder")
-            return None, None
-
-        for key, item in json.items():
-            title = item.get("title")
-            if title == search:
-                return key, item.get("folder")
-            if title.lower() == search:
-                return key, item.get("folder")
-        return None, None
-
     def alistGetFiles(self, json, key):
         flist = []
         item = json[key]

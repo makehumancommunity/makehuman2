@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     )
 
 from PySide6.QtCore import Qt
-from gui.memwindow import MHSelectAssetWindow
+from gui.tablewindow import MHSelectAssetWindow
 from gui.common import ErrorBox, WorkerThread, MHBusyWindow, IconButton, MHFileRequest
 from opengl.texture import MH_Thumb
 from core.importfiles import AssetPack
@@ -59,21 +59,13 @@ class DownLoadImport(QVBoxLayout):
         gb.setObjectName("subwindow")
         vlayout = QVBoxLayout()
 
-        vlayout.addWidget(QLabel("\nBrowse in list to find your asset.\n(Alternatively you can enter the title of the asset directly)"))
-        hlayout = QHBoxLayout()
-        self.browsebutton=QPushButton("Browse")
+        vlayout.addWidget(QLabel("\nBrowse in list to find your asset."))
+        self.browsebutton=QPushButton("Asset Browser")
         self.browsebutton.setEnabled(self.latest is not None)
         self.browsebutton.clicked.connect(self.selectfromList)
         self.browsebutton.setToolTip("Browse downloaded asset list.")
-        hlayout.addWidget(self.browsebutton)
-        self.singlename = QLineEdit("")
-        self.singlename.editingFinished.connect(self.singleinserted)
-        hlayout.addWidget(self.singlename)
-        vlayout.addLayout(hlayout)
+        vlayout.addWidget(self.browsebutton)
 
-        self.sidlbutton=QPushButton("Download Single Asset")
-        self.sidlbutton.clicked.connect(self.singleDownLoad)
-        vlayout.addWidget(self.sidlbutton)
 
         gb.setLayout(vlayout)
         self.addWidget(gb)
@@ -145,7 +137,6 @@ class DownLoadImport(QVBoxLayout):
         ilayout.addWidget(self.clbutton)
         gb.setLayout(ilayout)
         self.addWidget(gb)
-        self.singleinserted()
         self.packinserted()
         self.fnameinserted()
 
@@ -191,24 +182,16 @@ class DownLoadImport(QVBoxLayout):
         else:
             self.use_userpath = False
 
-    def singleinserted(self):
-        self.sidlbutton.setEnabled(len(self.singlename.text()) > 0)
-
     def packinserted(self):
         self.dlbutton.setEnabled(len(self.packname.text()) > 0)
 
     def fnameinserted(self):
         self.savebutton.setEnabled(len(self.filename.text()) > 0)
 
-    def fillSingleName(self, value):
-        self.singlename.setText("%" + value)
-        self.singleinserted()
-
     def selectfromList(self):
         if self.assetjson is None:
             self.assetjson =  self.assets.alistReadJSON(self.env, self.assetlistpath)
         w = self.glob.showSubwindow("loadasset", self, MHSelectAssetWindow, self.assetjson)
-        w.setParam(self.fillSingleName)
 
     def par_unzip(self, bckproc, *args):
         tempdir = self.assets.unZip(self.filename.text())
@@ -385,14 +368,10 @@ class DownLoadImport(QVBoxLayout):
                 return False, self.env.existDataDir(mtype, self.env.basename)
             return True, path
 
-    def singleDownLoad(self):
+    def singleDownLoad(self, assetname):
 
         supportedclasses = ["clothes", "hair", "eyes", "teeth", "eyebrows", "eyelashes", "expression",
                 "pose", "skin", "rig", "proxy", "model", "target", "material" ]
-        assetname = self.singlename.text()
-        if assetname == "":
-            ErrorBox(self.parent, "Please enter an asset name.")
-            return
 
         # if not loaded, load json now
         if self.assetjson is None:
@@ -403,11 +382,14 @@ class DownLoadImport(QVBoxLayout):
             ErrorBox(self.parent, self.env.last_error)
             return
 
-        key, folder = self.assets.alistGetKey(self.assetjson, assetname)
-        if key is None:
+        if assetname in self.assetjson:
+            item = self.assetjson[assetname]
+            folder = item.get("folder")
+        else:
             ErrorBox(self.parent, "Asset '" + assetname + "' not found in list.")
             return
-        mtype, flist = self.assets.alistGetFiles(self.assetjson, key)
+
+        mtype, flist = self.assets.alistGetFiles(self.assetjson, assetname)
 
         if mtype not in supportedclasses:
             ErrorBox(self.parent, "Supported classes until now: " + str(supportedclasses))
@@ -421,7 +403,7 @@ class DownLoadImport(QVBoxLayout):
             #
             # for materials the parent asset is needed and the path should be calculated
 
-            okay, path = self.parentAsset(key)
+            okay, path = self.parentAsset(assetname)
             if okay is False:
                 if path is None:
                     ErrorBox(self.parent, self.env.last_error)

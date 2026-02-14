@@ -16,7 +16,7 @@ from PySide6.QtCore import QSize, Qt, QUrl
 from gui.prefwindow import  MHPrefWindow
 from gui.logwindow import  MHLogWindow
 from gui.infowindow import  MHInfoWindow
-from gui.memwindow import  MHMemWindow
+from gui.tablewindow import  MHMemWindow
 from gui.measurewindow import MHCharMeasWindow
 from gui.scenewindow import  MHSceneWindow
 from gui.graphwindow import  MHGraphicWindow, NavigationEvent

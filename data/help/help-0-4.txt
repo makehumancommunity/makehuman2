@@ -8,22 +8,10 @@ www.makehumancommunity.org provides a list of assets, this has to be loaded firs
 If this list is already loaded, it is possible to update this list. It is only needed, if you need newer
 assets than the date of the last download of your list.
 <p>
-Now there are two possibilities for a download:
-<ol>
-<li>when you want to browse the current asset list, press "Browse" to get a window for searching.</li>
+Simply click on "Asset Browser" to get a window for searching.</li>
 <i>Hint: Since the list is longer, it may take some time to open that window first time.</i>
-<li>when you just browse the "user contributed assets" pages in a web-browser, you can open one
-of these pages and copy the title into the input box near the "Browse" button.</li>
-</ol>
-"Download Single Asset" will be activated, when the input box contains data. In case you used the search window,
-this box will contain a number preceeded by a "%".
 <p>
-According to the asset, the program is able to find the folder, where the asset should be placed.
-In this case it downloads the asset without interaction. In all other cases (mainly material assets)
-a file browser will open and a folder should be selected.
-
-<h2>Select from Asset List</h2>
-When you work with the extra window for searching you have three columns.
+The asset browser then presents:
 <ol>
 <li>The main selection box with tabs, where all assets are presented.</li>
 <li>A filter</li>
@@ -53,10 +41,12 @@ Icons:
 When you press the button, the thumbnail is loaded to a temporary file and displayed.</td></tr>
 <tr><td><img src="data/icons/render.png"></td><td>Some assets have a demo picture included, you can display this as well.
 It is a temporary download and will be presented in an extra window.</td></tr>
+<tr><td><img src="data/icons/rescan.png"></td><td>Rescan asset list.
+Redisplay is only needed, if the asset list itself was downloaded again after this window was openend.
+</td></tr>
 </table>
 <p>
-Furthermore there is an extra "Close" button and a "Redisplay" button. Redisplay is only needed,
-if the asset list itself was downloaded again after this window was openend.
+Finally there is the "Download" button to install the selected asset and a "Close" button.
 
 <h2>Download an asset pack</h2>
 <p>

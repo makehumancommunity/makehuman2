@@ -20,6 +20,7 @@ from gui.application import QTVersion
 from core.debug import dumper
 from core.importfiles import UserEnvironment
 from core.sql_cache  import FileCache
+from core.filehelper import FileHelper
 from opengl.info import GLDebug
 from opengl.texture import TextureRepo
 
@@ -139,12 +140,12 @@ class globalObjects():
                 return
 
     def gen_uuid(self):
-        return(str(uuid4()))
+        return str(uuid4())
 
     def readShaderInitJSON(self):
         shaderfile = os.path.join(self.env.path_sysdata, "shaders", "shader.json")
         self.shaderInit = self.env.readJSON(shaderfile)
-        return (self.shaderInit)
+        return self.shaderInit
 
     def setApplication(self, app):
         self.app = app
@@ -160,8 +161,8 @@ class globalObjects():
         for name in self.env.basefolders + ["exports", "skins", "models", "target", "contarget", "dbcache", "downloads"]:
             folder = os.path.join(self.env.path_userdata, name, basename)
             if self.env.mkdir(folder) is False:
-                return (False)
-        return (True)
+                return False
+        return True
 
 class cacheRepoEntry():
     def __init__(self, name, uuid, path, folder, obj_file, thumbfile, author, tag):
@@ -187,7 +188,7 @@ class cacheRepoEntry():
             self.mhbin_file = path + ".mhbin"
 
     def __str__(self):
-        return(dumper(self))
+        return dumper(self)
 
 class programInfo():
     """
@@ -252,6 +253,7 @@ class programInfo():
         self.QT_Info = QTVersion(self)
         gdebug = GLDebug(self.osindex, False) # not yet initialized
         self.GL_Info = gdebug.getOpenGL_LibVers()
+        self.fhelp = FileHelper(self)
 
     def __str__(self):
         """
@@ -334,12 +336,12 @@ class programInfo():
         if not os.path.isdir(folder):
             if os.path.isfile(folder):
                 self.last_error = "File exists instead of folder " + folder
-                return (False)
+                return False
             try:
                 os.mkdir(folder)
             except OSError as error:
                 self.last_error = str(error)
-                return (False)
+                return False
         return True
 
     def copyfile(self, source, dest):
@@ -349,7 +351,7 @@ class programInfo():
             self.last_error = "Unable to copy file. " + str(error)
             return False
         
-        return (True)
+        return True
 
 
     def readJSON(self, path: str) -> dict:
@@ -374,7 +376,7 @@ class programInfo():
                 self.last_error =  "Empty JSON file " + path
                 self.logLine(1, self.last_error)
                 return None
-        return (json_object)
+        return json_object
             
     def writeJSON(self, path: str, json_object: dict) -> bool:
         """
@@ -541,7 +543,7 @@ class programInfo():
         # generate all (still missing) folders
         #
         if self.generateFolders() is False:
-            return(False)
+            return False
 
         self.reDirect(self.uselog)     # redirect error messages
 
@@ -577,16 +579,16 @@ class programInfo():
         for name in self.basefolders + ["themes", "exports","skins", "models", "target", "contarget", "dbcache", "downloads", "shaders", "grab"]:
             folder = os.path.join(userdata, name)
             if self.mkdir(folder) is False:
-                return (False)
+                return False
 
         # and private litsphere/skybox/floor folders
         #
         for name in ["litspheres", "skybox", "floor"]:
             folder = os.path.join(userdata, "shaders", name)
             if self.mkdir(folder) is False:
-                return (False)
+                return False
 
-        return (True)
+        return True
 
     def initFileCache(self):
         dbname = self.stdUserPath("dbcache", "repository.db")
@@ -608,20 +610,20 @@ class programInfo():
     def stdSysPath(self, category, filename=None):
         if self.basename is not None:
             if filename:
-                return(os.path.join(self.path_sysdata, category, self.basename, filename))
+                return os.path.join(self.path_sysdata, category, self.basename, filename)
             else:
-                return(os.path.join(self.path_sysdata, category, self.basename))
+                return os.path.join(self.path_sysdata, category, self.basename)
         return None
 
     def stdUserPath(self, category=None, filename=None):
         if category is None:
-            return (self.path_userdata)
+            return self.path_userdata
 
         if self.basename is not None:
             if filename:
-                return(os.path.join(self.path_userdata, category, self.basename, filename))
+                return os.path.join(self.path_userdata, category, self.basename, filename)
             else:
-                return(os.path.join(self.path_userdata, category, self.basename))
+                return os.path.join(self.path_userdata, category, self.basename)
         return None
 
     def stdLogo(self):
@@ -636,19 +638,19 @@ class programInfo():
         :return: True when destination is not there, destination is older. False when only destination file is there
         """
         if not os.path.isfile(destination):
-            return (True)
+            return True
         if not os.path.isfile(source):
-            return (False)
+            return False
         sourcedate = int(os.stat(source).st_mtime)
         destdate   = int(os.stat(destination).st_mtime)
-        return (sourcedate > destdate)
+        return sourcedate > destdate
 
     def getFileList(self, dirname, pattern):
         """
         get a file list with an extension
         """
         pattern = os.path.join(glob.escape(dirname), pattern)
-        return(glob.glob(pattern))
+        return glob.glob(pattern)
 
     def getDataFileList(self, ext, *subdirs):
         """
@@ -662,7 +664,7 @@ class programInfo():
                 for filename in files:
                     directory, fname = os.path.split(filename)
                     filebase[fname] = filename
-        return(filebase)
+        return filebase
 
     def getDataDirList(self, search, *subdirs):
         """
@@ -682,7 +684,7 @@ class programInfo():
                     else:
                         directory, fname = os.path.split(dirname)
                         filebase[fname] = directory
-        return(filebase)
+        return filebase
 
     def getParentDirName(self, name):
         """
@@ -703,7 +705,7 @@ class programInfo():
             test = os.path.join(path, *[name for name in names])
             # print ("Test: " +  test)
             if os.path.isfile(test):
-                return(test)
+                return test
         self.last_error = "/".join([name for name in names]) + " not found"
         return None
 
@@ -717,7 +719,7 @@ class programInfo():
             if "/" in filename:
                 filename = "/".join (filename.split("/")[1:])
             abspath = self.existDataFile(subfolder, base, filename)
-        return (abspath)
+        return abspath
 
     def existDataDir(self, *names):
         """
@@ -727,7 +729,7 @@ class programInfo():
         for path in [self.path_userdata, self.path_sysdata]:
             test = os.path.join(path, *[name for name in names])
             if os.path.isdir(test):
-                return(test)
+                return test
         self.last_error = "/".join([name for name in names]) + " not found"
         return None
 
@@ -779,7 +781,7 @@ class programInfo():
         if self.verbose & 8:
             scanned = "all subdirs" if subdir is None else subdir
             self.logTime(latest, "Last change: " + scanned)
-        return(latest, filenames)
+        return latest, filenames
 
     def fileScanFoldersAttachObjects(self, subdir=None):
         """
@@ -817,74 +819,21 @@ class programInfo():
             data = []
             for (folder, path) in files:
                 #print (path)
-                (filename, extension) = os.path.splitext(path)
-                thumbfile = filename + ".thumb"
-                if not os.path.isfile(thumbfile):
-                    thumbfile = None
+                filename, extension = os.path.splitext(path)
+                elem = None
 
                 if extension == ".mhskel" or extension == ".mhpose":
-                    json = self.readJSON(path)
-                    if json is None:
-                        self.logLine (1, "JSON error " + self.last_error)
-                    else:
-                        name = json["name"] if "name" in json else filename
-                        uuid = extension[3:] + "_"+name
-                        author = json["author"] if "author" in json else "unknown"
-                        mtags = "|".join(json["tags"]).encode('ascii', 'ignore').lower().decode("utf-8") if "tags" in json else ""
-                        data.append([name, uuid, path, folder, None, thumbfile, author, mtags])
-                    continue
+                    elem = self.fhelp.getCacheDataJSON(path, folder)
 
                 elif extension == ".bvh":
-                    metafile = filename + ".meta"
-                    name = os.path.basename(filename)
-                    uuid = "bvh_" + name
-                    author = "unknown"
-                    tags = []
-                    if os.path.isfile(metafile):
-                        with open(metafile, 'r') as fp:
-                            for line in fp:
-                                words = line.split()
-                                if len(words) < 2:
-                                    continue
-                                if words[0] == "name":
-                                    name = "_".join(words[1:]).encode('ascii', 'ignore').lower().decode("utf-8")
-                                elif words[0] == "tag":
-                                    tags.append(" ".join(words[1:]).encode('ascii', 'ignore').lower().decode("utf-8"))
-                                elif words[0] == "author":
-                                    author = " ".join(words[1:]).encode('ascii', 'ignore').lower().decode("utf-8")
-                    mtags = "|".join(tags)
-                    data.append([name, uuid, path, folder, None, thumbfile, author, mtags])
-                    continue
+                    elem = self.fhelp.getCacheDataBVH(path, folder)
 
+                elif extension == ".mhclo":
+                    elem = self.fhelp.getCacheDataMHCLO(path, folder)
 
-                with open(path, 'r') as fp:
-                    uuid = 0
-                    name = ""
-                    obj_file = None
-                    author = "unknown"
-                    tags = []
-                    for line in fp:
-                        #if line.startswith("verts"):
-                        words = line.split()
-                        if len(words) < 2:
-                            continue
-                        if words[0].isnumeric():
-                            break
+                if elem is not None:
+                    data.append(elem)
 
-                        if words[0] == "name":          # always last word, one word
-                            name = words[1]
-                        elif words[0] == "uuid":        # always last word, one word
-                            uuid = words[1]
-                        elif words[0] == "obj_file":        # always last word, one word
-                            obj_file = words[1]
-                        elif "author" in line:      # part of the comment, can be author
-                            if words[1].startswith("author"):
-                                author = " ".join(words[2:])
-
-                        elif "tag" in line:         # allow tags with blanks
-                            tags.append(" ".join(words[1:]).encode('ascii', 'ignore').lower().decode("utf-8"))
-                    mtags = "|".join(tags)
-                    data.append([name, uuid, path, folder, obj_file, thumbfile, author, mtags])
             self.fileCache.insertCache(data)
 
 
@@ -900,41 +849,15 @@ class programInfo():
             data = []
             for (folder, path) in files:
                 self.logLine(8, "Check '" + path + "'")
-                (filename, extension) = os.path.splitext(path)
-                thumbfile = filename + ".thumb"
-                if not os.path.isfile(thumbfile):
-                    thumbfile = None
 
                 # skip directories
                 if not os.path.isfile(path):
                     continue
 
-                with open(path, 'r') as fp:
-                    uuid = 0
-                    name = None
-                    author = "unknown"
-                    tags = []
-                    for line in fp:
-                        if line.startswith("modifier"):
-                            break
-                        words = line.split()
-                        if len(words) < 2:
-                            continue
+                elem = self.fhelp.getCacheDataMHM(path, folder)
+                if elem is not None:
+                    data.append(elem)
 
-                        if words[0] == "name":          # last words joined
-                            name = " ".join(words[1:])
-                        if words[0] == "author":        # last words joined
-                            author = " ".join(words[1:])
-                        elif words[0] == "uuid":        # always second word
-                            uuid = words[1]
-                        elif "tags" in line:
-                            tags =" ".join(words[1:]).split(";")
-
-                    if name is None:
-                        name = os.path.basename(filename)
-
-                    mtags = "|".join(tags)
-                    data.append([name, uuid, path, subdir, None, thumbfile, author, mtags])
             self.fileCache.insertCache(data)
 
     def getCacheData(self):
@@ -946,7 +869,7 @@ class programInfo():
         for row in rows:
             tags = (match[row[1]] if row[1] in match else row[7]).split("|")
             data.append(cacheRepoEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6], tags))
-        return (data)
+        return data
 
     def dictFillGaps(self, standard, testdict):
         """
@@ -960,7 +883,7 @@ class programInfo():
             else:
                 if isinstance(standard[element], dict):
                     changed = self.dictFillGaps(standard[element], testdict[element])
-        return (changed)
+        return changed
 
     def toUnit(self, value, inchonly=False):
         """
@@ -969,11 +892,11 @@ class programInfo():
         if "units" in self.config and self.config["units"] == "imperial":
             inch = value * (10 / 2.54)
             if inchonly:
-                return (str(round(inch, 2)) + " in")
+                return str(round(inch, 2)) + " in"
             ft = inch // 12
             inch = round(inch - ft*12, 2)
-            return(str(round(ft)) + " ft  "+ str(inch) + " in")
-        return (str(round(value*10, 2)) + " cm")
+            return str(round(ft)) + " ft  "+ str(inch) + " in"
+        return str(round(value*10, 2)) + " cm"
 
     def logLine(self, level, line):
         """
@@ -1043,7 +966,7 @@ class programInfo():
 
                 lines.append(line.strip())
         text = "<br>".join(lines)
-        return (text)
+        return text
 
     def cleanup(self):
         """
