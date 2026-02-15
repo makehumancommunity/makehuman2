@@ -6,8 +6,7 @@ all names will be found in data/makehuman2_version.json
 
 which are:
     url_fileserver
-    url_systemassets
-    url_systemassets2
+    url_systemassets (list of dict)
     standardmesh
 
 The destination where to put these files will be taken from either system path or user path_home.
@@ -27,8 +26,8 @@ if __name__ == '__main__':
         with open(release_info, 'r') as f:
             release = json.load(f)
 
-    (server, mirror, path1, path2, mesh)  = (release["url_fileserver"], release["url_mirrorserver"],
-            release["url_systemassets"], release["url_systemassets2"], release["standardmesh"])
+    (server, mirror, assetpath, standardmesh)  = (release["url_fileserver"], release["url_mirrorserver"],
+            release["url_systemassets"], release["standardmesh"])
 
     # get user data path (if available)
     #
@@ -75,7 +74,10 @@ if __name__ == '__main__':
                 space = systemspace
                 okay = True
 
-    for path in (path1, path2):
+    for descr in assetpath:
+        dmesh = descr["base"]
+        path =  descr["url"]
+        mesh = dmesh if dmesh != "*" else standardmesh
         source  = server + "/" + path
         sourcem = mirror + "/" + path
         print ("Download from: " + source)

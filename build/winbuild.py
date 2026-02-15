@@ -27,6 +27,7 @@ class winBuilder():
         self.ignoredirs = []
         self.ignorefiles = []
         self.remove_ascii_targets = False
+        self.remove_ascii_meshes = False
         #
         # get installer path according to OS
         #
@@ -129,6 +130,8 @@ class winBuilder():
 
         if "remove_ascii_targets" in json_object:
             self.remove_ascii_targets = json_object["remove_ascii_targets"]
+        if "remove_ascii_meshes" in json_object:
+            self.remove_ascii_meshes = json_object["remove_ascii_meshes"]
 
         outtext = ""
         for cat in "Application", "Python", "Include":
@@ -246,8 +249,15 @@ class winBuilder():
         """
         basedirs = os.path.join(self.repodir, "data", "base")
         for base in os.listdir(basedirs):
+
+            # handle the base
+            #
             fname = os.path.join(basedirs, base, "base.obj")
             self.compileMeshCall(base, fname)
+            if self.remove_ascii_meshes:
+                if self.verbose:
+                    print ("delete", fname)
+                os.remove(fname)
 
             for folder in ["clothes", "eyebrows", "eyelashes", "eyes", "hair", "proxy", "teeth", "tongue"]:
                 absfolder = os.path.join(self.repodir, "data", folder, base)
@@ -257,6 +267,15 @@ class winBuilder():
                             if name.endswith(".mhclo") or name.endswith(".proxy"):
                                 fname = os.path.join(root, name)
                                 self.compileMeshCall(base, fname)
+                                if self.remove_ascii_meshes:
+                                    if self.verbose:
+                                        print ("delete", fname)
+                                    os.remove(fname)
+                                    obj = os.path.splitext(fname)[0] + ".obj"
+                                    if self.verbose:
+                                        print ("delete", obj)
+                                    os.remove(obj)
+
 
     def compileTargetCall(self, filename):
         if self.verbose:

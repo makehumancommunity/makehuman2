@@ -206,7 +206,7 @@ class baseClass():
         for elem in loaded.attached:
             # print (self.env.basename, elem.type, elem.name, elem.relmaterial, elem.path)
             if elem.path is None:
-                self.env.logLine(8, elem.name  + " no path avialable")
+                self.env.logLine(8, elem.name  + " no path available")
             elif elem.relmaterial is not None:
                 matfilename = self.env.existFileInBaseFolder(self.env.basename, elem.type, elem.path, elem.relmaterial)
                 if matfilename is not None:
@@ -270,7 +270,7 @@ class baseClass():
 
         # finally mark MHM as used
         #
-        self.glob.markAssetByFileName(filename, True)
+        self.glob.markAssetByFileName(filename)
         return (True, "okay")
 
     def loadMHMTargetsOnly(self, filename, mode):
@@ -485,7 +485,7 @@ class baseClass():
             names.append(self.expression.filename)
 
         for name in names:
-            self.glob.markAssetByFileName(name, True)
+            self.glob.markAssetByFileName(name)
 
     def delAsset(self, filename):
         elem = self.getAttachedByFilename(filename)
@@ -495,7 +495,7 @@ class baseClass():
         self.glob.openGLWindow.deleteObject(elem.obj)
         self.glob.openGLWindow.Tweak()
         self.attachedAssets.remove(elem)
-        self.glob.markAssetByFileName(filename, False)
+        self.glob.unmarkAssetByFileName(filename)
 
         if elem.deleteVerts is not None or elem.type == "proxy":
             self.env.logLine(2, "DelAsset, need to recalculate base and other meshes because vertices are visible again")
@@ -522,7 +522,7 @@ class baseClass():
         if res == 1 and self.glob.centralWidget is not None:
             WarningBox(self.glob.centralWidget, err)
 
-        self.glob.markAssetByFileName(path, True)
+        self.glob.markAssetByFileName(path)
         if eqtype == "proxy":
             attach.material = self.skinMaterial
             attach.materialsource = materialsource
@@ -582,13 +582,13 @@ class baseClass():
         """
         if self.pose_skelpath == path:                  # reuse available pose-skeleton
             self.skeleton = self.pose_skeleton
-            self.glob.markAssetByFileName(path, True)
+            self.glob.markAssetByFileName(path)
         else:
             if verbose is not None:
                 verbose.setLabelText("Load: " + path)
             self.skeleton = skeleton(self.glob, name)
             if self.skeleton.loadJSON(path):
-                self.glob.markAssetByFileName(path, True)
+                self.glob.markAssetByFileName(path)
             else:
                 self.skeleton = None
 
@@ -601,7 +601,7 @@ class baseClass():
         :param str path: path of JSON file
         """
         if self.skeleton is not None:
-            self.glob.markAssetByFileName(self.skeleton.filename, False)
+            self.glob.unmarkAssetByFileName(self.skeleton.filename)
             self.glob.openGLWindow.scene.delSkeleton()
 
         self.addSkeleton(name, path)
@@ -610,7 +610,7 @@ class baseClass():
 
     def delSkeleton(self, path):
         self.skeleton = None
-        self.glob.markAssetByFileName(path, False)
+        self.glob.unmarkAssetByFileName(path)
         self.glob.openGLWindow.scene.prepareSkeleton()
         self.glob.openGLWindow.Tweak()
         self.glob.midColumn.setSizeInfo()
@@ -649,12 +649,12 @@ class baseClass():
         #
         if self.bvh is not None:
             self.restPose()
-            self.glob.markAssetByFileName(self.bvh.filename, False)
+            self.glob.unmarkAssetByFileName(self.bvh.filename)
             self.bvh = None
 
         if self.posemodifier is not None:
             self.restPose()
-            self.glob.markAssetByFileName(self.posemodifier.filename, False)
+            self.glob.unmarkAssetByFileName(self.posemodifier.filename)
             self.posemodifier = None
 
         mtype = "mhpose" if path.endswith(".mhpose") else "bvh"
@@ -665,7 +665,7 @@ class baseClass():
                 self.env.logLine(1, "BVH: " + path + " " + self.env.last_error)
             else:
                 self.showPoseAndExpression()
-                self.glob.markAssetByFileName(path, True)
+                self.glob.markAssetByFileName(path)
                 self.recalcLowestPosePos()
                 self.glob.openGLWindow.scene.newFloorPosition(posed=True)
             return loaded
@@ -679,7 +679,7 @@ class baseClass():
             self.env.logLine(1, "mhpose: " + path + " " + msg)
         else:
             self.showPoseAndExpression()
-            self.glob.markAssetByFileName(path, True)
+            self.glob.markAssetByFileName(path)
             self.recalcLowestPosePos()
             self.glob.openGLWindow.scene.newFloorPosition(posed=True)
         return loaded
@@ -690,7 +690,7 @@ class baseClass():
         """
         self.bvh = None
         self.posemodifier = None
-        self.glob.markAssetByFileName(path, False)
+        self.glob.unmarkAssetByFileName(path)
         self.restPose()
         self.showPoseAndExpression()
         self.setNoPose()
@@ -727,7 +727,7 @@ class baseClass():
            return
 
         if self.expression is not None:
-            self.glob.markAssetByFileName(self.expression.filename, False)
+            self.glob.unmarkAssetByFileName(self.expression.filename)
             self.restPose()
 
         self.expression = MHPose(self.glob, self.faceunits, name)
@@ -737,11 +737,11 @@ class baseClass():
             self.env.logLine(1, "mhpose: " + path + " " + msg)
         else:
             self.showPoseAndExpression()
-            self.glob.markAssetByFileName(path, True)
+            self.glob.markAssetByFileName(path)
 
     def delExpression(self, path):
         self.expression = None
-        self.glob.markAssetByFileName(path, False)
+        self.glob.unmarkAssetByFileName(path)
         self.restPose()
         self.showPoseAndExpression()
         self.glob.openGLWindow.Tweak()

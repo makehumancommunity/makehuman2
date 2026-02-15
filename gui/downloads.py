@@ -37,11 +37,16 @@ class DownLoadImport(QVBoxLayout):
         self.use_userpath = True
         self.assets = AssetPack()
 
-        dl = os.path.join(self.env.path_userdata, "downloads", self.env.basename)
+        stdmesh =  self.env.release_info["standardmesh"]
         assetname = os.path.split(self.env.release_info["url_assetlist"])[1]
         assetpackname = os.path.split(self.env.release_info["url_assetpacklist"])[1]
+
+        dl = os.path.join(self.env.path_userdata, "downloads", self.env.basename)   # normal assets will contain own asset lists
         self.assetlistpath = os.path.join(dl, assetname)
-        self.assetpacklistpath = os.path.join(dl, assetpackname)
+
+        pdl = os.path.join(self.env.path_userdata, "downloads", stdmesh)            # pack list will be in standard path
+        self.assetpacklistpath = os.path.join(pdl, assetpackname)
+
         self.getAssetPackList()
 
         super().__init__()
@@ -141,28 +146,35 @@ class DownLoadImport(QVBoxLayout):
         self.fnameinserted()
 
     def defaultList(self):
-        self.packitems= ["", "Standard Asset Pack", "Additional Makehuman2 Asset Pack"]
-        self.packurls= [
-            "",
-            self.env.release_info["url_fileserver"] + "/" + self.env.release_info["url_systemassets"],
-            self.env.release_info["url_fileserver"] +  "/" +self.env.release_info["url_systemassets2"]
-        ]
+
+        self.packitems= [""]
+        self.packurls= [""]
+
+        sysassets  = self.env.release_info["url_systemassets"]
+        fileserver = self.env.release_info["url_fileserver"]
+        for elem in sysassets:
+            base = elem.get("base")
+            if base == self.env.basename or base == "*":
+                self.packitems.append(elem["title"])
+                self.packurls.append(fileserver +  "/" + elem["url"])
 
     def formList(self, packs):
         self.packitems= []
         self.packurls= []
         for key, elem in packs.items():
-            if "url" in elem:
-                if "descr" in elem:
-                    text = elem["descr"]
-                else:
-                    text = key
-                if "license" in elem:
-                    text += ", " + elem["license"]
-                if "size" in elem:
-                    text += " (" + str(elem["size"]) + " mb)"
-                self.packitems.append(text)
-                self.packurls.append(elem["url"])
+            base = elem.get("base")
+            if base == self.env.basename or base == "*":
+                if "url" in elem:
+                    if "descr" in elem:
+                        text = elem["descr"]
+                    else:
+                        text = key
+                    if "license" in elem:
+                        text += ", " + elem["license"]
+                    if "size" in elem:
+                        text += " (" + str(elem["size"]) + " mb)"
+                    self.packitems.append(text)
+                    self.packurls.append(elem["url"])
 
     def getAssetPackList(self):
         self.assetpackjson = self.env.readJSON(self.assetpacklistpath)

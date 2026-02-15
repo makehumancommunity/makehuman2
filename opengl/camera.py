@@ -155,7 +155,7 @@ class Camera():
         self.cameraHeight = center[1]
         self.cameraDist = self.cameraPos.z()
         self.updateViewMatrix()
-        self.glob.env.logLine(1, "Set Center: " + str(center) + ", character size: " + str(size))
+        self.glob.env.logLine(2, "Set center: " + str(center) + ", character size: " + str(size))
 
     def customView(self, direction):
         """

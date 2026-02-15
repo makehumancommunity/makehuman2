@@ -63,22 +63,31 @@ class FileHelper():
 
     def getCacheDataMHBIN(self, path, folder):
         """
-        test of scanner of an mhbin file (without reading complete file)
+        scan mhbin file (without reading complete file)
+        * extract asset.npy and put that to a BytesIO object in memory
+        * write data and seek to start
+        * perform an np.load on it
+        * separate entries
+
+        :param path: path name
+        :param folder: folder as category
+        :return: data entry for fileCache or None in case of error
         """
-        with ZipFile(path) as myzip:
-            m = myzip.read("header.npy")
-            m = io.BytesIO(m)
-            with np.load(path) as npzfile:
-                tags = []
-                if 'header'  in npzfile:
-                    header = list(npzfile['header'][0])
-                    print (header)
-                    thumbfile = self.hasThumb(path)
-                    name = header[0].decode("utf-8")
-                    uuid = "mhbin_" + name
-                    mtags = "|".join(tags)
-                    author = "unknown"
-                    print (name, uuid, path, folder, None, thumbfile, author, mtags)
+        thumbfile = self.hasThumb(path)
+        with ZipFile(path) as zipf:
+            m = zipf.read("asset.npy")
+            x = io.BytesIO()
+            x.write(m)
+            x.seek(0)
+            data = np.load(x, allow_pickle=False)
+            entry = list(data[0])
+            name  = entry[0].decode("utf-8")
+            uuid  = entry[1].decode("utf-8")
+            author= entry[2].decode("utf-8")
+            mtags = entry[9].decode("utf-8")
+            return [name, uuid, path, folder, None, thumbfile, author, mtags]
+
+        return None
 
     def getCacheDataBVH(self, path, folder):
         """

@@ -133,11 +133,18 @@ class globalObjects():
         self.getCacheData()
         return self.cachedInfo
 
-    def markAssetByFileName(self, path, value):
+    def markAssetByFileName(self, path):
         for elem in self.cachedInfo:
             if elem.path == path:
-                elem.used = value
+                elem.used = True
                 return
+
+    def unmarkAssetByFileName(self, path):
+        for elem in self.cachedInfo:
+            if elem.path == path:
+                elem.used = False
+                return
+
 
     def gen_uuid(self):
         return str(uuid4())
@@ -206,6 +213,7 @@ class programInfo():
 
         # all folders that belong to a basemesh
         #
+        self.mhclofolders = [ "clothes", "eyebrows", "eyelashes", "eyes", "hair", "teeth", "tongue" ]
         self.basefolders = [ "clothes", "eyebrows", "eyelashes", "eyes", "hair", "teeth", "tongue", "proxy", "rigs", "poses", "expressions" ]
 
         self.basename = None
@@ -259,7 +267,7 @@ class programInfo():
         """
         print debug information, should contain all information
         """
-        return  json.dumps(self.__dict__, indent=4, sort_keys=True)
+        return dumper(self)
 
     def setVerboseBit(self, bit):
         self.verbose |= bit
@@ -745,70 +753,140 @@ class programInfo():
                 result.append(test)
         return result
 
-    def subDirsBaseFolder(self, pattern, subdir=None):
+    def latestDate(self, latest, filename):
+        mod = int(os.stat(filename).st_mtime)
+        return mod if (mod > latest) else latest
+
+    def testFilesWithBinExtension(self, files, current, category, ascext, binext, latest, filenames):
+        basefiles = []
+        for fname in files:
+            if fname.endswith(binext):
+                base = os.path.splitext(fname)[0]
+                basefiles.append(base)
+                alternative = base + ascext
+
+                cname = os.path.join(current, fname)
+                aname = os.path.join(current, alternative)
+
+                mod = int(os.stat(cname).st_mtime)
+                if mod > latest:
+                    latest = mod
+
+                # check if ASCII file is newer
+                #
+                if alternative in files:
+                    amod = int(os.stat(aname).st_mtime)
+                    if amod > mod:
+                        if amod > latest:
+                            latest = amod
+                        filenames.append([category, aname])
+                        self.logLine (2, "ASCII file is newer: " + aname)
+                    else:
+                        filenames.append([category, cname])
+                else:
+                    filenames.append([category, cname])
+                    self.logLine (2, "Only binary file: " + cname)
+
+        # check ASCII only files
+        #
+        for fname in files:
+            if fname.endswith(ascext):
+                base = os.path.splitext(fname)[0]
+                if base not in basefiles:
+                    aname = os.path.join(current, fname)
+                    latest = self.latestDate(latest, aname)
+                    filenames.append([category, aname])
+                    self.logLine (2, "Only ASCII file: " + aname)
+
+        return latest
+
+    def testFilesWithExtension(self, files, current, category, ext, latest, filenames):
+        for fname in files:
+            if fname.endswith(ext):
+               aname = os.path.join(current, fname)
+               latest = self.latestDate(latest, aname)
+               filenames.append([category, aname])
+
+        return latest
+
+
+    def getFilesFromAssetFolders(self, ascext, subdir=None, binext=None):
         """
-        classical all folders for objects may have 2 levels
+        check either all asset folder or a specific one
+        collect all files with the ASCII extension ascext and collect name and date
+        All folders for objects are allowed to have one subfolder
+
+        :param str ascext: an ASCII extension like ".mhclo"
+        :param str subdir: a sub-directory like e.g. "clothes"
+        :return: list of filenames, 'latest' timestamp
         """
         filenames = []
         latest = 0
-        basefolders = self.basefolders if subdir is None else [subdir]
+        basefolders = self.mhclofolders if subdir is None else [subdir]
+
         for path in [self.path_userdata, self.path_sysdata]:
             for folder in basefolders:
+
+                # now check if a folder like <userdir>/clothes/hm08 exist
+                #
                 test = os.path.join(path, folder, self.basename)
                 if os.path.isdir(test):
-                    mod = int(os.stat(test).st_mtime)
-                    if mod > latest:
-                        latest = mod
-
+                    latest = self.latestDate(latest, test)
                     files = os.listdir(test)
+
+                    if binext is not None:
+                        latest = self.testFilesWithBinExtension(files, test, folder, ascext, binext, latest, filenames)
+                    else:
+                        latest = self.testFilesWithExtension(files, test, folder, ascext, latest, filenames)
+
+                    # now test, if we have sub-folders inside
+                    #
                     for fname1 in files:
                         aname1 = os.path.join(test, fname1)
+
                         if os.path.isdir(aname1):
-                            files2 = os.listdir(os.path.join(test,aname1))
-                            for fname2 in files2:
-                                if fname2.endswith(pattern):
-                                    cname = os.path.join(aname1, fname2)
-                                    mod = int(os.stat(cname).st_mtime)
-                                    if mod > latest:
-                                        latest = mod
-                                    filenames.append([folder, cname])
-                        if fname1.endswith(pattern):
-                            mod = int(os.stat(aname1).st_mtime)
-                            if mod > latest:
-                                latest = mod
-                            filenames.append([folder, aname1])
+                            latest = self.latestDate(latest, aname1)
+
+                            cname  = os.path.join(test,aname1)
+                            files2 = os.listdir(cname)
+                            if binext is not None:
+                                latest = self.testFilesWithBinExtension(files2, cname, folder, ascext, binext, latest, filenames)
+                            else:
+                                latest = self.testFilesWithExtension(files2, cname, folder, ascext, latest, filenames)
 
         if self.verbose & 8:
             scanned = "all subdirs" if subdir is None else subdir
             self.logTime(latest, "Last change: " + scanned)
+
         return latest, filenames
 
     def fileScanFoldersAttachObjects(self, subdir=None):
         """
-        scanner for mhclo/proxy files checks in all basefolders + subdirs (only 1 level)
+        scanner for mhclo files checks in all mhclofolders + subdirs (only 1 level)
         (.mhclo, .proxy, .mhskel)
         """
         if subdir is None:
-            assetdirs = [[ ".proxy", "proxy"], [ ".mhskel", "rigs" ], [".mhpose", "expressions"], [".bvh", "poses"], [".mhpose", "poses"]]
+            assetdirs = [[ ".proxy", "proxy", ".mhbin"], [ ".mhskel", "rigs", None],
+                    [".mhpose", "expressions", None], [".bvh", "poses", None], [".mhpose", "poses", None]]
 
-            (latest, files) = self.subDirsBaseFolder(".mhclo", None)
+            (latest, files) = self.getFilesFromAssetFolders(".mhclo", None, ".mhbin")
             for elem in assetdirs:
-                (l, f) = self.subDirsBaseFolder(elem[0], elem[1])
+                (l, f) = self.getFilesFromAssetFolders(elem[0], elem[1], elem[2])
                 if len(f) > 0:
                     files.extend(f)
                     if l > latest:
                         latest = l
 
         elif subdir == "proxy":
-            (latest, files) = self.subDirsBaseFolder(".proxy", "proxy")
+            (latest, files) = self.getFilesFromAssetFolders(".proxy", "proxy", ".mhbin")
         elif subdir == "rigs":
-            (latest, files) = self.subDirsBaseFolder(".mhskel", "rigs")
+            (latest, files) = self.getFilesFromAssetFolders(".mhskel", "rigs")
         elif subdir == "expressions":
-            (latest, files) = self.subDirsBaseFolder(".mhpose", "expressions")
+            (latest, files) = self.getFilesFromAssetFolders(".mhpose", "expressions")
         elif subdir == "poses":
-            (latest, files) = self.subDirsBaseFolder(".bvh", "poses")
+            (latest, files) = self.getFilesFromAssetFolders(".bvh", "poses")
         else:
-            (latest, files) = self.subDirsBaseFolder(".mhclo", subdir)
+            (latest, files) = self.getFilesFromAssetFolders(".mhclo", subdir, ".mhbin")
 
         # check date of repository db, after force reset parameter
         #
@@ -822,7 +900,10 @@ class programInfo():
                 filename, extension = os.path.splitext(path)
                 elem = None
 
-                if extension == ".mhskel" or extension == ".mhpose":
+                if extension == ".mhbin":
+                    elem = self.fhelp.getCacheDataMHBIN(path, folder)
+
+                elif extension == ".mhskel" or extension == ".mhpose":
                     elem = self.fhelp.getCacheDataJSON(path, folder)
 
                 elif extension == ".bvh":
@@ -841,9 +922,8 @@ class programInfo():
         """
         scanner for mhm files checks in models folder
         """
-        namematch = []
         subdir = "models"
-        (latest, files) = self.subDirsBaseFolder(".mhm", subdir)
+        (latest, files) = self.getFilesFromAssetFolders(".mhm", subdir)
         reread = self.fileCache.createCache(latest, subdir)
         if reread is True:
             data = []

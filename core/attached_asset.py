@@ -139,7 +139,13 @@ class attachedAsset:
 
             # skip white space and comments
             #
-            if len(words) == 0 or words[0].startswith('#'):
+            if len(words) == 0:
+                continue
+
+            if words[0].startswith('#'):
+                if "author" in line:      # part of the comment, can be author, needed for binary file
+                    if words[1].startswith("author"):
+                        self.author = " ".join(words[2:])
                 continue
 
             key = words[0]
@@ -356,32 +362,42 @@ class attachedAsset:
         :param bool use_ascii: determines if ASCII must be used
         :return: int 0 = error, 1 = bad geometry, 2 = okay
         """
-        if use_ascii is False and (filename.endswith(".mhclo") or filename.endswith(".proxy")):
-            binfile = filename[:-5] + "mhbin"
-            newer = self.env.isSourceFileNewer(binfile, filename)
+        if use_ascii is False:
+            if filename.endswith(".mhbin"):
+                # try if proxy or mhclo is newer
+                #
+                if self.type == "proxy":
+                    ascfile = filename[:-5] + "proxy"
+                else:
+                    ascfile = filename[:-5] + "mhclo"
 
-            if not newer and os.path.isfile(binfile):
+                # a newer ASCII file will be only there, when MakeHuman is already started
+                # and an ASCII file is added after start
                 #
-                # load mhbin
-                #
-                self.filename = filename
-                self.obj = object3d(self.glob, None, self.type)
-                (res, err) = self.importBinary(binfile)
-                if res == 0:
+                newer = self.env.isSourceFileNewer(filename, ascfile)
+                if not newer:
+
+                    # load mhbin
+                    #
+                    self.filename = filename
+                    self.obj = object3d(self.glob, None, self.type)
+                    (res, err) = self.importBinary(filename)
+                    if res == 0:
+                        return (res, err)
+                    self.obj.filename = filename
+                    self.obj.initMaterial(filename)
+                    if self.type == "hair":
+                        self.z_depth = 255
+                    self.obj.setZDepth(self.z_depth)
+                    self.obj.setName(self.name)
+
+                    (bwok, err2) = self.calculateBoneWeights()
+                    if bwok is False:
+                        return (0, err2)
                     return (res, err)
-                self.obj.filename = filename
-                self.obj.initMaterial(filename)
-                if self.type == "hair":
-                    self.z_depth = 255
-                self.obj.setZDepth(self.z_depth)
-                self.obj.setName(self.name)
 
-                (bwok, err2) = self.calculateBoneWeights()
-                if bwok is False:
-                    return (0, err2)
-
-                return (res, err)
-            use_ascii = True
+                use_ascii = True
+                filename = ascfile
 
         # load mhclo file
         #
