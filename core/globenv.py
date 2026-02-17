@@ -951,6 +951,19 @@ class programInfo():
             data.append(cacheRepoEntry(row[0], row[1], row[2], row[3], row[4], row[5], row[6], tags))
         return data
 
+    def getAvailableBases(self):
+        """
+        return a list of basemeshes, make sure either base.obj or base.mhbin is available
+        """
+        baselist = []
+
+        for btype in ("base.obj", "base.mhbin"):
+            res = self.getDataDirList(btype, "base")
+            for elem in res:
+                if elem not in baselist:
+                    baselist.append(elem)
+        return baselist
+
     def dictFillGaps(self, standard, testdict):
         """
         recursively add elements from standard if dictionaries have missing data

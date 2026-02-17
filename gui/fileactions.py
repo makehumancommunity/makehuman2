@@ -30,14 +30,14 @@ class BaseSelect(QVBoxLayout):
         self.glob = parent.glob
         self.env = parent.glob.env
         self.emptyIcon = os.path.join(self.env.path_sysdata, "icons", "empty_material.png")
-        self.baseResultList = self.env.getDataDirList("base.obj", "base")
+        self.baseResultList = self.env.getAvailableBases()
 
         if self.parent.glob.baseClass is None:
             self.addWidget(QLabel("<h1>Select a base mesh</h1>"))
 
         self.basewidget = QListWidget()
         self.basewidget.setFixedSize(240, 200)
-        self.basewidget.addItems(self.baseResultList.keys())
+        self.basewidget.addItems(self.baseResultList)
         self.basewidget.setSelectionMode(QAbstractItemView.SingleSelection)
         self.basewidget.itemDoubleClicked.connect(callback)
         if self.env.basename is not None:
@@ -145,9 +145,9 @@ class BaseSelect(QVBoxLayout):
         sel = self.basewidget.selectedItems()
         if len(sel) > 0:
             name = sel[0].text()
-            return (name, self.baseResultList[name])
+            return name
 
-        return (None, None)
+        return None
 
 
 class SaveMHMForm(QVBoxLayout):

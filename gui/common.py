@@ -211,6 +211,7 @@ class MHProgWindow():
     QProgressDialog
     """
     def __init__(self, title, maximum):
+        self.maximum = maximum
         self.progress = QProgressDialog("started", None, 0, maximum, None)
         self.progress.setWindowTitle(title)
         self.progress.setMinimumWidth(800)
@@ -219,11 +220,13 @@ class MHProgWindow():
         self.progress.setAttribute(Qt.WA_DeleteOnClose, True)
 
     def setValueAndText(self, l, text):
-        self.progress.setValue(l)
+        if l < self.maximum:
+            self.progress.setValue(l)
         self.progress.setLabelText(text[:120])
 
     def setValue(self, l):
-        self.progress.setValue(l)
+        if l < self.maximum:
+            self.progress.setValue(l)
 
     def setLabelText(self, text):
         self.progress.setLabelText(text[:120])

@@ -90,6 +90,11 @@ The settings in requirements.txt are considered as minimal versions. Newer versi
 * PyOpenGL (for the openGL part)
 * PySide6 (for the gui)
 * numpy (for faster calculation)
+* requests library (for downloads)
+* idna (used for requests)
+* urllib3 (used for requests)
+* certifi (used for requests)
+* chardet (used for requests)
 * psutil (for memory debugging, might not be in final version)
 ```
 

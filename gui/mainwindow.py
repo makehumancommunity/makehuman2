@@ -943,12 +943,11 @@ class MHMainWindow(QMainWindow):
         self.glob.baseClass.parApplyTargets()
         #self.graph.view.Tweak()
 
-    def loadNewClass(self, basename, filename=None):
+    def loadNewClass(self, basename):
         """
         :param str basename: the base name like 'hm08'
-        :param str filename: the filename of the obj file
         """
-        self.env.logLine(1, "New base " + basename + ", file:" + str(filename))
+        self.env.logLine(1, "New base class " + basename)
 
         base = baseClass(self.glob, basename)
         okay = base.prepareClass()
@@ -977,14 +976,14 @@ class MHMainWindow(QMainWindow):
         self.markSelectedButtons(self.category_buttons[0], self.category_buttons[0][0])
 
     def selectmesh_call(self):
-        (base, filename) = self.baseSelector.getSelectedItem()
+        base = self.baseSelector.getSelectedItem()
         if base is not None:
             #
             if base == self.env.basename:
                 return
             if self.changesLost("New basemesh") == 0:
                 return
-            self.loadNewClass(base, filename)
+            self.loadNewClass(base)
 
     def redrawNewCategory(self, category, text=None):
         self.qtreefilter, text = self.qTree.getValidCategory(category, text)

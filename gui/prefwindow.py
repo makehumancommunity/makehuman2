@@ -165,9 +165,9 @@ class MHPrefWindow(QWidget):
         meshes = QGroupBox("Base mesh")
         meshes.setObjectName("subwindow")
         me_layout = QVBoxLayout()
-        baselist = env.getDataDirList("base.obj", "base")
+        baselist = env.getAvailableBases()
         self.basewidget = QListWidget()
-        self.basewidget.addItems(baselist.keys())
+        self.basewidget.addItems(baselist)
         self.basewidget.setSelectionMode(QAbstractItemView.SingleSelection)
         if env.basename is not None:
             items = self.basewidget.findItems(env.basename,Qt.MatchExactly)

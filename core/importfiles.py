@@ -220,7 +220,7 @@ class AssetPack():
             except Exception as err:
                 return (False, str(err))
 
-            if total_size != 0 and l != total_size:
+            if total_size != 0 and l < total_size:
                 print ("Download failed", l, total_size)
                 return (False, "Download failed, bytes read: " + str(l) + " from " + str(total_size))
 
