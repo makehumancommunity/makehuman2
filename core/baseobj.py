@@ -75,7 +75,7 @@ class baseClass():
         self.mhmfilename = None     # last loaded mhm file
         self.skinMaterialName = None
         self.skinMaterial = None
-        self.proxy = None
+        self.proxy = None           # will contain a proxy object
         self.tags = [] 
         self.photo = None
         self.author = "unknown"
@@ -229,6 +229,7 @@ class baseClass():
                 self.skinMaterial = matfilename
                 if verbose is not None:
                     verbose.setLabelText("Load " + matfilename)
+                self.glob.markAssetByFileName(matfilename)
             else:
                 self.env.logLine(8, self.skinMaterialName + " not found")
 
@@ -437,29 +438,67 @@ class baseClass():
                 lowest = m
         return(lowest)
 
+    def setSkinMaterial(self, asset):
+        """
+        set skin material
+
+        :param asset: dictionary from ImageSelector
+        """
+        self.glob.unmarkAssetByFileName(self.skinMaterial)
+        # print ("Skin: ", asset)
+        obj = self.baseMesh
+        fname = asset.filename
+
+        self.skinMaterial = fname
+        self.skinMaterialName = self.env.relMatFileName(fname, "skins")
+
+        obj.newMaterial(fname)
+        obj.openGL.setMaterial(obj.material)
+        # print (self.skinMaterial, self.skinMaterialName)
+
+        # change also proxy, if there is one
+        #
+        if self.proxy:
+            self.proxy.newMaterial(fname)
+            self.proxy.openGL.setMaterial(self.proxy.material)
+        self.glob.openGLWindow.Tweak()
+        self.glob.markAssetByFileName(fname)
+
+
     def isLinkedByFilename(self, filename):
-        elem = self.getAttachedByFilename(filename)
-        if elem is not None:
-            return (elem)
+        for elem in self.attachedAssets:
+            if elem.filename == filename:
+                return elem
         if self.bvh:
             if filename == self.bvh.filename:
-                return (self.bvh)
+                return self.bvh
         if self.posemodifier:
             if filename == self.posemodifier.filename:
-                return (self.posemodifier)
+                return self.posemodifier
         if self.expression:
             if filename == self.expression.filename:
-                return (self.expression)
+                return self.expression
         if self.skeleton:
             if filename == self.skeleton.filename:
-                return (self.skeleton)
-        return(None)
+                return self.skeleton
+        if self.skinMaterial:
+            if filename == self.skinMaterial:
+                return self.skinMaterial
+        return None
 
     def getAttachedByFilename(self, filename):
         for elem in self.attachedAssets:
             if elem.filename == filename:
-                return(elem)
-        return (None)
+                return elem
+        return None
+
+    def getAttachedOrBase(self, filename):
+        elem = self.getAttachedByFilename(filename)
+        if elem:
+            return elem
+        if self.skinMaterial and filename == self.skinMaterial:
+            return self.baseMesh
+        return None
 
     def countAttachedByType(self, itype):
         cnt = 0
@@ -526,14 +565,14 @@ class baseClass():
         if eqtype == "proxy":
             attach.material = self.skinMaterial
             attach.materialsource = materialsource
-            self.proxy = True
+            self.proxy = attach.obj
         elif materialpath is not None:
             attach.material = materialpath
             attach.materialsource = materialsource
         if attach.material is not None:
             attach.obj.loadMaterial(attach.material)
 
-        if eqtype != "proxy":           # TODO check if correct her
+        if eqtype != "proxy":           # TODO check if correct here
             attach.createScaleMatrix(self.baseMesh)
 
         # insert according to z-depth

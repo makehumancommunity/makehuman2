@@ -1,50 +1,32 @@
-<h1>Load a Character</h1>
+<h1>Change material of the Basemesh</h1>
 
-This context provides the possibility to load a character from a file. It is also possible to load just the targets
-(morphs) or just the head-targets. This can be used to exchange geometry or the form of the head only.
-<p>
-<i>Characters are usually saved in the <b>models</b> folder. Inside this folder there are the folders
-for different base-meshes. So an hm08 character is saved in folder <b>models/hm08</b></i>.
-<p>
-Loading a new character will replace the old one, which might be already changed before, in this
-case the program will ask you if you want to save the existing character before.
+This context provides a possibility to change the material (skin) of the base mesh.
+
 <p>
 <h3>Filtering</h3>
 
-To select a character, you can use a filter with some predefined values, like gender, era and genre.
-As long as the characters are tagged with these attributes, they will be shown.
-Characters with no attributes are always shown. You can:
+To select a skin material, you can use a filter with some predefined values, like gender, era and genre.
+As long as the materials are tagged with these attributes, they will be shown.
+Materials with no attributes are always shown. You can:
 <ul>
 <li>select from the attributes</li>
 <li>click on a filter icon</li>
 <li>or enter a text in the filter box</li>
 </ul>
-Hint: If the program shows too many characters on right side, load and save the non-fitting characters
-with the appropriate tags set.
 <p>
-<h3>Loading</h3>
-
-To load a character, either select it from the right column with a single click. Now the information is
-displayed on left side. Decide if to load the complete character, only the targets or just the head-targets.
-To load, press the checkmark on the right side. A double click on an unselected
-character will load it as well.
-<p>
-<i>Hint: "head-pattern" in base.json will determine which groups are considered as head.
-For official targets it is "face|", but also certain user groups like "user|nose" are accepted.
-If "head-pattern" is missing, the program uses all targets.</i>
 <h3>Filter icons, left side:</h3>
 <p>
 <table style="background-color:#c0c0c0;color:#000000;vertical-align:middle;">
-<tr><td><img src="data/models/hm08/icons/male.png"></td><td>Display all male characters. Characters without gender are also displayed.</td></tr>
-<tr><td><img src="data/models/hm08/icons/female.png"></td><td>Display all female characters. Characters without gender are also displayed.</td></tr>
-<tr><td><img src="data/icons/sweep.png"></td><td>Reset all filters, all characters are shown on right side.</td></tr>
+<tr><td><img src="data/icons/male.png"></td><td>Display all male materials. Materials without gender are also displayed.</td></tr>
+<tr><td><img src="data/icons/female.png"></td><td>Display all female materials. Materials without gender are also displayed.</td></tr>
+<tr><td><img src="data/icons/sweep.png"></td><td>Reset all filters, all materials are shown on right side.</td></tr>
 </table>
 <p>
-<h3>Icons, right side:</h3>
-<p>
-<table style="background-color:#c0c0c0;color:#000000;vertical-align:middle;">
-<tr><td><img src="data/icons/use.png"></td><td>Load the character selected. This will be done in background and will take some time.</td></tr>
+<table style="background-color:#c0c0c0;color:#000000;border:2;vertical-align:middle;">
+<tr><td><img src="data/icons/use.png"></td><td>Use the <b>selected</b> material. Can only be used if a material is selected.</td></tr>
+<tr><td><img src="data/icons/information.png"></td><td>Change the information of the <b>selected</b> material.</td></tr>
+<tr><td><img src="data/icons/materials.png"></td><td>Change the material setup of the <b>selected</b> material.</td></tr>
 <tr><td><img src="data/icons/resize.png"></td><td>Resíze the icons on right side. Size changes between 48, 64, 96 and 128 pixel.</td></tr>
-<tr><td><img src="data/icons/rescan.png"></td><td>Reload the models folder. This is needed if you add a model after makehuman was started.</td></tr>
+<tr><td><img src="data/icons/rescan.png"></td><td>Reload the skins folder. This is needed if you add a skin after makehuman was started.</td></tr>
 </table>
 <p>

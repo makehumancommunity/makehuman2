@@ -50,8 +50,8 @@ however will replace the old one.</i>
 <h3>Filter icons, left side:</h3>
 <p>
 <table style="background-color:#c0c0c0;color:#000000;vertical-align:middle;">
-<tr><td><img src="data/proxy/hm08/icons/male.png"></td><td>Displays only proxies for females. All other non-grouped proxies are also displayed.</td></tr>
-<tr><td><img src="data/proxy/hm08/icons/female.png"></td><td>Displays only proxies for males. All other non-grouped proxies are also displayed.</td></tr>
+<tr><td><img src="data/icons/male.png"></td><td>Displays only proxies for females. All other non-grouped proxies are also displayed.</td></tr>
+<tr><td><img src="data/icons/female.png"></td><td>Displays only proxies for males. All other non-grouped proxies are also displayed.</td></tr>
 <tr><td><img src="data/icons/sweep.png"></td><td>Reset all filters, all items are shown on right side.</td></tr>
 </table>
 <p>

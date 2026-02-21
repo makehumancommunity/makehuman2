@@ -60,64 +60,15 @@ class MHMaterialSelect(QWidget):
         layout.addLayout(hlayout)
         self.setLayout(layout)
 
-    def relMatFileName(self, path):
-        """
-        create relative materialpath, URI based
-        """
-        path = self.env.formatPath(path)
-        itype = self.asset.type
-        if itype == "base" or itype == "proxy":
-            itype = "skins"
-        p1 = self.env.formatPath(self.env.stdSysPath(itype))
-        p2 = self.env.formatPath(self.env.stdUserPath(itype))
-        if path.startswith(p1):
-            path = path[len(p1)+1:]
-        elif path.startswith(p2):
-            path = path[len(p2)+1:]
-
-        # in case of a common material add type before
-        # (e.g. for eyes)
-        #
-        # otherwise delete leftmost folder
-        # except for skins
-
-        if path.startswith("materials"):
-            path = itype + "/" + path
-        else:
-            if itype == "skins":
-                path = "skins/" +  path
-            else:
-                path = "/".join(path.split("/")[1:])
-
-        return (path)
-
 
     def picButtonChanged(self, matelem):
         if matelem.status == 1:
-            # check asset before, if different change
+
             if matelem.filename != self.oldmaterial:
+                obj = self.asset.obj
 
-                # get new material (releases old stuff as well)
-                # different for skin (object3d) and asset
-                #
-                if isinstance(self.asset, object3d):
-                    obj = self.asset
-                    self.glob.baseClass.skinMaterial = matelem.filename
-                    self.glob.baseClass.skinMaterialName = self.relMatFileName(matelem.filename)
-                else:
-                    # when changing the proxy, the base mesh should get same material
-                    #
-                    if self.asset.type == "proxy":
-                        self.glob.baseClass.skinMaterial = matelem.filename
-                        self.glob.baseClass.skinMaterialName = self.relMatFileName(matelem.filename)
-                        mainobj = self.glob.baseClass.baseMesh
-                        mainobj.newMaterial(matelem.filename)
-                        mainobj.openGL.setMaterial(mainobj.material)
-
-                    obj = self.asset.obj
-                    self.asset.material = matelem.filename
-                    self.asset.materialsource = self.relMatFileName(matelem.filename)
-
+                self.asset.material = matelem.filename
+                self.asset.materialsource = self.env.relMatFileName(matelem.filename, obj.type)
 
                 obj.newMaterial(matelem.filename)
                 #
@@ -354,35 +305,29 @@ class MHAssetWindow(QWidget):
             self.close()
             return
 
-        if self.asset.folder != "skins":
-            newtags = self.tagedit.getTags()
-            if len(newtags) == 0:
-                print ("Delete own entry")
-                self.env.fileCache.deleteParamUser(self.asset.uuid)
-                self.asset.tags = self.origlist
-            else:
-                insert = "|".join(newtags)
-                self.env.fileCache.insertParamUser(self.asset.uuid, insert)
-                self.asset.tags = newtags
-            iconpath = None
-            if self.icon is not None:
-                #
-                # decide if material path
-                iconpath = self.thumb
-                self.env.logLine(8, "Save icon as " + iconpath)
-                self.icon.save(iconpath, "PNG", -1)
-
-                # only update database when object icon was changed (not material)
-                #
-                if self.matPath is None:
-                    self.env.fileCache.updateParamInfo(self.asset.uuid, iconpath)
-            if self.matPath is None:
-                self.changefunc(self.asset, iconpath)
+        newtags = self.tagedit.getTags()
+        if len(newtags) == 0:
+            print ("Delete own entry")
+            self.env.fileCache.deleteParamUser(self.asset.uuid)
+            self.asset.tags = self.origlist
         else:
-            if self.icon is not None:
-                iconpath = self.thumb
-                self.env.logLine(8, "Save icon as " + iconpath)
-                self.icon.save(iconpath, "PNG", -1)
+            insert = "|".join(newtags)
+            self.env.fileCache.insertParamUser(self.asset.uuid, insert)
+            self.asset.tags = newtags
+        iconpath = None
+        if self.icon is not None:
+            #
+            # decide if material path
+            iconpath = self.thumb
+            self.env.logLine(8, "Save icon as " + iconpath)
+            self.icon.save(iconpath, "PNG", -1)
+
+            # only update database when object icon was changed (not material)
+            #
+            if self.matPath is None:
+                self.env.fileCache.updateParamInfo(self.asset.uuid, iconpath)
+        if self.matPath is None:
+            self.changefunc(self.asset, iconpath)
 
         self.close()
 

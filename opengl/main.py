@@ -324,7 +324,7 @@ class OpenGLView(QOpenGLWidget):
             else:
                 offset = poseskel.offset if poseskel.use_offset else QVector3D(0, 0, 0)
 
-            if baseClass.proxy is True:
+            if baseClass.proxy is not None:
                 body = self.objects[1]
                 asset_start = 2
             else:

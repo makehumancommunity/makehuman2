@@ -2,16 +2,15 @@
 	"name": "MakeHuman II",
 	"author": "black punkduck, elvaerwyn, jjones",
 	"version": [2, 0, 1],
-	"copyright": "(C) 2025 by MakeHuman Team",
+	"copyright": "(C) 2026 by MakeHuman Team",
 	"maintainer": "black punkduck",
 	"status": "development, use with care",
-	"url_mhcommunity": "http://static.makehumancommunity.org",
+	"url_mhcommunity": "https://static.makehumancommunity.org",
 	"url_mhfacebook":  "https://www.facebook.com/makehuman",
-	"url_mhfaq":       "http://static.makehumancommunity.org/makehuman/faq.html",
-	"url_mhforum":     "http://www.makehumancommunity.org/forum",
+	"url_mhfaq":       "https://static.makehumancommunity.org/makehuman/faq.html",
+	"url_mhforum":     "https://makehumancommunity.org/forum",
 	"url_mhwiki":      "https://static.makehumancommunity.org/makehuman.html",
 	"url_mhpatreon":   "https://www.patreon.com/makehuman",
-	"url_mhreguests":  "http://www.makehumancommunity.org/content/bugtracker.html",
 	"url_fileserver":  "https://mirror1.makehuman.net",
 	"url_mirrorserver":  "https://files2.makehumancommunity.org",
 	"url_assetpacks":  "https://mirror1.makehuman.net/asset_packs/",
@@ -31,7 +30,6 @@
 		"FAQ": "url_mhfaq",
 		"Forum": "url_mhforum",
 		"Wiki": "url_mhwiki",
-		"Patreon": "url_mhpatreon",
-		"Report Bug": "url_mhrequests"
+		"Patreon": "url_mhpatreon"
 	}
 }

@@ -89,7 +89,7 @@ class stlExport:
     def ascSave(self, baseclass, filename):
         self.env.last_error ="okay"
         solid =  baseclass.name.replace(' ','_')
-        has_proxy = baseclass.proxy
+        has_proxy = (baseclass.proxy is not None)
 
         try:
             with open(filename, 'w', encoding="utf-8") as f:
@@ -108,7 +108,7 @@ class stlExport:
 
     def binSave(self, baseclass, filename):
         self.env.last_error ="okay"
-        has_proxy = baseclass.proxy
+        has_proxy = (baseclass.proxy is not None)
 
         try:
             count = 0

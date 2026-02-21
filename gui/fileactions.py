@@ -14,7 +14,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from gui.imageselector import MHPictSelectable, PicSelectWidget
-from gui.materialwindow import  MHMaterialSelect, MHAssetWindow
 from gui.common import DialogBox, ErrorBox, IconButton, MHTagEdit
 from core.globenv import cacheRepoEntry
 
@@ -49,98 +48,11 @@ class BaseSelect(QVBoxLayout):
         buttons = QPushButton("Select")
         buttons.clicked.connect(callback)
         self.addWidget(buttons)
-
-        gb = QGroupBox("Base material")
-        gb.setObjectName("subwindow")
-        vlayout = QVBoxLayout()
-        path = os.path.join(self.env.path_sysicon, "materials.png" )
-        self.materialbutton = IconButton(0, path, "Set material of body (skin).", self.materialCallback)
-        vlayout.addWidget(self.materialbutton)
-
-        path = os.path.join(self.env.path_sysicon, "information.png" )
-        self.infobutton = IconButton(0, path, "Change skin information", self.assetCallback)
-        vlayout.addWidget(self.infobutton)
-        self.activateButtons()
-
-        gb.setLayout(vlayout)
-        self.addWidget(gb)
         self.addStretch()
-
-    def activateButtons(self):
-        enabled = self.parent.glob.baseClass is not None
-        self.materialbutton.setEnabled(enabled)
-        self.infobutton.setEnabled(enabled)
 
     def getCurrentMaterial(self):
         return self.parent.glob.baseClass.skinMaterial
         
-    def assetCallback(self):
-        material = self.getCurrentMaterial()
-
-        if material is None:
-            ErrorBox(self.parent, "No materials available")
-            return
-
-        # get filename and thumb file, if any
-        #
-        (folder, name) = os.path.split(material)
-        thumb = material[:-6] + ".thumb"
-        if not os.path.isfile(thumb):
-            thumb =  None
-
-        # create a cacheRepoEntry for skins (there are no skins in repo currently)
-        #
-        asset = cacheRepoEntry("base", "internal", material, "skins", None, thumb, "makehuman", "")
-        proposals = []
-
-        mw = self.glob.getSubwindow("asset")
-        if mw is None:
-            #
-            # called with "skins" there is no change function
-            #
-            mw = self.glob.showSubwindow("asset", self.parent,  MHAssetWindow, None, asset, self.emptyIcon, proposals)
-        else:
-            mw.updateWidgets(asset, self.emptyIcon, proposals)
-            mw.show()
-        mw.activateWindow()
-
-    def materialCallback(self):
-        p1 = self.env.stdUserPath("skins")
-        p2 = self.env.stdSysPath("skins")
-        baseClass = self.parent.glob.baseClass
-        basemesh = baseClass.baseMesh
-        matfiles = basemesh.material.listAllMaterials(p1)
-        matfiles.extend(basemesh.material.listAllMaterials(p2))
-        #
-        # in case of proxy, change first asset
-        # TODO: here skinMaterial seems not to be corrected
-        #
-        if baseClass.proxy:
-            basemesh =  baseClass.attachedAssets[0]
-        matimg = []
-        oldmaterial = self.getCurrentMaterial()
-        if oldmaterial:
-            self.env.logLine(1, "Working on: " + oldmaterial)
-        for elem in matfiles:
-            #print (elem)
-            (folder, name) = os.path.split(elem)
-            thumb = elem[:-6] + ".thumb"
-            if not os.path.isfile(thumb):
-                thumb =  os.path.join(self.env.path_sysicon, "empty_material.png" )
-            p = MHPictSelectable(name[:-6], thumb, elem, None, [])
-            if elem == oldmaterial:
-                p.status = 1
-            matimg.append(p)
-
-        mw = self.glob.getSubwindow("material")
-        if mw is None:
-            mw = self.glob.showSubwindow("material", self.parent, MHMaterialSelect, PicSelectWidget, matimg, basemesh)
-        else:
-            mw.updateWidgets(matimg, basemesh)
-            mw.show()
-        mw.activateWindow()
-
-
     def getSelectedItem(self):
         sel = self.basewidget.selectedItems()
         if len(sel) > 0:

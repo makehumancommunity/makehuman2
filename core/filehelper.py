@@ -144,6 +144,19 @@ class FileHelper():
             return [name, uuid, path, folder, None, thumbfile, author, mtags]
 
 
+    def getCacheDataSkins(self, path, folder):
+        """
+        create entry for skins
+
+        :param path: path name
+        :param folder: folder as category
+        :return: data entry for fileCache
+        """
+        thumbfile = self.hasThumb(path)
+        name, extension = os.path.splitext(os.path.basename(path))
+        uuid = "skin_" + name
+        return [name, uuid, path, folder, None, thumbfile, "makehuman", ""]
+
     def getCacheDataMHM(self, path, folder):
         """
         scan MHM files for models

@@ -126,10 +126,7 @@ class globalObjects():
         return False
 
     def rescanAssets(self, asset_type=None):
-        if asset_type != "models":
-            self.env.fileScanFoldersAttachObjects(asset_type)
-        if asset_type is None or  asset_type  == "models":
-            self.env.fileScanFolderMHM()
+        self.env.fileScanFolders(asset_type)
         self.getCacheData()
         return self.cachedInfo
 
@@ -199,7 +196,8 @@ class cacheRepoEntry():
 
 class programInfo():
     """
-    this class should contain 'global parameters'
+    this class should contain 'global parameters', usually referenced as self.env
+
     especially:
     * all pathnames
     * converter functions
@@ -860,14 +858,18 @@ class programInfo():
 
         return latest, filenames
 
-    def fileScanFoldersAttachObjects(self, subdir=None):
+    def fileScanFolders(self, subdir=None):
         """
-        scanner for mhclo files checks in all mhclofolders + subdirs (only 1 level)
-        (.mhclo, .proxy, .mhskel)
+        scanner for all types of files in all asset and model folders
+        types: .mhclo, .mhbin, .proxy, .mhskel, .mhpose, .bvh, .mhm, .mhmat (skins only)
+        data is inserted in cache
+
+        :param str subdir: name of subdir or None
         """
         if subdir is None:
             assetdirs = [[ ".proxy", "proxy", ".mhbin"], [ ".mhskel", "rigs", None],
-                    [".mhpose", "expressions", None], [".bvh", "poses", None], [".mhpose", "poses", None]]
+                    [".mhpose", "expressions", None], [".bvh", "poses", None], [".mhpose", "poses", None],
+                    [".mhm", "models", None], [".mhmat", "skins", None] ]
 
             (latest, files) = self.getFilesFromAssetFolders(".mhclo", None, ".mhbin")
             for elem in assetdirs:
@@ -885,6 +887,10 @@ class programInfo():
             (latest, files) = self.getFilesFromAssetFolders(".mhpose", "expressions")
         elif subdir == "poses":
             (latest, files) = self.getFilesFromAssetFolders(".bvh", "poses")
+        elif subdir == "models":
+            (latest, files) = self.getFilesFromAssetFolders(".mhm", "models")
+        elif subdir == "skins":
+            (latest, files) = self.getFilesFromAssetFolders(".mhmat", "skins")
         else:
             (latest, files) = self.getFilesFromAssetFolders(".mhclo", subdir, ".mhbin")
 
@@ -896,7 +902,10 @@ class programInfo():
             self.logLine (1, "Recreate repo is " + str(reread))
             data = []
             for (folder, path) in files:
-                #print (path)
+
+                if not os.path.isfile(path):        # skip directoroes
+                    continue
+
                 filename, extension = os.path.splitext(path)
                 elem = None
 
@@ -909,32 +918,15 @@ class programInfo():
                 elif extension == ".bvh":
                     elem = self.fhelp.getCacheDataBVH(path, folder)
 
+                elif extension == ".mhm":
+                    elem = self.fhelp.getCacheDataMHM(path, folder)
+
+                elif extension == ".mhmat":
+                    elem = self.fhelp.getCacheDataSkins(path, folder)
+
                 elif extension == ".mhclo":
                     elem = self.fhelp.getCacheDataMHCLO(path, folder)
 
-                if elem is not None:
-                    data.append(elem)
-
-            self.fileCache.insertCache(data)
-
-
-    def fileScanFolderMHM(self):
-        """
-        scanner for mhm files checks in models folder
-        """
-        subdir = "models"
-        (latest, files) = self.getFilesFromAssetFolders(".mhm", subdir)
-        reread = self.fileCache.createCache(latest, subdir)
-        if reread is True:
-            data = []
-            for (folder, path) in files:
-                self.logLine(8, "Check '" + path + "'")
-
-                # skip directories
-                if not os.path.isfile(path):
-                    continue
-
-                elem = self.fhelp.getCacheDataMHM(path, folder)
                 if elem is not None:
                     data.append(elem)
 
@@ -963,6 +955,39 @@ class programInfo():
                 if elem not in baselist:
                     baselist.append(elem)
         return baselist
+
+    def relMatFileName(self, path, itype):
+        """
+        create relative materialpath, URI based
+
+        :param str path: full path
+        ;param str itype; type of asset
+        """
+        path = self.formatPath(path)
+        if itype == "base" or itype == "proxy":
+            itype = "skins"
+        p1 = self.formatPath(self.stdSysPath(itype))
+        p2 = self.formatPath(self.stdUserPath(itype))
+        if path.startswith(p1):
+            path = path[len(p1)+1:]
+        elif path.startswith(p2):
+            path = path[len(p2)+1:]
+
+        # in case of a common material add type before
+        # (e.g. for eyes)
+        #
+        # otherwise delete leftmost folder
+        # except for skins
+
+        if path.startswith("materials"):
+            path = itype + "/" + path
+        else:
+            if itype == "skins":
+                path = "skins/" +  path
+            else:
+                path = "/".join(path.split("/")[1:])
+
+        return path
 
     def dictFillGaps(self, standard, testdict):
         """

@@ -25,8 +25,10 @@ from PySide6.QtWidgets import (
         )
 
 from gui.materialwindow import MHMaterialSelect, MHAssetWindow
+from gui.materialeditor import MHMaterialEditor
 from gui.common import IconButton
 from core.taglogic import tagLogic
+from obj3d.object3d import object3d
 
 class MHPictSelectable:
     def __init__(self, name: str, icon: str, filename: str, author: str, tags: list):
@@ -490,10 +492,11 @@ class InformationBox(QWidget):
 
 class FilterTree(QTreeView):
 
-    def  __init__(self, assets, searchByFilterText, s_iconpath, u_iconpath):
+    def  __init__(self, assets, searchByFilterText, c_iconpath, s_iconpath, u_iconpath):
         self.assets = assets
         self.searchByFilterText = searchByFilterText
         self.flowLayout = None
+        self.c_iconpath = c_iconpath
         self.s_iconpath = s_iconpath
         self.u_iconpath = u_iconpath
         self.shortcut = []
@@ -562,7 +565,7 @@ class FilterTree(QTreeView):
         """
         funcid = self.sender()._funcid
         text = self.shortcut[funcid][1]
-        print ("Shortcut pressed: " + text)
+        # print ("Shortcut pressed: " + text)
         andOps = text.split("&")
         ruleset = {}
         for aelem in andOps:
@@ -597,6 +600,8 @@ class FilterTree(QTreeView):
         for funcid, elem in enumerate(self.shortcut):
             if elem[0].startswith("u:"):
                 path = os.path.join(self.u_iconpath, elem[0][2:])
+            elif elem[0].startswith("c:"):
+                path = os.path.join(self.c_iconpath, elem[0][2:])
             else:
                 path = os.path.join(self.s_iconpath, elem[0])
             button = IconButton(funcid, path, elem[2], self.shortCutPressed, checkable=True)
@@ -846,14 +851,14 @@ class ImageSelection():
         self.picwidget.populate(None, None)
         self.changeStatus()
 
-    def getSelectFromAttachedAssets(self):
+    def getElemMaterialChange(self):
         selected = self.picwidget.getSelected()
         if selected is not None:
-            elem = self.parent.glob.baseClass.getAttachedByFilename(selected.filename)
+            elem = self.parent.glob.baseClass.getAttachedOrBase(selected.filename)
             if elem is not None:
-                return(elem, selected)
+                return elem, selected
 
-        return(None, None)
+        return None, None
 
     def getSelectedFromRepo(self):
         selected = self.picwidget.getSelected()
@@ -914,11 +919,20 @@ class ImageSelection():
         if update and (mw is None or mw.isVisible() is False):
             return
 
-        found, dummy = self.getSelectFromAttachedAssets()
+        found, dummy = self.getElemMaterialChange()
         if found is None:
             if mw is not None and mw.isVisible():
                 mw.updateWidgets([], None)
             return
+
+        # in case it is already an object we are in skin editor
+        #
+        if isinstance(found, object3d):
+            mw = self.glob.showSubwindow("materialedit", self.parent, MHMaterialEditor, found)
+            mw.updateWidgets(found)
+            mw.activateWindow()
+            return
+
 
         matimg = []
         oldmaterial = self.env.formatPath(found.material)
@@ -1001,6 +1015,7 @@ class ImageSelection():
         # system icons are found in e.g. clothes/icons
         # user icons in clothes/<mesh>/icons
 
+        c_iconpath = os.path.join(self.env.path_sysdata, "icons")
         s_iconpath = os.path.join(self.env.path_sysdata, self.type, "icons")
         u_iconpath = os.path.join(self.env.stdUserPath(self.type), "icons")
         
@@ -1014,7 +1029,7 @@ class ImageSelection():
 
         slayout = QHBoxLayout()  # layout for textbox + empty button
         filteredit = editBox(slayout, os.path.join(self.env.path_sysicon, "sweep.png" ))
-        self.filterview = FilterTree(self.asset_category, filteredit, s_iconpath, u_iconpath)
+        self.filterview = FilterTree(self.asset_category, filteredit, c_iconpath, s_iconpath, u_iconpath)
         self.filterview.addTree(self.filterjson)
         self.filterview.selectionModel().selectionChanged.connect(self.filterview.filterChanged)
         shortcuts = self.filterview.addShortCuts()

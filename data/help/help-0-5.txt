@@ -1,0 +1,70 @@
+<h1>Download Assets</h1>
+
+This context provides the possibility to download either single assets or zipped asset packs.
+<p>
+<h2>Download a single asset</h2>
+An asset may consist of more than one file, e.g. a mesh, some textures and a thumbnail.
+www.makehumancommunity.org provides a list of assets, this has to be loaded first in any case.
+If this list is already loaded, it is possible to update this list. It is only needed, if you need newer
+assets than the date of the last download of your list.
+<p>
+Simply click on "Asset Browser" to get a window for searching.</li>
+<i>Hint: Since the list is longer, it may take some time to open that window first time.</i>
+<p>
+The asset browser then presents:
+<ol>
+<li>The main selection box with tabs, where all assets are presented.</li>
+<li>A filter</li>
+<li>A detail view, where a selected asset is presented.</li>
+</ol>
+<h3>Main selection</h3>
+In top row the tabs represent the different types of assets. Selecting one of these will show assets
+of the type selected. All columns can be sorted by clicking on the column-header. When the tab is
+changed the filter is cleared.
+
+<h3>Filter</h3>
+It is possible to filter the assets either by column or with full text search ("Any"). Only the filtered
+assets are displayed. When the tab is changed, this filter box is cleared.
+
+<h3>Detail view "Selected asset"</h3>
+The detail view shows all attributes for the current asset selected. These are:
+<ul>
+<li>Date of creation</li>
+<li>Last change of asset</li>
+<li>License</li>
+<li>A description, which was added by the user.</li>
+<li>In case of a material, the asset for which it should be used, if available ("Attached").</li>
+</ul>
+Icons:
+<table style="background-color:#c0c0c0;color:#000000;vertical-align:middle;">
+<tr><td><img src="data/icons/camera.png"></td><td>Show the thumbnail, if available to get an idea of the asset.
+When you press the button, the thumbnail is loaded to a temporary file and displayed.</td></tr>
+<tr><td><img src="data/icons/render.png"></td><td>Some assets have a demo picture included, you can display this as well.
+It is a temporary download and will be presented in an extra window.</td></tr>
+<tr><td><img src="data/icons/rescan.png"></td><td>Rescan asset list.
+Redisplay is only needed, if the asset list itself was downloaded again after this window was openend.
+</td></tr>
+</table>
+<p>
+Finally there is the "Download" button to install the selected asset and a "Close" button.
+
+<h2>Download an asset pack</h2>
+<p>
+We also provide the possibility to download complete asset packs or to unzip and install already downloaded packs.
+<p>
+There are 2 asset packs predefined, the makehuman standard assets and an additional one for MakeHuman 2, these can be selected directly. If you already loaded the asset list, all known packs will be displayed. Select the pack you need, doing that, the URL above "Download Asset Pack" will be filled.
+<p>
+If you already downloaded a pack, simply enter the filename above "Extract" button, then press 'Extract'.
+<p>
+In case you need information about the packs before, press on the link, which opens a browser. You can then navigate into the folder you need. An HTML page will be displayed. There is always a link on top which contains a zip-file. This could be copied and inserted into the textbox above "Download Asset Pack" as well.
+<p>
+Download may take some time. The name of the zip-file will appear above the extract button as a fully qualified path. Do not wonder about the name of the temporary folder, this depends on your operating system.
+<p>
+Only in case of using the -A ("administrator") option when makehuman was startet, you can
+extract the files also to the system folder. In all other cases the destination is the user folder.
+<b>It is not recommended to extract into the system folder.</b>
+<p>
+The extract procedure handles all files and put them into the appropriate folders.
+Files already existing will not be overwritten! In the end the cache (repository) is recreated,
+<p>
+"Clean Up" will delete the temporary folder, which is not needed any more.

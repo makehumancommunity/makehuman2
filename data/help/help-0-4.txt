@@ -1,70 +1,79 @@
-<h1>Download Assets</h1>
+<h1>Export a Character</h1>
 
-This context provides the possibility to download either single assets or zipped asset packs.
+This context provides the possibility to export a character using different formats
 <p>
-<h2>Download a single asset</h2>
-An asset may consist of more than one file, e.g. a mesh, some textures and a thumbnail.
-www.makehumancommunity.org provides a list of assets, this has to be loaded first in any case.
-If this list is already loaded, it is possible to update this list. It is only needed, if you need newer
-assets than the date of the last download of your list.
+<i>Characters are usually exported to the <b>exports</b> folder. Inside this folder there are folders
+for different base-meshes. So an hm08 character is exported to folder <b>exports/hm08</b></i>.
 <p>
-Simply click on "Asset Browser" to get a window for searching.</li>
-<i>Hint: Since the list is longer, it may take some time to open that window first time.</i>
+A different export folder can be selected. Also the name of the textures folder inside the export folder can be changed.
 <p>
-The asset browser then presents:
-<ol>
-<li>The main selection box with tabs, where all assets are presented.</li>
-<li>A filter</li>
-<li>A detail view, where a selected asset is presented.</li>
-</ol>
-<h3>Main selection</h3>
-In top row the tabs represent the different types of assets. Selecting one of these will show assets
-of the type selected. All columns can be sorted by clicking on the column-header. When the tab is
-changed the filter is cleared.
-
-<h3>Filter</h3>
-It is possible to filter the assets either by column or with full text search ("Any"). Only the filtered
-assets are displayed. When the tab is changed, this filter box is cleared.
-
-<h3>Detail view "Selected asset"</h3>
-The detail view shows all attributes for the current asset selected. These are:
+In case that the file already exists, the program will ask for a confirmation to overwrite the file.
+<h3>Form</h3>
+Add or select parameters in the form to be used for export. Some of the parameters are not selectable
+because either the file format demands this parameter or does not support the parameter.
 <ul>
-<li>Date of creation</li>
-<li>Last change of asset</li>
-<li>License</li>
-<li>A description, which was added by the user.</li>
-<li>In case of a material, the asset for which it should be used, if available ("Attached").</li>
+<li>Enter a filename. A suffix according to file format will always be appended.</li>
+<li>Binary mode, if a file format supports a binary mode, it can be selected here. Binary files are usually shorter.</li>
+<li>Pack textures into file, if a file format supports embedded textures, it can be selected here. The files are usually larger, but no additional files are needed.</li>
+<li>Feet on the ground. The root of the character is near pelvis. This option allows to pose a character on the ground.</li>
+<li>Character posed. Load and set a pose in animation before. This pose will be used.</li>
+<li>Save hidden vertices. Vertices under clothes are usually not exported, because they might shine
+through. If you need these vertices, enable this parameter.</li>
+<li>Save animation. Some of the formats allow skeletons, skinning and animation.
+You need to load skeleton and an animation before. Pose corrections will be merged.</li>
+<li>Save helpers. A feature to export the clothes helper. Rarely needed.</li>
+<li>Save normals. Some formats demand or have the possibility of reading normals. Technically they can also be calculated from the mesh itself.</li>
 </ul>
-Icons:
+<h3>Exporting</h3>
+
+Is done by pressing the export button after selecting the options.
+<h3>Icons, right side:</h3>
+<p>
 <table style="background-color:#c0c0c0;color:#000000;vertical-align:middle;">
-<tr><td><img src="data/icons/camera.png"></td><td>Show the thumbnail, if available to get an idea of the asset.
-When you press the button, the thumbnail is loaded to a temporary file and displayed.</td></tr>
-<tr><td><img src="data/icons/render.png"></td><td>Some assets have a demo picture included, you can display this as well.
-It is a temporary download and will be presented in an extra window.</td></tr>
-<tr><td><img src="data/icons/rescan.png"></td><td>Rescan asset list.
-Redisplay is only needed, if the asset list itself was downloaded again after this window was openend.
+<tr><td><b>glTF</b><p>
+Suffix: .glb</td>
+<td style="background-color:#a0a0a0;">
+<ul><li>GL Transmission Format from Khronos</li>
+<li>Embedded JSON and binary data</li>
+<li>Materials and textures can be exported or embedded</li>
+<li>Skeleton and animations are possible</li>
+</ul></td></tr>
+
+<tr><td><b>STL</b><p>
+Suffix: .stl </td>
+<td style="background-color:#a0a0a0;">
+<ul><li>Stereolithography</li>
+<li>Ancient ASCII format from 1988</li>
+<li>No materials</li>
+<li>Used for 3d printing</li>
+</ul></td></tr>
+
+<tr><td><b>blender</b><p>
+Suffix: .mh2b</td>
+<td style="background-color:#a0a0a0;">
+<ul><li>Makehuman-Blender communication file, this format is also used by the socket communicator</li>
+<li>Embedded JSON and binary data, very similar to glTF</li>
+<li>Materials and textures can be exported</li>
+<li>Skeleton and animations are possible</li>
+</ul></td></tr>
+
+<tr><td><b>obj</b><p>
+Suffix: .obj</td>
+<td style="background-color:#a0a0a0;">
+<ul><li>Wavefront Technologies file</li>
+<li>Ancient ASCII format from 1989</li>
+<li>Materials and textures can be exported</li>
+<li>Hint 1: Material file has extensions which will not always work</li>
+<li>Hint 2: Normals are usually exported, when the destination system should not do flat shading</li>
+</td></tr>
+
+<tr><td><b>bvh</b><p>
+Suffix: .bvh</td>
+<td style="background-color:#a0a0a0;">
+<ul><li>BioVision Hierarchy</li>
+<li>ASCII Format from the 1990s</li>
+<li><b>Can be used for animations only</b></li>
+<li>Export creates a skeleton using bone offsets and angles in a standard pose</li>
+<li>Animation is appended as a simple table, containing new offsets and angles compared to standard pose</li>
 </td></tr>
 </table>
-<p>
-Finally there is the "Download" button to install the selected asset and a "Close" button.
-
-<h2>Download an asset pack</h2>
-<p>
-We also provide the possibility to download complete asset packs or to unzip and install already downloaded packs.
-<p>
-There are 2 asset packs predefined, the makehuman standard assets and an additional one for MakeHuman 2, these can be selected directly. If you already loaded the asset list, all known packs will be displayed. Select the pack you need, doing that, the URL above "Download Asset Pack" will be filled.
-<p>
-If you already downloaded a pack, simply enter the filename above "Extract" button, then press 'Extract'.
-<p>
-In case you need information about the packs before, press on the link, which opens a browser. You can then navigate into the folder you need. An HTML page will be displayed. There is always a link on top which contains a zip-file. This could be copied and inserted into the textbox above "Download Asset Pack" as well.
-<p>
-Download may take some time. The name of the zip-file will appear above the extract button as a fully qualified path. Do not wonder about the name of the temporary folder, this depends on your operating system.
-<p>
-Only in case of using the -A ("administrator") option when makehuman was startet, you can
-extract the files also to the system folder. In all other cases the destination is the user folder.
-<b>It is not recommended to extract into the system folder.</b>
-<p>
-The extract procedure handles all files and put them into the appropriate folders.
-Files already existing will not be overwritten! In the end the cache (repository) is recreated,
-<p>
-"Clean Up" will delete the temporary folder, which is not needed any more.

@@ -6,10 +6,4 @@ This context provides a possibility to select a different base mesh.
 meshes as well. This would demand a number of targets and assets, and some effort in configuration.<p>
 There will be examples in the future.</i>
 <p>
-<h3>Icons, left side:</h3>
-<p>
-<table style="background-color:#c0c0c0;color:#000000;vertical-align:middle;">
-<tr><td><img src="data/icons/materials.png"></td><td>Change the material of your character (skin)</td></tr>
-<tr><td><img src="data/icons/information.png"></td><td>Create a thumbnail for the material (skin)</td></tr>
-</table>
 

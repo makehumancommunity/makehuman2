@@ -509,7 +509,7 @@ class blendCom:
 
         # add the base object,  in case of a proxy use the proxy as first mesh, get weights for proxy
         #
-        if baseclass.proxy:
+        if baseclass.proxy is not None:
             proxy = baseclass.attachedAssets[0]
             if baseweights is not None:
                 proxy.calculateBoneWeights()

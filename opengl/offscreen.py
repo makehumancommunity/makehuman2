@@ -75,7 +75,7 @@ class OffScreenRender:
 
         campos = self.view.camera.getCameraPos()
         baseClass = self.glob.baseClass
-        start = 1 if baseClass.proxy is True else 0
+        start = 1 if baseClass.proxy is not None else 0
 
         self.glob.openGLBlock = True
 

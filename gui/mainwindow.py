@@ -107,6 +107,7 @@ class MHMainWindow(QMainWindow):
         self.category_buttons = [
             [ 
                 { "button": None, "h": False, "icon": "f_newbase.png", "tip": "select basemesh", "func": self.callCategory},
+                { "button": None, "h": False, "icon": "skin.png", "tip": "change skin", "func": self.callCategory},
                 { "button": None, "h": False, "icon": "f_load.png", "tip": "load character", "func": self.callCategory},
                 { "button": None, "h": False, "icon": "f_save.png", "tip": "save character", "func": self.callCategory},
                 { "button": None, "h": False, "icon": "f_export.png", "tip": "export character", "func": self.callCategory},
@@ -177,6 +178,7 @@ class MHMainWindow(QMainWindow):
 
         tools_menu = menu_bar.addMenu("&Tools")
         self.addActCallBack(tools_menu, "Select Basemesh", self.base_call)
+        self.addActCallBack(tools_menu, "Select Base Material", self.skin_call)
         self.addActCallBack(tools_menu, "Change Character", self.morph_call)
         self.addActCallBack(tools_menu, "Randomize Character", self.random_call)
 
@@ -301,8 +303,11 @@ class MHMainWindow(QMainWindow):
             else:
                 elem["func"] = None         # reset unsused functions
 
-        # always create models collection
+        # always create skins and models collection
         #
+        self.skinselect = ImageSelection(self, self.glob.cachedInfo, "skins", 0, self.selectSkinCallback, 2, True)
+        self.skinselect.prepare()
+
         self.charselect = ImageSelection(self, self.glob.cachedInfo, "models", 0, self.loadByIconCallback, 3, True)
         self.charselect.prepare()
 
@@ -500,19 +505,23 @@ class MHMainWindow(QMainWindow):
 
         if self.tool_mode == 0:
             if self.category_mode == 1:
+                self.leftColumn.setTitle("Select skin :: parameters")
+                layout = self.skinselect.leftPanel()
+                self.LeftBox.addLayout(layout)
+            elif self.category_mode == 2:
                 extra = ["Load complete character", "Load only targets", "Load only head-targets"]
                 self.leftColumn.setTitle("Load file :: filter")
                 layout = self.charselect.leftPanel(extra)
                 self.LeftBox.addLayout(layout)
-            elif self.category_mode == 2:
+            elif self.category_mode == 3:
                 self.leftColumn.setTitle("Save file :: parameters")
                 self.saveForm = SaveMHMForm(self, self.graph.view, self.charselect, self.setWindowTitle)
                 self.LeftBox.addLayout(self.saveForm)
-            elif self.category_mode == 3:
+            elif self.category_mode == 4:
                 self.leftColumn.setTitle("Export file :: parameters")
                 self.lastClass = self.exportForm = ExportLeftPanel(self)
                 self.LeftBox.addLayout(self.exportForm)
-            elif self.category_mode == 4:
+            elif self.category_mode == 5:
                 self.leftColumn.setTitle("Import file :: parameters")
                 dlform = DownLoadImport(self, self.graph.view, self.setWindowTitle)
                 self.LeftBox.addLayout(dlform)
@@ -669,12 +678,14 @@ class MHMainWindow(QMainWindow):
                     return False
                 return False
             elif self.category_mode == 1:
-                self.drawImageSelector(self.charselect, "Character MHM Files", 4)
+                self.drawImageSelector(self.skinselect, "Base material: skin", 7)
             elif self.category_mode == 2:
-                self.drawImageSelector(self.charselect, "Character MHM Files (select to replace file)", 0)
+                self.drawImageSelector(self.charselect, "Character MHM Files", 4)
             elif self.category_mode == 3:
-                self.drawExportPanel(self.exportForm, "Export character")
+                self.drawImageSelector(self.charselect, "Character MHM Files (select to replace file)", 0)
             elif self.category_mode == 4:
+                self.drawExportPanel(self.exportForm, "Export character")
+            elif self.category_mode == 5:
                 return False
             else:
                 return False
@@ -783,6 +794,9 @@ class MHMainWindow(QMainWindow):
     def base_call(self):
         self.setToolModeAndPanel(0, 0)
 
+    def skin_call(self):
+        self.setToolModeAndPanel(0, 1)
+
     def morph_call(self):
         if self.glob.baseClass is not None:
             self.setToolModeAndPanel(1, 0)
@@ -886,13 +900,16 @@ class MHMainWindow(QMainWindow):
 
     def loadmhm_call(self):
         if self.glob.baseClass is not None:
-            self.setToolModeAndPanel(0, 1)
+            self.setToolModeAndPanel(0, 2)
+
+    def selectSkinCallback(self, asset, eqtype, multi):
+        self.glob.baseClass.setSkinMaterial(asset)
 
     def loadByIconCallback(self, asset, eqtype, multi):
 
         # in case of save add data into formular only
         #
-        if self.category_mode == 2:
+        if self.category_mode == 3:
             self.saveForm.addDataFromSelected(asset)
             return
 
@@ -903,15 +920,15 @@ class MHMainWindow(QMainWindow):
 
     def savemhm_call(self):
         if self.glob.baseClass is not None:
-            self.setToolModeAndPanel(0, 2)
+            self.setToolModeAndPanel(0, 3)
 
     def exportmhm_call(self):
         if self.glob.baseClass is not None:
-            self.setToolModeAndPanel(0, 3)
+            self.setToolModeAndPanel(0, 4)
 
     def download_call(self):
         if self.glob.baseClass is not None:
-            self.setToolModeAndPanel(0, 4)
+            self.setToolModeAndPanel(0, 5)
 
     def initParams(self):
         self.graph.getFocusText()
