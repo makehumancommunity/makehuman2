@@ -69,7 +69,7 @@ class baseClass():
         self.env.logLine(4, memInfo())
 
     def __str__(self):
-        return(dumper(self))
+        return dumper(self)
 
     def reset(self):
         self.mhmfilename = None     # last loaded mhm file
@@ -132,7 +132,7 @@ class baseClass():
         try:
             fp = open(filename, "r", encoding="utf-8", errors='ignore')
         except IOError as err:
-            return (False, str(err))
+            return False, str(err)
 
         self.attachedAssets = []
         self.baseMesh.setNoPose()
@@ -272,7 +272,7 @@ class baseClass():
         # finally mark MHM as used
         #
         self.glob.markAssetByFileName(filename)
-        return (True, "okay")
+        return True, "okay"
 
     def loadMHMTargetsOnly(self, filename, mode):
         """
@@ -290,7 +290,7 @@ class baseClass():
         try:
             fp = open(filename, "r", encoding="utf-8", errors='ignore')
         except IOError as err:
-            return (False, str(err))
+            return False, str(err)
 
         self.baseMesh.setNoPose()
         for line in fp:
@@ -337,7 +337,7 @@ class baseClass():
             fp = open(filename, "w", encoding="utf-8", errors='ignore')
         except IOError as err:
             self.env.last_error = str(err)
-            return (False)
+            return False
 
         # create version as string, name from self.name or filename
         #
@@ -383,7 +383,7 @@ class baseClass():
             fp.write ("skeleton " + os.path.basename(self.skeleton.filename) + "\n")
 
         fp.close()
-        return (True)
+        return True
 
     def calculateDeletedVerts(self):
         if self.hide_verts is False:
@@ -436,7 +436,7 @@ class baseClass():
             m = elem.obj.getLowestPos(posed)
             if m < lowest:
                 lowest = m
-        return(lowest)
+        return lowest
 
     def setSkinMaterial(self, asset):
         """
@@ -505,7 +505,7 @@ class baseClass():
         for elem in self.attachedAssets:
             if elem.type == itype:
                 cnt += 1
-        return (cnt)
+        return cnt
 
     def markAllAttachedAssets(self):
         names = []
@@ -543,7 +543,6 @@ class baseClass():
                 self.proxy  = None
 
     def addAsset(self, path, eqtype, materialpath=None, materialsource=None):
-        # print ("Attach: " + path + " of " + eqtype)
         attach = attachedAsset(self.glob, eqtype)
         (res, err) = attach.load(path)
 
@@ -554,7 +553,7 @@ class baseClass():
                 print ("Try to start program with option -r")
                 exit(21)
             ErrorBox(self.glob.centralWidget, err)
-            return (None)
+            return None
 
         # handle bad geometry, skip error in case of startup
         #
@@ -566,13 +565,15 @@ class baseClass():
             attach.material = self.skinMaterial
             attach.materialsource = materialsource
             self.proxy = attach.obj
+            self.proxy.newMaterial(self.skinMaterial)
+            self.proxy.material.copy(self.baseMesh.material)
         elif materialpath is not None:
             attach.material = materialpath
             attach.materialsource = materialsource
-        if attach.material is not None:
-            attach.obj.loadMaterial(attach.material)
 
-        if eqtype != "proxy":           # TODO check if correct here
+        if eqtype != "proxy":
+            if attach.material is not None:
+                attach.obj.loadMaterial(attach.material)
             attach.createScaleMatrix(self.baseMesh)
 
         # insert according to z-depth
@@ -587,7 +588,7 @@ class baseClass():
         #if attach.deleteVerts is not None:
         self.calculateDeletedVerts()
 
-        return(attach)
+        return attach
 
 
     def addAndDisplayAsset(self, path, eqtype, multi):
@@ -791,13 +792,13 @@ class baseClass():
         okay = self.glob.generateBaseSubDirs(self.env.basename)
         if not okay:
             self.env.logLine(1, self.env.last_error )
-            return (False)
+            return False
 
         filename = self.env.existDataFile("base", self.env.basename, "base.json")
         self.baseInfo = self.env.readJSON(filename)
         if self.baseInfo is None:
             self.env.logLine(1, self.env.last_error )
-            return (False)
+            return False
         self.env.initFileCache()
 
         # base could be either mhbin or obj mesh
@@ -813,7 +814,7 @@ class baseClass():
             self.baseMesh = None
             self.env.last_error = err
             self.env.logLine(1, err )
-            return (False)
+            return False
 
         if res == 1:
             self.env.last_error = err
@@ -862,7 +863,7 @@ class baseClass():
         self.glob.openGLBlock = False
 
         self.env.logLine(4, memInfo())
-        return (True)
+        return True
 
     def getInitialCopyForSlider(self, factor, decr, incr):
         """

@@ -24,7 +24,7 @@ class Material:
         self.filename = None
 
     def __str__(self):
-        return(dumper(self))
+        return dumper(self)
 
     def default(self):
         self.tex_diffuse = None
@@ -57,20 +57,35 @@ class Material:
         self.aomapIntensity = 1.0
         self.normalmapIntensity = 1.0
 
+    def copy(self, source):
+        """
+        copy parameters for other material
+
+        :param source: material to copy from
+        """
+        for attr in dir(source):
+            if not attr.startswith("_"):
+                m = getattr(source, attr)
+                if isinstance(m, list):
+                    setattr(self, attr, m.copy())
+                elif isinstance(m, int) or isinstance(m, float) or isinstance(m, str):
+                    setattr(self, attr, m)
+
+
     def isExistent(self, filename):
         """
         concatenate / check same folder (mhmatdir ends with the start of filename)
         """
         path = os.path.join(self.mhmatdir, filename)
         if os.path.isfile(path):
-            return (path)
+            return path
 
         # try if we are in materials
         #
         if self.mhmatdir.endswith("materials"):
             path = os.path.join(self.mhmatdir[:-10], filename)
             if os.path.isfile(path):
-                return (path)
+                return path
 
         # try to get rid of first directory of filename (notation: unicode)
         #
@@ -78,7 +93,7 @@ class Material:
             fname = "/".join (filename.split("/")[1:])
             path = os.path.join(self.mhmatdir, fname)
             if os.path.isfile(path):
-                return (path)
+                return path
 
 
         # try an "absolute" method when it starts with the type name like "clothes"
@@ -94,11 +109,11 @@ class Material:
 
         path = os.path.join(self.env.stdSysPath(itype), filename)
         if os.path.isfile(path):
-            return (path)
+            return path
 
         path = os.path.join(self.env.stdUserPath(itype), filename)
         if os.path.isfile(path):
-            return (path)
+            return path
         
         self.env.logLine(8, "unknown texture " + filename)
             
@@ -116,7 +131,7 @@ class Material:
             f = open(path, "r", encoding="utf-8", errors="ignore")
         except OSError as error:
             self.env.last_error = str(error)
-            return (False)
+            return False
 
         for line in f:
             words = line.split()
@@ -211,7 +226,7 @@ class Material:
             self.shader = "phong"
 
         # print(self)
-        return (True)
+        return True
 
     def textureRelName(self, path):
         """
@@ -222,7 +237,7 @@ class Material:
 
         if path.startswith(fobjdir):
             relpath = path[len(fobjdir)+1:]
-            return(relpath)
+            return relpath
 
         test = self.env.formatPath(self.env.stdSysPath(self.type))
         rest = None
@@ -239,7 +254,7 @@ class Material:
             relpath = self.type + "/" + asset + "/" + os.path.basename(path)
         else:
             relpath = os.path.basename(path)
-        return(self.env.formatPath(relpath))
+        return self.env.formatPath(relpath)
 
     def roundColor(self, color):
         for i, elem in enumerate(color):
@@ -303,7 +318,7 @@ class Material:
             fp = open(path, "w", encoding="utf-8", errors='ignore')
         except IOError as err:
             self.env.last_error = str(err)
-            return (False)
+            return False
 
         text = f"""# MakeHuman2 Material definition for {self.name}
 name {self.name}
@@ -352,7 +367,7 @@ backfaceCull {self.backfaceCull}
                     if name.endswith(".mhmat"):
                         materialfiles.append(os.path.join(root, name))
 
-        return(materialfiles)
+        return materialfiles
 
     def colorate(self):
         if not hasattr(self, "diffuseTexture"):

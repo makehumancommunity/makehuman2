@@ -33,7 +33,7 @@ class TextureBox(QGroupBox):
     """
     def __init__(self, parent, obj, name, attrib, slider1=None, slider2=None, s1factor=100.0, s2factor=100.0, altcolor=None):
         super().__init__(name)
-        self.openGL = parent.glob.openGLWindow
+        self.parent = parent
         self.securityCheck = parent.checkLitsphere
         self.updateDep = parent.updateDependencies
         self.emptyIcon = parent.emptyIcon
@@ -88,8 +88,8 @@ class TextureBox(QGroupBox):
 
     def shortenName(self, path):
         if len(path) > 38:
-            return ("... " + path[len(path)-35:])
-        return(path)
+            return "... " + path[len(path)-35:]
+        return path
 
     def setAltColor(self):
         if hasattr(self.material, self.altcolor):
@@ -103,7 +103,7 @@ class TextureBox(QGroupBox):
         if hasattr(self.material, self.altcolor):
             newcol = list(color.getRgbF())[:3]
             setattr(self.material, self.altcolor, newcol)
-            self.Tweak(False)
+            self.parent.Tweak(False)
 
     def updateMap(self, obj, redisplay=True):
         """
@@ -130,7 +130,7 @@ class TextureBox(QGroupBox):
         self.slider1set()
         self.slider2set()
         if redisplay:
-            self.Tweak(False)
+            self.parent.Tweak(False)
 
     def emptyMap(self):
         if hasattr(self.material, self.attrib):
@@ -186,16 +186,13 @@ class TextureBox(QGroupBox):
     def slider1changed(self, value):
         if hasattr(self.material, self.slider1attr):
             setattr(self.material, self.slider1attr, value / self.slider1_factor)
-            self.Tweak()
+            self.parent.Tweak(False)
 
     def slider2changed(self, value):
         if hasattr(self.material, self.slider2attr):
             setattr(self.material, self.slider2attr, value / self.slider2_factor)
-            self.Tweak()
+            self.parent.Tweak(False)
 
-    def Tweak(self, update=False):
-        self.object.openGL.setMaterial(self.material, update)
-        self.openGL.Tweak()
 
 class MHMaterialEditor(QWidget):
     """
@@ -342,9 +339,13 @@ class MHMaterialEditor(QWidget):
         layout.addLayout(hlayout)
         self.setLayout(layout)
 
-
-    def Tweak(self):
-        self.object.openGL.setMaterial(self.material, False)
+    def Tweak(self, update=False):
+        if self.object.type == "base":
+            proxy = self.glob.baseClass.proxy
+            if proxy:
+                proxy.material.copy(self.material)
+                proxy.openGL.setMaterial(proxy.material, update)
+        self.object.openGL.setMaterial(self.material, update)
         self.glob.openGLWindow.Tweak()
 
     def setShader(self):

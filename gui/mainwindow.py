@@ -51,7 +51,7 @@ class MHMainWindow(QMainWindow):
 
         self.leftColumn = None
         self.LeftBox = None         # layouts to fill
-        self.lastClass = None       # needed for close functions
+        self.lastForm = None       # needed for close functions
 
         self.rightColumn = None
         self.visRightColumn = None  # QWidget to hide right column
@@ -373,7 +373,7 @@ class MHMainWindow(QMainWindow):
 
     def buttonRow(self, subtool):
         if len(subtool) == 0:
-            return (None)
+            return None
 
         row=QHBoxLayout()
         row.setSpacing(0)
@@ -382,7 +382,7 @@ class MHMainWindow(QMainWindow):
                 row.addWidget(b["button"])
         row.addStretch()
 
-        return(row)
+        return row
 
     def markSelectedButtons(self, row, button):
         sel = button["button"]
@@ -505,6 +505,7 @@ class MHMainWindow(QMainWindow):
 
         if self.tool_mode == 0:
             if self.category_mode == 1:
+                self.lastForm = self.skinselect
                 self.leftColumn.setTitle("Select skin :: parameters")
                 layout = self.skinselect.leftPanel()
                 self.LeftBox.addLayout(layout)
@@ -519,7 +520,7 @@ class MHMainWindow(QMainWindow):
                 self.LeftBox.addLayout(self.saveForm)
             elif self.category_mode == 4:
                 self.leftColumn.setTitle("Export file :: parameters")
-                self.lastClass = self.exportForm = ExportLeftPanel(self)
+                self.lastForm = self.exportForm = ExportLeftPanel(self)
                 self.LeftBox.addLayout(self.exportForm)
             elif self.category_mode == 5:
                 self.leftColumn.setTitle("Import file :: parameters")
@@ -548,8 +549,9 @@ class MHMainWindow(QMainWindow):
                 return
 
         elif self.tool_mode == 2:
+            self.lastForm = self.equipment[self.category_mode]["func"]
             self.leftColumn.setTitle("Character equipment :: filter")
-            layout = self.equipment[self.category_mode]["func"].leftPanel()
+            layout = self.lastForm.leftPanel()
             self.LeftBox.addLayout(layout)
 
         elif self.tool_mode == 3:
@@ -562,46 +564,46 @@ class MHMainWindow(QMainWindow):
                 self.LeftBox.addLayout(layout)
             elif self.category_mode == 1:
                 self.leftColumn.setTitle("Poses :: filter")
-                self.lastClass = AnimMode(self.glob)
+                self.lastForm = AnimMode(self.glob)
                 layout = self.animation[self.category_mode]["func"].leftPanel()
                 self.LeftBox.addLayout(layout)
             elif self.category_mode == 2:
                 self.leftColumn.setTitle("Animation Player")
-                self.lastClass = AnimPlayer(self.glob)
-                self.lastClass.enter()
-                self.LeftBox.addLayout(self.lastClass)
+                self.lastForm = AnimPlayer(self.glob)
+                self.lastForm.enter()
+                self.LeftBox.addLayout(self.lastForm)
                 self.LeftBox.addStretch()
             elif self.category_mode == 3:
                 self.leftColumn.setTitle("Expressions :: filter")
-                self.lastClass = AnimMode(self.glob)
+                self.lastForm = AnimMode(self.glob)
                 layout = self.animation[self.category_mode]["func"].leftPanel()
                 self.LeftBox.addLayout(layout)
             elif self.category_mode == 4:
                 self.leftColumn.setTitle("Expressions :: editor")
-                self.lastClass = AnimExpressionEdit(self, self.glob)
+                self.lastForm = AnimExpressionEdit(self, self.glob)
                 units = self.glob.baseClass.getFaceUnits()
                 filterparam = units.createFilterDict() if units is not None else {}
                 self.qTree = MHTreeView(filterparam, "Categories", self.redrawNewExpression, None)
                 self.qtreefilter = self.qTree.getStartPattern()
                 self.LeftBox.addWidget(self.qTree)
-                layout = self.lastClass.addClassWidgets()
+                layout = self.lastForm.addClassWidgets()
                 self.LeftBox.addLayout(layout)
             else:
                 self.leftColumn.setTitle("Pose :: editor")
-                self.lastClass = AnimPoseEdit(self, self.glob)
+                self.lastForm = AnimPoseEdit(self, self.glob)
                 units = self.glob.baseClass.getBodyUnits()
                 filterparam = units.createFilterDict() if units is not None else {}
                 self.qTree = MHTreeView(filterparam, "Categories", self.redrawNewPose, None)
                 self.qtreefilter = self.qTree.getStartPattern()
                 self.LeftBox.addWidget(self.qTree)
-                layout = self.lastClass.addClassWidgets()
+                layout = self.lastForm.addClassWidgets()
                 self.LeftBox.addLayout(layout)
 
         elif self.tool_mode == 4:
             self.leftColumn.setTitle("Rendering :: parameters")
-            self.lastClass = Renderer(self, self.glob)
-            self.lastClass.enter()
-            self.LeftBox.addLayout(self.lastClass)
+            self.lastForm = Renderer(self, self.glob)
+            self.lastForm.enter()
+            self.LeftBox.addLayout(self.lastForm)
             self.LeftBox.addStretch()
         else:
             self.leftColumn.setTitle("Not yet implemented") # not reached
@@ -613,8 +615,8 @@ class MHMainWindow(QMainWindow):
         self.rightColumn.setTitle("Expressions, category: " + text)
         widget = QWidget()
         sweep = os.path.join(self.glob.env.path_sysicon, "sweep.png")
-        if self.lastClass is not None:
-            expressions = self.lastClass.fillExpressions()
+        if self.lastForm is not None:
+            expressions = self.lastForm.fillExpressions()
             self.exprArray = ScaleComboArray(widget, expressions, self.qtreefilter, sweep)
             widget.setLayout(self.exprArray.layout)
             scrollArea = QScrollArea()
@@ -628,8 +630,8 @@ class MHMainWindow(QMainWindow):
         self.rightColumn.setTitle("Poses, category: " + text)
         widget = QWidget()
         sweep = os.path.join(self.glob.env.path_sysicon, "sweep.png")
-        if self.lastClass is not None:
-            poses = self.lastClass.fillPoses()
+        if self.lastForm is not None:
+            poses = self.lastForm.fillPoses()
             self.poseArray = ScaleComboArray(widget, poses, self.qtreefilter, sweep)
             widget.setLayout(self.poseArray.layout)
             scrollArea = QScrollArea()
@@ -752,9 +754,9 @@ class MHMainWindow(QMainWindow):
 
     def setToolModeAndPanel(self, tool, category):
         if self.tool_mode != tool or self.category_mode != category:
-            if self.lastClass is not None:
-                self.lastClass.leave()
-                self.lastClass = None
+            if self.lastForm is not None:
+                self.lastForm.leave()
+                self.lastForm = None
             """
             self.emptyLayout(self.LeftBox)
             self.emptyLayout(self.ToolBox)
@@ -846,7 +848,7 @@ class MHMainWindow(QMainWindow):
         if self.glob.project_changed:
             dbox = DialogBox(text + ": all recent changes will be lost.\nPress cancel to abort", QDialogButtonBox.Ok)
             confirmed = dbox.exec()
-        return(confirmed)
+        return confirmed
 
     def parallelLoad(self, bckproc, *args):
         self.glob.baseClass.loadMHMFile(args[0][0], self.prog_window)

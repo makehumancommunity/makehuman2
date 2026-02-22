@@ -54,7 +54,7 @@ class MHPictSelectable:
         self.icon = icon
 
     def __str__(self):
-        return('\n'.join("%s: %s" % item for item in vars(self).items()))
+        return '\n'.join("%s: %s" % item for item in vars(self).items())
 
 class PictureButton(QPushButton):
     """
@@ -365,8 +365,8 @@ class PicFlowLayout(QLayout):
     def getSelected(self):
         for widget in self.wList:
             if widget.asset.status & 1:
-                return(widget.asset)
-        return(None)
+                return widget.asset
+        return None
     
     def newAssetList(self, assets):
         self.assetlist = assets
@@ -462,7 +462,7 @@ class PicSelectWidget(QWidget):
         self.layout.populate(ruleset, filtertext)
 
     def getSelected(self):
-        return(self.layout.getSelected())
+        return self.layout.getSelected()
 
     def addWidget(self, button):
         self.layout.addWidget (button)
@@ -618,7 +618,7 @@ class FilterTree(QTreeView):
             if layout is not None:
                 layout.addLayout(row)
 
-        return ( layout if numicons > i_per_row else row)
+        return  layout if numicons > i_per_row else row
 
     def setSelectedByRuleset(self, ruleset, root=None):
         if root is None:
@@ -743,11 +743,19 @@ class ImageSelection():
                 elem.tag = self.taglogic.completeTags(elem.name, elem.tag)
                 self.asset_category.append(MHPictSelectable(elem.name, elem.thumbfile, elem.path,  elem.author, elem.tag))
 
+    def leave(self):
+        """
+        leave always closes extra windows
+        """
+        self.glob.closeSubwindow("material")
+        self.glob.closeSubwindow("materialedit")
+
     def prepare(self, assetrepo=None):
         """
-        :param assetrepo: used after rescan
         load filter from file according to base mesh and type, the filter in user folder can replace system folder
         then create an asset-category repo for this folder and convert it by taglogic
+
+        :param assetrepo: used after rescan
         """
         if assetrepo:
             self.assetrepo = assetrepo
@@ -764,7 +772,7 @@ class ImageSelection():
         self.prepareRepo()
 
     def getTagProposals(self):
-        return(self.taglogic.proposals())
+        return self.taglogic.proposals()
 
     def changeStatus(self):
         checked = []
@@ -865,8 +873,8 @@ class ImageSelection():
         if selected is not None:
             elem = self.parent.glob.getAssetByFilename(selected.filename)
             if elem is not None:
-                return(elem, selected)
-        return(None, None)
+                return elem, selected
+        return None, None
 
     def loadCallback(self):
         (elem, asset) = self.getSelectedFromRepo()
@@ -1040,7 +1048,7 @@ class ImageSelection():
             v1layout.addLayout(shortcuts)
         v1layout.addLayout(slayout)
 
-        return(v1layout)
+        return v1layout
 
     def getExtraIndex(self):
         return self.extra_selection.currentIndex() if self.extra_selection is not None else 0
@@ -1094,7 +1102,7 @@ class ImageSelection():
         rescanbutton = IconButton(0, rescan, "Rescan folder", self.rescanFolder)
         hlayout.addWidget(rescanbutton)
 
-        return (hlayout)
+        return hlayout
 
     def refreshButtons(self):
 
@@ -1155,5 +1163,5 @@ class ImageSelection():
         layout.addWidget(scrollArea)
         (elem, asset) = self.getSelectedFromRepo()
         self.refreshButtons()
-        return(layout)
+        return layout
 

@@ -76,7 +76,7 @@ class object3d:
             self.is_base = False
 
     def __str__(self):
-        return (self.name + ": Object3d with " + str(self.n_groups) + " group(s)\n" + 
+        return (self.name + ": Object3d (" + self.type + ") with " + str(self.n_groups) + " group(s)\n" +
                 str(self.n_origverts) + " vertices, " + str(self.n_faces) + " faces (" +
                 str(self.n_fuvs) + " uv-faces)\nOpenGL triangles: " +
                 str(self.prim) + "\nOpenGL DrawElements: " + str(self.n_verts)) 
@@ -92,7 +92,7 @@ class object3d:
         (success, text) = importObjFromFile(path, self, use_obj)
         if success > 0 and not __bname__.startswith("compile_meshes"):
             self.initMaterial()
-        return (success, text)
+        return success, text
 
     def setZDepth(self, z_depth):
         self.z_depth = z_depth
@@ -109,7 +109,7 @@ class object3d:
 
     def getMaterialPath(self, filename):
         if filename is not None and self.material is not None:
-            return(self.material.isExistent(filename))
+            return self.material.isExistent(filename)
         return None
 
     def loadMaterial(self, pathname):
@@ -117,20 +117,19 @@ class object3d:
         use a relative path to object
         """
         if pathname is not None and self.material is not None:
-            return(self.material.loadMatFile(pathname))
+            return self.material.loadMatFile(pathname)
         else:
             return True
 
     def newMaterial(self, pathname):
-
         if self.material is not None:
              self.material.freeTextures()
         self.initMaterial()
-        return(self.material.loadMatFile(pathname))
+        return self.material.loadMatFile(pathname)
 
     def getMaterialFilename(self):
         if self.material is not None:
-            return(self.material.getCurrentMatFilename())
+            return self.material.getCurrentMatFilename()
         return None
 
     def exportBinary(self):
@@ -157,7 +156,7 @@ class object3d:
 
     def getOpenGLIndex(self):
         #print (self.filename +  " deleted verts" if self.gl_hicoord is not None else self.filename + " normal")
-        return (self.gl_hicoord if self.gl_hicoord is not None else self.gl_icoord)
+        return self.gl_hicoord if self.gl_hicoord is not None else self.gl_icoord
 
     def notHidden(self):
          self.gl_hicoord = None
@@ -348,7 +347,7 @@ class object3d:
                         vertsperface[finfocnt] = nind
                         finfocnt += 1
 
-        return (highest + 1)
+        return highest + 1
 
     def unUsedVerts(self, faceind):
         indlen = len(faceind)
@@ -356,7 +355,7 @@ class object3d:
         ba = np.full((usedmax), 0)
         for cnt in range(0, indlen):
             ba[faceind[cnt]] = 1
-        return (ba)
+        return ba
 
     def shortenOverflow(self, mapping):
         arr = []
@@ -366,7 +365,7 @@ class object3d:
                 dest = mapping[d]
                 if source != -1 and dest != -1:
                     arr.append([source, dest])
-            return (np.array(arr, dtype=np.uint32))
+            return np.array(arr, dtype=np.uint32)
         else:
             return None
 
@@ -430,7 +429,7 @@ class object3d:
             gl_uvcoord = self.gl_uvcoord
             overflow   =   self.overflow
 
-        return (coord, norm, gl_uvcoord, vertsperface, faceverts, overflow, mapping)
+        return coord, norm, gl_uvcoord, vertsperface, faceverts, overflow, mapping
 
     def createGLFaces(self, nfaces, ufaces, prim, groups):
         self.loadedgroups = groups
@@ -490,7 +489,7 @@ class object3d:
         get position of one vertex based on gl_coord
         """
         m = num*3
-        return (self.gl_coord[m], self.gl_coord[m+1], self.gl_coord[m+2])
+        return self.gl_coord[m], self.gl_coord[m+1], self.gl_coord[m+2]
 
     def getMeanPosition(self, arr):
         """
@@ -503,7 +502,7 @@ class object3d:
             mean[1] += self.gl_coord[m+1] 
             mean[2] += self.gl_coord[m+2] 
         n = len(arr)
-        return ([mean[0] / n, mean[1] / n, mean[2] / n] )
+        return [mean[0] / n, mean[1] / n, mean[2] / n]
 
     def resetMesh(self):
         self.gl_coord[:] = self.gl_coord_o[:] # get back the copy
@@ -577,7 +576,7 @@ class object3d:
         if np.all(ba):
             return None
 
-        return (ba)
+        return ba
 
     def createMapping(self, mask):
         """
@@ -590,7 +589,7 @@ class object3d:
             if mask[cnt] == 1:
                 mapping[cnt] = fill
                 fill +=1
-        return(mapping, fill)
+        return mapping, fill
 
     def optimizeHiddenMesh(self, bweights):
         """
@@ -887,18 +886,18 @@ class object3d:
             self.gl_coord[self.max_index[0]*3], self.gl_coord[self.max_index[1]*3+1], self.gl_coord[self.max_index[2]*3+2])
 
     def getCenterWidth(self):
-        return ((self.gl_coord[self.max_index[0]*3]+self.gl_coord[self.min_index[0]*3])/2.0)
+        return (self.gl_coord[self.max_index[0]*3]+self.gl_coord[self.min_index[0]*3])/2.0
 
     def getCenterHeight(self):
-        return ((self.gl_coord[self.max_index[1]*3+1]+self.gl_coord[self.min_index[1]*3+1])/2.0)
+        return (self.gl_coord[self.max_index[1]*3+1]+self.gl_coord[self.min_index[1]*3+1])/2.0
 
     def getCenterDepth(self):
-        return ((self.gl_coord[self.max_index[2]*3+2]+self.gl_coord[self.min_index[2]*3+2])/2.0)
+        return (self.gl_coord[self.max_index[2]*3+2]+self.gl_coord[self.min_index[2]*3+2])/2.0
 
     def getCenter(self):
         a =  self.gl_coord
         n = [ self.getCenterWidth(),  self.getCenterHeight(), self.getCenterDepth() ]
-        return (n)
+        return n
 
     def getLowestPos(self, posed=False):
         if posed and self.minpose_index is not None:
@@ -911,7 +910,7 @@ class object3d:
         self.maxpose_index = None
 
     def getHeightInUnits(self):
-        return (self.gl_coord[self.max_index[1]*3+1]-self.gl_coord[self.min_index[1]*3+1])
+        return self.gl_coord[self.max_index[1]*3+1]-self.gl_coord[self.min_index[1]*3+1]
 
     def getMeasure(self, vindex):
         """
