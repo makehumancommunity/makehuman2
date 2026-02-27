@@ -308,6 +308,7 @@ class DownLoadImport(QVBoxLayout):
         i = 0
         for fname in  self.env.release_info["url_assetlist"],  self.env.release_info["url_assetpacklist"]:
             dest = args[0][i]
+            i += 1
             self.prog_window.setValueAndText(0, "Download " + fname + " to " + dest)
             loaded, text = self.assets.getUrlFile(fname, dest, responsefunc=self.displayProgress)
             self.error = text

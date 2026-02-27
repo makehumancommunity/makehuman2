@@ -146,6 +146,13 @@ class AssetPack():
         return json
 
     def alistGetFiles(self, json, key):
+        """
+        create a file list of accepted files (used for single asset download)
+
+        :param json: JSON object
+        :param key: selected item
+        :return: type and list of files
+        """
         flist = []
         item = json[key]
         mtype = item.get("type")
@@ -262,6 +269,13 @@ class AssetPack():
 
 
     def copyAssets(self, source, dest, mesh, replace=True):
+        """
+        after unzip copy assets to destination
+        :param str source: source folder
+        :param str dest: destination folder
+        :param str mesh: name of mesh e.g. hm08
+        :param bool replace: should asset be replaced
+        """
         l = len(source)
         for root, dirs, files in os.walk(source, topdown=True):
             for name in files:
@@ -277,7 +291,7 @@ class AssetPack():
                         category = "proxy"
                     folder = os.path.join(dest, category, mesh)
 
-                    # for subfolders we always change that to material
+                    # for subfolders we always change that to materials
                     #
                     if len(dirs) > 2:
                         dirs[2] = "materials"

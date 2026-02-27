@@ -49,6 +49,8 @@ Usually there is no need to do further manual actions. Here is, what the build d
 * It leaves out directories and files mentioned in build.json
 * It adds an icon, a starter script 'winstart.py' and a license file
 * It creates pynsist.cfg for pynsist library call
+* It creates binary .mhbin files for base mesh and all assets and deletes .mhclo and .obj files
+* It compiles system targets and deletes all ASCII targets
 * It gets the python version mentioned in build.json, packages and pypi\_wheels (python libraries)
 * pynsist is started to create the "installer.nsi" for nsis
 * It is started with "--no-makensis", because the "installer.nsi" will be changed to e.g. hold a desktop link.
@@ -77,7 +79,7 @@ CreateShortCut "$DESKTOP\MakeHuman II.lnk" "$INSTDIR\Python\python.exe" '"$INSTD
 
 ## Uninstall Windows Version
 
-To uninstall the progran the uninstaller.exe in that installation folder must be called. It will delete the installation folder completely if no files are left in that folder. This will work even when makehuman2 creates mhbin files and compressed targets, because the makehuman2 system paths are ALWAYS deleted.
+To uninstall the program the uninstaller.exe in that installation folder must be called. It will delete the installation folder completely if no files are left in that folder.
 
 It will NOT delete the user folders, also the %APPDATA%/makehuman2/makehuman2.conf will stay. Normally this allows to install a new version.
 
