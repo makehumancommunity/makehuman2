@@ -190,7 +190,7 @@ class MHAssetWindow(QWidget):
         #
         if self.matPath is not None and self.matPath.endswith(".mhmat"):
             matthumb = self.matPath[:-6] + ".thumb"
-            print ("looking for", matthumb)
+            self.env.logLine(8, "Testing thumbnail availability of " + matthumb)
 
             # check thumb
             if not os.path.isfile(matthumb):
@@ -307,7 +307,7 @@ class MHAssetWindow(QWidget):
 
         newtags = self.tagedit.getTags()
         if len(newtags) == 0:
-            print ("Delete own entry")
+            self.env.logLine(8, "No user tags, delete it from user part of database.")
             self.env.fileCache.deleteParamUser(self.asset.uuid)
             self.asset.tags = self.origlist
         else:

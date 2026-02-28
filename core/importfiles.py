@@ -256,10 +256,22 @@ class AssetPack():
         return self.unzipdir
 
     def unZip(self, zipfile):
+        """
+        unzip a file into a temporary folder
+
+        :param str zipfile: name of the zip-file
+        :return: zip-directory, error [str, None]
+        """
+        if not os.path.isfile(zipfile):
+            return None, zipfile + " not found!"
+
         self.tempDir()
-        with ZipFile(zipfile,"r") as zip_ref:
-            zip_ref.extractall(self.unzipdir)
-        return self.unzipdir
+        try:
+            with ZipFile(zipfile,"r") as zip_ref:
+                zip_ref.extractall(self.unzipdir)
+        except Exception as err:
+            return None, str(err)
+        return self.unzipdir, None
 
     def cleanupUnzip(self):
         if self.unzipdir is not None:
@@ -268,13 +280,33 @@ class AssetPack():
                 shutil.rmtree(self.unzipdir)
 
 
+    def copyFile(self, sourcename, destname, replace):
+        """
+        copy file depending to replace option
+
+        :param str sourcename: name of source file
+        :param str destname: name of destination file
+        :param bool replace: should file be replaced
+        """
+        if replace is False and os.path.isfile(destname):
+            print (destname + " is already existent")
+        else:
+            print ("copy " + sourcename + " => " + destname)
+            shutil.copyfile(sourcename, destname)
+
+    def createFolder(self, folder):
+        if not os.path.isdir(folder):
+            print("create " + folder)
+            os.makedirs(folder, exist_ok = True)
+
     def copyAssets(self, source, dest, mesh, replace=True):
         """
-        after unzip copy assets to destination
+        after unzip copy assets to destination, also may create mesh folders for 'newbase' packs
+
         :param str source: source folder
         :param str dest: destination folder
         :param str mesh: name of mesh e.g. hm08
-        :param bool replace: should asset be replaced
+        :param bool replace: should files be replaced
         """
         l = len(source)
         for root, dirs, files in os.walk(source, topdown=True):
@@ -283,6 +315,9 @@ class AssetPack():
                     root = root[l+1:]
 
                 dirs = root.split(os.sep)
+                sourcefolder = os.path.join(source, root)
+                sourcename = os.path.join(sourcefolder, name)
+
                 category = dirs[0]
                 if category in ["clothes", "eyes", "eyelashes", "eyebrows", "hair", "skins", "teeth", "tongue", "proxymeshes", "rigs", "poses", "expressions"]:
                     # proxy is renamed
@@ -290,41 +325,56 @@ class AssetPack():
                     if category == "proxymeshes":
                         category = "proxy"
                     folder = os.path.join(dest, category, mesh)
+                    self.createFolder(folder)
 
-                    # for subfolders we always change that to materials
+                    # for subfolders we always change to materials
                     #
                     if len(dirs) > 2:
                         dirs[2] = "materials"
 
                     restdirs = os.sep.join(dirs[1:])
                     destfolder = os.path.join(folder, restdirs)
-                    sourcefolder = os.path.join(source, root)
-                    if not os.path.isdir(destfolder):
-                        print("create " + destfolder)
-                        os.makedirs(destfolder, exist_ok = True)
-                    sourcename = os.path.join(sourcefolder, name)
+                    self.createFolder(destfolder)
+                    #
                     destname = os.path.join(destfolder, name)
-                    if replace is False and os.path.isfile(destname):
-                        print (destname + " is already existent")
-                    else:
-                        print ("copy " + sourcename + " => " + destname)
-                        shutil.copyfile(sourcename, destname)
+
+                    self.copyFile(sourcename, destname, replace)
+
                 elif category in ["shader_floor", "shader_litspheres", "shader_skybox"]:
+
+                    # subpath is determined from name by splitting after '_'
+                    #
                     subcat = root.split("_")
                     folder = os.path.join(dest, "shaders", subcat[1])
                     restdirs = os.sep.join(dirs[1:])
                     destfolder = os.path.join(folder, restdirs)
-                    sourcefolder = os.path.join(source, root)
-                    if not os.path.isdir(destfolder):
-                        print("create " + destfolder)
-                        os.makedirs(destfolder, exist_ok = True)
-                    sourcename = os.path.join(sourcefolder, name)
+                    self.createFolder(destfolder)
+
                     destname = os.path.join(destfolder, name)
-                    if replace is False and os.path.isfile(destname):
-                        print (destname + " is already existent")
-                    else:
-                        print ("copy " + sourcename + " => " + destname)
-                        shutil.copyfile(sourcename, destname)
+
+                    self.copyFile(sourcename, destname, replace)
+
+                elif category == "base" or category == "models":
+
+                    # base and models folder are only one layer
+                    #
+                    folder = os.path.join(dest, category, mesh)
+                    self.createFolder(folder)
+                    destname = os.path.join(folder, name)
+
+                    self.copyFile(sourcename, destname, replace)
+
+                elif category == "contarget":
+                    folder = os.path.join(dest, category, mesh)
+                    self.createFolder(folder)
+
+                    restdirs = os.sep.join(dirs[1:])
+                    destfolder = os.path.join(folder, restdirs)
+                    self.createFolder(destfolder)
+
+                    destname = os.path.join(destfolder, name)
+
+                    self.copyFile(sourcename, destname, replace)
 
 
 class TargetASCII():

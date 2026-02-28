@@ -206,10 +206,19 @@ class DownLoadImport(QVBoxLayout):
         w = self.glob.showSubwindow("loadasset", self, MHSelectAssetWindow, self.assetjson)
 
     def par_unzip(self, bckproc, *args):
-        tempdir = self.assets.unZip(self.filename.text())
+        filename = self.filename.text()
+        tempdir, error = self.assets.unZip(filename)
+        if error is not None:
+            self.error = error
+            return
         destpath = self.env.path_sysdata if self.use_userpath is False else self.env.path_userdata
-        self.env.logLine(1, "Unzip into: " + tempdir + " >" + destpath + " Mesh: " + self.env.basename)
-        self.assets.copyAssets(tempdir, destpath, self.env.basename)
+        fname = os.path.basename(filename)
+        #
+        # in case of newbase_<basename>.zip download a new mesh should be possible
+        #
+        base = fname[8:-4] if fname.startswith("newbase_") else self.env.basename
+        self.env.logLine(1, "Unzip into: " + tempdir + " >" + destpath + " Mesh: " + base)
+        self.assets.copyAssets(tempdir, destpath, base)
 
     def finishUnzip(self):
         self.assets.cleanupUnzip()
@@ -221,7 +230,10 @@ class DownLoadImport(QVBoxLayout):
         #
         self.glob.MainWindow.redoImageSelectionRepos()
 
-        QMessageBox.information(self.parent, "Done!", self.bckproc.finishmsg)
+        if self.error:
+            QMessageBox.critical(self.parent, "Error", self.error)
+        else:
+            QMessageBox.information(self.parent, "Done!", self.bckproc.finishmsg)
         self.bckproc = None
 
     def extractZip(self):
@@ -232,6 +244,7 @@ class DownLoadImport(QVBoxLayout):
 
         self.env.logLine(1, "Extract zip: " + fname)
         if self.bckproc == None:
+            self.error = None
             self.prog_window = MHBusyWindow("Extract ZIP file", "extracting ...")
             self.prog_window.progress.forceShow()
             self.bckproc = WorkerThread(self.par_unzip, None)

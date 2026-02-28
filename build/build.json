@@ -1,6 +1,7 @@
 {
 	"pynsistdir": "pynsist-work",
 	"pynsistfile": "pynsist.cfg",
+	"exename": "MakeHuman2",
 	"mhconfigfile": "../data/makehuman2_version.json",
 	"reponame": "makehuman2",
 	"remove_ascii_targets": true,
