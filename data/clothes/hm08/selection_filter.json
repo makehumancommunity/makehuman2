@@ -29,7 +29,8 @@
 		"lingerie": "=slot:top-torso:layer1:bra"
 	},
 	"GuessName": { 
-		"suit": "slot:top-torso:layer3:suit"
+		"suit": "slot:top-torso:layer3:suit",
+		"bathingsuit": "slot:top-torso:layer1:swimwear"
 	},
 	"Shortcut": [
 		["glasses.png", "slot:head-neck:eyes-face:glasses", "Glasses"],
