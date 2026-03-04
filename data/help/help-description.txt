@@ -1,0 +1,22 @@
+<h1>MakeHuman II, a free, open source tool for creating 3D characters.</h1>
+<p>
+This software allows the creation of realistic 3D human characters or other
+characters fast and in a simplified manner, through the manipulation of controls
+for different attributes.
+<p>
+Users are able to model characters by manipulating the controls to modify 
+various characteristics such as gender, age, height, weight and ethnicity 
+as well as low level details of things such as the eye's shape, mouth's shape 
+or finger's length. Via a 'point and click' approach, users can preview and 
+load poses, animation cycles, facial expressions, hair, shoes and clothes onto 
+characters from Libraries. The human characters created can be 
+saved in the custom MakeHuman format (.mhm), rendered and exported in various 
+formats such as Khronos (.gltf), Blender exchange (.mh2b), Wavefront .obj,
+Stereolithography (.stl).
+<p>
+The output characters are licensed under the CC0 license, one of the most 
+liberal license for output content. This means that artists are given the 
+freedom to use their creations for both commercial and non-commercial 
+purposes. The copyright © 2001-2026 is retained by the MakeHuman™ Team 
+(makehumancommunity.org) which grants you permission to use released code
+under the GNU Affero General Public License 3.0 (AGPL).

@@ -238,6 +238,7 @@ class MHMainWindow(QMainWindow):
 
         help_menu = menu_bar.addMenu("&Help")
         self.addActCallBack(help_menu, "Context Help", self.context_help)
+        self.addActCallBack(help_menu, "Short Summary", self.descr_help)
         self.addActCallBack(help_menu, "Navigation", self.nav_help)
         self.addActCallBack(help_menu, "File System", self.fsys_help)
 
@@ -1206,6 +1207,9 @@ class MHMainWindow(QMainWindow):
         except IOError as e:
             text = "Error: " + str(e)
         TextBox(self, "Context Help", None, text, modal=False)
+
+    def descr_help(self):
+        self.context_help("description")
 
     def nav_help(self):
         self.context_help("navigation")
