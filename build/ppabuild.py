@@ -2,6 +2,21 @@
 """
 build a PPA version (not yet finished)
 PPA: Personal Package Archive
+
+A debian package is a Unix ar archive.
+It includes two tar archives: one containing the control information and another with the program data to be installed.
+
+ar -r xxx.deb debian-binary control.tar.xz data.tar.xz
+
+The paths of the tar data-archive are starting like absolute paths + "." in front to make them relative
+./usr/share/makehuman2
+
+tar is done by:
+tar -C dataworkdir -cJvf databuilddir/data.tar.xz .
+
+In the control archive there are simply files.
+
+compression can be gz or xz
 """
 
 import os
@@ -12,6 +27,7 @@ import json
 import argparse
 import tempfile
 import subprocess
+import time
 
 class ppaBuilder():
 
@@ -20,6 +36,10 @@ class ppaBuilder():
         self.conf = path
         self.verbose= verbose
         self.ppadir = None
+        self.ppadest = None
+        self.datatarfolder = None # top folder to create data.tar.xz
+        self.debianfolder = None # top folder to create control.tar.xz
+        self.builddir = None
         self.reponame = None
         self.name = None
         self.applvers = None
@@ -29,6 +49,7 @@ class ppaBuilder():
         self.ignorefiles = []
         self.remove_ascii_targets = False
         self.remove_ascii_meshes = False
+        self.basepath = os.path.abspath(os.path.dirname(__file__))
 
     def cleanexit(self, num, text):
         print (text)
@@ -109,25 +130,24 @@ Description: {descr}
         with open(name, "w") as f:
             f.write(text)
 
-    def createCopyrightFile(self, name):
-        text= f"""Files: *
-Copyright: {self.copyright}
-License: {self.licensetext}
-"""
-        with open(name, "w") as f:
-            f.write(text)
-
-    def createRulesFile(self, name):
-        text="#!/usr/bin/make -f\n\n%:\n\tdh $@\n"
-        with open(name, "w") as f:
-            f.write(text)
-
-    def createFormatFile(self, folder, name):
-        self.mkdir(folder)
+    def createDebianBinary(self, folder, name):
         fname = os.path.join(folder, name)
-        text = "3.0 (quilt)\n"
+        text = "2.0\n"
         with open(fname, "w") as f:
             f.write(text)
+
+    def createChangeLogFile(self, folder, name):
+        rname = os.path.join(self.basepath, name)
+        dname = os.path.join(folder, name)
+        try:
+            with open(rname, "r") as f:
+                lines = f.readlines()
+        except Exception as e:
+            self.cleanexit (20, str(e))
+        lines.append( " -- build: " + time.strftime('%a %d %b %Y, %I:%M%p') + "\n")
+        with open(dname, "w") as f:
+            for l in lines:
+                f.write(l)
 
     def evaluateConfig(self):
         json_object = self.readJSON(self.conf)
@@ -154,6 +174,10 @@ License: {self.licensetext}
         if "ppa-replaces" not in json_object:
             self.cleanexit(3, "Missing 'ppa-replaces' in " + self.conf)
         self.replaces = json_object["ppa-replaces"]
+
+        if "ppa-destdir" not in json_object:
+            self.cleanexit(3, "Missing 'ppa-destdir' in " + self.conf)
+        self.ppadest = json_object["ppa-destdir"]
 
         if "ignoredirs" in json_object:
             self.ignoredirs = json_object["ignoredirs"]
@@ -207,16 +231,29 @@ License: {self.licensetext}
 
         repofolder = os.path.join(self.ppadir,self.reponame + "-" + self.applvers)
         self.mkdir(repofolder)
-        debianfolder = os.path.join(repofolder, "debian")
-        self.mkdir(debianfolder)
-        self.createControlFile(os.path.join(debianfolder, "control"))
-        self.createCopyrightFile(os.path.join(debianfolder, "copyright"))
-        self.createRulesFile(os.path.join(debianfolder, "rules"))
-        self.createFormatFile(os.path.join(debianfolder, "source"), "format")
+        self.debianfolder = os.path.join(repofolder, "debian")
+        self.mkdir(self.debianfolder)
+        self.createControlFile(os.path.join(self.debianfolder, "control"))
+        self.createChangeLogFile(self.debianfolder, "changelog")
+
+        self.builddir = os.path.join(repofolder, "build")
+        self.mkdir(self.builddir)
+        self.createDebianBinary(self.builddir, "debian-binary")
+
+        p = repofolder
+        self.datatarfolder = p = os.path.join(p, "data")
+        self.mkdir(p)
+
+        for d in self.ppadest.split("/"):
+            if d != "":
+                p = os.path.join(p,d)
+                self.mkdir(p)
+        topfolder = os.path.join(p, self.reponame)
+        self.mkdir(topfolder)
 
         for root, dirs, files in os.walk(source, topdown=True):
             if root.startswith(source):
-                destdir = os.path.join(repofolder, root[l+1:])
+                destdir = os.path.join(topfolder, root[l+1:])
 
             for elem in dirs:
                 dontcreate = False
@@ -236,6 +273,30 @@ License: {self.licensetext}
 
                     if not dontcreate:
                         self.copyfile(os.path.join(root, elem), os.path.join(destdir, elem))
+
+    def createDataTarBall(self):
+        destination = os.path.join(self.builddir, "data.tar.xz")
+        verbose = "-cJvf" if self.verbose else "-cJf"
+        command = ["/bin/tar", "-C", self.datatarfolder, "--owner=0", "--group=0", verbose, destination, "."]
+        if self.verbose:
+            print ("+ create data tar ball of " + self.datatarfolder + " to " + destination)
+        try:
+            subprocess.call(command)
+        except Exception as e:
+            self.cleanexit (20, "tar command for data.tar.xz failed!")
+
+    def createControlTarBall(self):
+        files = os.listdir(self.debianfolder)
+        destination = os.path.join(self.builddir, "control.tar.xz")
+        verbose = "-cJvf" if self.verbose else "-cJf"
+        command = ["/bin/tar", "--owner=0", "--group=0", verbose, destination]
+        command.extend(files)
+        if self.verbose:
+            print ("+ create control tar ball of " + self.debianfolder + " to " + destination)
+        try:
+            subprocess.call(command, cwd=self.debianfolder)
+        except Exception as e:
+            self.cleanexit (20, "tar command for control.tar.xz failed!")
 
     def compileMeshCall(self, mesh, filename):
         if self.verbose:
@@ -335,6 +396,8 @@ if __name__ == '__main__':
     ppab = ppaBuilder(args.builddir, "./build.json", args.verbose)
     ppab.evaluateConfig()
     ppab.copyRepo()
+    ppab.createDataTarBall()
+    ppab.createControlTarBall()
     exit(21)
     """
     wb.compileTargets()
