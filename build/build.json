@@ -1,6 +1,6 @@
 {
 	"ppadir": "ppa-work",
-	"linux-dependencies": "python3,python3-opengl,libpyside6-py3,python3-numpy",
+	"linux-dependencies": "python3,python3-opengl,libpyside6-py3,python3-numpy,python3-psutils",
 	"ppa-control-desc": "../data/help/help-description.txt",
 	"ppa-replaces": null,
 	"ppa-destdir": "/usr/share",

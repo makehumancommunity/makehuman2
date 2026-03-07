@@ -14,7 +14,7 @@ The paths of the tar data-archive are starting like absolute paths + "." in fron
 tar is done by:
 tar -C dataworkdir -cJvf databuilddir/data.tar.xz .
 
-In the control archive there are simply files.
+In the control archive there are simply files (control, changelog, md5sums).
 
 compression can be gz or xz
 """
@@ -25,6 +25,7 @@ import shutil
 import sys
 import json
 import argparse
+import hashlib
 import tempfile
 import subprocess
 import time
@@ -37,6 +38,7 @@ class ppaBuilder():
         self.verbose= verbose
         self.ppadir = None
         self.ppadest = None
+        self.repofolder = None # root folder
         self.datatarfolder = None # top folder to create data.tar.xz
         self.debianfolder = None # top folder to create control.tar.xz
         self.builddir = None
@@ -47,6 +49,7 @@ class ppaBuilder():
         self.icon = None
         self.ignoredirs = []
         self.ignorefiles = []
+        self.md5array = []
         self.remove_ascii_targets = False
         self.remove_ascii_meshes = False
         self.basepath = os.path.abspath(os.path.dirname(__file__))
@@ -149,6 +152,12 @@ Description: {descr}
             for l in lines:
                 f.write(l)
 
+    def createMD5File(self, folder, name):
+        fname = os.path.join(folder, name)
+        with open(fname, "w") as f:
+            for elem in self.md5array:
+                f.write(elem)
+
     def evaluateConfig(self):
         json_object = self.readJSON(self.conf)
         if self.verbose:
@@ -161,7 +170,6 @@ Description: {descr}
         if "reponame" not in json_object:
             self.cleanexit(3, "Missing 'reponame' in " + self.conf)
         self.reponame = json_object["reponame"]
-        self.repodir = os.path.join(self.ppadir, self.reponame)
 
         if "linux-dependencies" not in json_object:
             self.cleanexit(3, "Missing 'linux-dependencies' in " + self.conf)
@@ -229,18 +237,18 @@ Description: {descr}
         source = ".."
         l = len(source)
 
-        repofolder = os.path.join(self.ppadir,self.reponame + "-" + self.applvers)
-        self.mkdir(repofolder)
-        self.debianfolder = os.path.join(repofolder, "debian")
+        self.repofolder = os.path.join(self.ppadir,self.reponame + "-" + self.applvers)
+        self.mkdir(self.repofolder)
+        self.debianfolder = os.path.join(self.repofolder, "debian")
         self.mkdir(self.debianfolder)
         self.createControlFile(os.path.join(self.debianfolder, "control"))
         self.createChangeLogFile(self.debianfolder, "changelog")
 
-        self.builddir = os.path.join(repofolder, "build")
-        self.mkdir(self.builddir)
-        self.createDebianBinary(self.builddir, "debian-binary")
+        self.buildfolder = os.path.join(self.repofolder, "build")
+        self.mkdir(self.buildfolder)
+        self.createDebianBinary(self.buildfolder, "debian-binary")
 
-        p = repofolder
+        p = self.repofolder
         self.datatarfolder = p = os.path.join(p, "data")
         self.mkdir(p)
 
@@ -248,12 +256,12 @@ Description: {descr}
             if d != "":
                 p = os.path.join(p,d)
                 self.mkdir(p)
-        topfolder = os.path.join(p, self.reponame)
-        self.mkdir(topfolder)
+        self.repodir = os.path.join(p, self.reponame)
+        self.mkdir(self.repodir)
 
         for root, dirs, files in os.walk(source, topdown=True):
             if root.startswith(source):
-                destdir = os.path.join(topfolder, root[l+1:])
+                destdir = os.path.join(self.repodir, root[l+1:])
 
             for elem in dirs:
                 dontcreate = False
@@ -274,8 +282,28 @@ Description: {descr}
                     if not dontcreate:
                         self.copyfile(os.path.join(root, elem), os.path.join(destdir, elem))
 
+    def md5sum(self, fname):
+        hash_md5 = hashlib.md5()
+        with open(fname, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
+
+    def createMD5Sums(self):
+        if self.verbose:
+            print ("+ create md5sums of " + self.datatarfolder)
+
+        l =len(self.datatarfolder) + 1
+        for root, dirs, files in os.walk(self.repodir, topdown=True):
+            if len(dirs) == 0:
+                for elem in files:
+                    fname = os.path.join(root, elem)
+                    md5 = self.md5sum(fname)
+                    self.md5array.append (md5 + "  " + fname[l:] + "\n")
+        self.createMD5File(self.debianfolder, "md5sums")
+
     def createDataTarBall(self):
-        destination = os.path.join(self.builddir, "data.tar.xz")
+        destination = os.path.join(self.buildfolder, "data.tar.xz")
         verbose = "-cJvf" if self.verbose else "-cJf"
         command = ["/bin/tar", "-C", self.datatarfolder, "--owner=0", "--group=0", verbose, destination, "."]
         if self.verbose:
@@ -287,7 +315,7 @@ Description: {descr}
 
     def createControlTarBall(self):
         files = os.listdir(self.debianfolder)
-        destination = os.path.join(self.builddir, "control.tar.xz")
+        destination = os.path.join(self.buildfolder, "control.tar.xz")
         verbose = "-cJvf" if self.verbose else "-cJf"
         command = ["/bin/tar", "--owner=0", "--group=0", verbose, destination]
         command.extend(files)
@@ -376,6 +404,23 @@ Description: {descr}
                 if len(os.listdir(path)) == 0:
                     os.rmdir(path)
 
+    def createDebArchive(self):
+        
+        # keep this order
+        #
+        files = ["debian-binary", "control.tar.xz", "data.tar.xz"]
+        fnames = []
+        for elem in files:
+            fnames.append(os.path.join(self.buildfolder, elem))
+        destination = os.path.join(self.repofolder, self.reponame + "_" + self.applvers + ".deb")
+        command = ["/usr/bin/ar", "-r", destination]
+        command.extend(fnames)
+        if self.verbose:
+            print ("+ create debian archive " + destination)
+        try:
+            subprocess.call(command)
+        except Exception as e:
+            self.cleanexit (20, "ar failed!")
 
 if __name__ == '__main__':
     if not sys.platform.startswith('linux'):
@@ -386,6 +431,7 @@ if __name__ == '__main__':
     parser.add_argument("builddir", type=str, nargs='?',
             help="where to build the package, default is an autogenerated temporary directory")
     parser.add_argument("--verbose", "-v", action='store_true',  help="verbose")
+    parser.add_argument("--develop", "-d", action='store_true',  help="development version, no binary targets and meshes")
 
     args = parser.parse_args()
     if not args.builddir:
@@ -396,13 +442,13 @@ if __name__ == '__main__':
     ppab = ppaBuilder(args.builddir, "./build.json", args.verbose)
     ppab.evaluateConfig()
     ppab.copyRepo()
+    if not args.develop:
+        ppab.compileTargets()
+        ppab.removeASCIITargets()
+        ppab.compileAssets()
+    ppab.createMD5Sums()
     ppab.createDataTarBall()
     ppab.createControlTarBall()
-    exit(21)
-    """
-    wb.compileTargets()
-    wb.removeASCIITargets()
-    wb.compileAssets()
-    """
+    ppab.createDebArchive()
 
 exit(0)
