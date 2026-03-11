@@ -3,7 +3,6 @@
     Author: black-punkduck
 
     Classes:
-    * UserEnvironment
     * AssetPack
     * TargetASCII
 """
@@ -14,77 +13,8 @@ from datetime import datetime
 import numpy as np
 import os
 import re
-import sys
 import shutil
-import platform
 import tempfile
-
-class UserEnvironment():
-    def __init__(self):
-        self.osindex= -1
-
-    def GetPlatform(self):
-        p =sys.platform
-        if p.startswith('win'):
-            ostype = "Windows"
-            osindex= 0
-            platform_version = " ".join(platform.win32_ver())
-        elif p.startswith('darwin'):
-            ostype = "MacOS"
-            osindex= 2
-            platform_version = platform.mac_ver()[0]
-        else:
-            ostype = "Linux"
-            osindex= 1
-            try:
-                platform_version = ' '.join(platform.linux_distribution())
-            except AttributeError:
-                try:
-                    import distro
-                    platform_version = ' '.join(distro.linux_distribution())
-                except ImportError:
-                    platform_version = "Unknown"
-        self.osindex = osindex
-        return p, osindex, ostype, platform_version
-
-    def GetHardware(self):
-        return platform.machine(), platform.processor(), platform.uname()[2]
-
-    def GetUserConfigFilenames(self, osindex=None, create=False):
-        """
-        gets of creates user config filenames
-
-        :param int osindex: if None self.osindex is used, otherwise 0-2
-        :param bool create: should folder be created?
-
-        :return: name of conf-file and session-file - or None when mkdir fails
-        """
-
-        # generic subfolder in makehuman2, for apple it should be Makehuman2
-        #
-        subfolder = "makehuman2"
-        if osindex is None:
-            osindex = self.osindex
-        if osindex == 0:
-            path = os.getenv('LOCALAPPDATA', '')
-        elif osindex == 1:
-            path = os.path.expanduser('~/.config')
-        else:
-            path = os.path.expanduser('~/Library/Application Support')
-            subfolder = "Makehuman2"
-
-        #
-        # create of subfolder
-        folder = os.path.join(path, subfolder)
-        if create is True:
-            if not os.path.isdir(folder):
-                try:
-                    os.mkdir(folder)
-                except:
-                    return None, folder
-
-        return os.path.join(folder, 'makehuman2.conf'), os.path.join(folder, 'makehuman2_session.conf')
-        
 
 class AssetPack():
     def __init__(self):

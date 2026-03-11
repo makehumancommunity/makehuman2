@@ -3,7 +3,7 @@ import os
 import json
 import argparse
 
-from core.importfiles import UserEnvironment
+from core.environ import UserEnvironment
 from core.attached_asset import attachedAsset
 from obj3d.object3d import object3d
 
@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
 
     uenv = UserEnvironment()
-    uenv.GetPlatform()
+    uenv.getPlatform()
     #
     # now add a few additional environment variables
     #
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     uenv.basename = release["standardmesh"]         # the meshname
 
 
-    conffile = uenv.GetUserConfigFilenames()[0]
+    conffile = uenv.getUserConfigFilenames()[0]
     userspace = None
     if os.path.isfile(conffile):
         with open(conffile, 'r') as f:

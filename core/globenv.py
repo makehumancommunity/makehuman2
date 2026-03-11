@@ -10,7 +10,6 @@
 import sys
 import os
 import re
-import locale
 import time
 import json
 import glob
@@ -18,7 +17,7 @@ import shutil
 from uuid import uuid4
 from gui.application import QTVersion
 from core.debug import dumper
-from core.importfiles import UserEnvironment
+from core.environ import UserEnvironment
 from core.sql_cache  import FileCache
 from core.filehelper import FileHelper
 from opengl.info import GLDebug
@@ -226,13 +225,13 @@ class programInfo():
         self.frozen  = frozen
         self.path_sys = path_sys
  
-        uenv = UserEnvironment()
-        (self.sys_platform, self.osindex, self.ostype, self.platform_version) = uenv.GetPlatform()
-        (self.platform_machine, self.platform_processor, self.platform_release) = uenv.GetHardware()
+        self.uenv = UserEnvironment()
+        (self.sys_platform, self.osindex, self.ostype, self.platform_version) = self.uenv.getPlatform()
+        (self.platform_machine, self.platform_processor, self.platform_release) = self.uenv.getHardware()
 
         # create user configfolder if not there, if that is impossible terminate
         #
-        (self.path_userconf, self.path_usersess) = uenv.GetUserConfigFilenames(create=True)
+        (self.path_userconf, self.path_usersess) = self.uenv.getUserConfigFilenames(create=True)
         if self.path_userconf is None:
             print("cannot create folder " + self.path_usersess)
             exit(21)
@@ -240,15 +239,10 @@ class programInfo():
         #
         # a lot of information for later use
         #
-        self.default_encoding    = sys.getdefaultencoding()
-        self.filesystem_encoding = sys.getfilesystemencoding()
-        self.stdout_encoding     = sys.stdout.encoding
-        self.preferred_encoding  = locale.getpreferredencoding()
-        self.sys_path = os.path.pathsep.join( [self.pathToUnicode(p) for p in sys.path] )
-        self.bin_path = self.pathToUnicode(os.environ['PATH'])
-        self.sys_version = re.sub(r"[\r\n]"," ", sys.version)
+        self.encodings = self.uenv.getEncoding()
+        self.sys_path, self.bin_path, self.sys_executable = self.uenv.getExecutableInfos()
 
-        self.sys_executable = sys.executable
+        self.sys_version = re.sub(r"[\r\n]"," ", sys.version)
 
         from numpy import __version__ as numpvers
         self.numpy_version = [int(x) for x in numpvers.split('.')]
@@ -256,7 +250,7 @@ class programInfo():
             print ("MakeHuman requires at least numpy version 1.6")
             exit (20)
 
-        self.QT_Info = QTVersion(self)
+        self.QT_Info = QTVersion(self.uenv)
         gdebug = GLDebug(self.osindex, False) # not yet initialized
         self.GL_Info = gdebug.getOpenGL_LibVers()
         self.fhelp = FileHelper(self)
@@ -291,38 +285,8 @@ class programInfo():
         else:
             print ("\nNo user configuration available.")
 
-    def pathToUnicode(self, path: str) -> str:
-        """
-        Unicode representation of the filename.
-        Bytes is decoded with the codeset used by the filesystem of the operating system.
-        Unicode representations of paths are fit for use in GUI.
-        """
-
-        if isinstance(path, bytes):
-            # Approach for bytes string type
-            try:
-                return str(path, 'utf-8')
-            except UnicodeDecodeError:
-                pass
-            try:
-                return str(path, self.filesystem_encoding)
-            except UnicodeDecodeError:
-                pass
-            try:
-                return str(path, self.default_encoding)
-            except UnicodeDecodeError:
-                pass
-            try:
-                return str(path, self.preferred_encoding)
-            except UnicodeDecodeError:
-                return path
-        else:
-            return path
-
     def formatPath(self, path: str) -> str:
-        if path is None:
-            return None
-        return self.pathToUnicode(os.path.normpath(path).replace("\\", "/"))
+        return self.uenv.formatPath(path)
 
     def fullPath(self, path: str) -> str:
         if self.osindex == 0:
@@ -415,19 +379,6 @@ class programInfo():
         returns True (all okay) or False (system cannot start)
         """
 
-        # default entries (will be used when not in user or system config)
-        #
-        defaultconf = {
-            "basename": None,
-            "noSampleBuffers": False,
-            "redirect_messages": True,
-            "remember_session": False,
-            "theme": "makehuman.qss",
-            "units": "metric",
-            "apihost": "127.0.0.1",
-            "apiport": 12345
-        }
-
         # system paths
         #
         self.path_sysdata = os.path.join(self.path_sys,  "data")
@@ -466,7 +417,7 @@ class programInfo():
 
         # integrity test (avoid missing keys)
         #
-        if self.dictFillGaps(defaultconf, self.config):
+        if self.dictFillGaps(self.uenv.getDefaultConf(), self.config):
             self.writeconf = True
 
         # calculate path_home
@@ -482,46 +433,7 @@ class programInfo():
         # in case of first time get home path from system if not already set
         #
         if self.path_home is None:
-
-            # Windows (ask in registry)
-            #
-            if self.osindex == 0:
-                import winreg
-                keyname = r'Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders'
-                #name = 'Personal'
-                with winreg.OpenKey(winreg.HKEY_CURRENT_USER, keyname) as k:
-                    try:
-                        value, type_ = winreg.QueryValueEx(k, 'Personal')
-                    except FileNotFoundError:
-                        value, type_ = "%USERPROFILE%\\Documents", winreg.REG_EXPAND_SZ
-                    if type_ == winreg.REG_EXPAND_SZ:
-                        self.path_home = self.formatPath(winreg.ExpandEnvironmentStrings(value))
-                    elif type_ == winreg.REG_SZ:
-                        self.path_home = self.formatPath(value)
-
-            # Linux
-            #
-            elif self.osindex == 1:
-                path = os.path.expanduser('~/.config/user-dirs.dirs')
-                if os.path.isfile(path):
-                    with open(path, 'r', encoding='utf-8') as file:
-                        for line in file:
-                            if line and line.startswith('XDG_DOCUMENTS_DIR'):
-                                line = line.strip()
-                                key, value = line.split('=')
-                                key = key.split('_')[1]
-                                value = os.path.expandvars(value.strip('"'))
-                                if os.path.isdir(value):
-                                    self.path_home = value
-
-                if self.path_home is None:
-                    self.path_home = self.pathToUnicode(os.path.expanduser('~'))
-
-            # MacOS
-            #
-            else:
-                self.path_home = os.path.expanduser('~')
-            self.path_home = os.path.join(self.path_home, "makehuman2")
+            self.path_home = self.uenv.getHomePathProposal()
             self.config["path_home"] = self.path_home
             self.writeconf = True
 
@@ -606,9 +518,9 @@ class programInfo():
         """
         if self.config["redirect_messages"] or log is True:
             self.path_stdout = os.path.join(self.path_error, "makehuman-out.txt")
-            sys.stdout = open(self.path_stdout, "w", encoding=self.preferred_encoding, errors="replace")
+            sys.stdout = open(self.path_stdout, "w", encoding=self.encodings[0], errors="replace")
             self.path_stderr = os.path.join(self.path_error, "makehuman-err.txt")
-            sys.stderr = open(self.path_stderr, "w", encoding=self.preferred_encoding, errors="replace")
+            sys.stderr = open(self.path_stderr, "w", encoding=self.encodings[0], errors="replace")
         else:
             self.path_stdout= None
             self.path_stderr= None

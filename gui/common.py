@@ -282,9 +282,11 @@ class MHFileRequest(QFileDialog):
             self.setAcceptMode(QFileDialog.AcceptSave)
 
     def request(self):
-        self.glob.openGLWinUpdate = False
+        if self.glob is not None:
+            self.glob.openGLWinUpdate = False
         success = self.exec()
-        self.glob.openGLWinUpdate = True
+        if self.glob is not None:
+            self.glob.openGLWinUpdate = True
         if success:
             filename = self.selectedFiles()[0]
 

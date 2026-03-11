@@ -3,7 +3,7 @@ import socket
 import os
 import json
 import argparse
-from core.importfiles import UserEnvironment
+from core.environ import UserEnvironment
 
 class API:
     def __init__(self, host, port):
@@ -60,8 +60,8 @@ if __name__ == '__main__':
     port = args.s
     host = args.n
     uenv = UserEnvironment()
-    uenv.GetPlatform()
-    conffile = uenv.GetUserConfigFilenames()[0]
+    uenv.getPlatform()
+    conffile = uenv.getUserConfigFilenames()[0]
     if os.path.isfile(conffile):
         with open(conffile, 'r') as f:
             conf = json.load(f)

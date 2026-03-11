@@ -14,6 +14,8 @@ from PySide6.QtCore import QEventLoop
 sys.path.insert(0, ".") # used for windows
 
 from core.globenv import programInfo, globalObjects
+
+from gui.beforestart import FirstStart
 from gui.mainwindow import  MHMainWindow
 from gui.infowindow import  MHInfoWindow
 from gui.application import  MHApplication
@@ -60,6 +62,14 @@ def main():
         syspath = os.path.dirname(os.path.realpath(__file__))
     
     os.chdir(syspath)
+
+    # check for first start (no conffile)
+    #
+    fstart = FirstStart(syspath)
+    result, message = fstart.createConffile()
+    if result > 1:
+        print (message)
+        exit (result)
 
     # get programInfo as environment (only for strings to be printed in JSON)
     # and globalObjects for non-printable objects

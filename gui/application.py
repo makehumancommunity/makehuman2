@@ -14,13 +14,13 @@ from PySide6.QtGui import QScreen, QImageReader, QSurfaceFormat
 from PySide6.QtCore import qVersion, QCoreApplication
 import os
 
-def QTVersion(pinfo):
+def QTVersion(uenv):
     qversion = {}
     qversion["version"] = [ int(x) for x in qVersion().split(".")]
     formats = [ s.data().decode(encoding='utf-8').lower() for s in QImageReader.supportedImageFormats() ]
     qversion["jpg_support"] = "jpg" in formats
-    qversion["plugin_path"] = os.path.pathsep.join( [pinfo.pathToUnicode(p) for p in QCoreApplication.libraryPaths()])
-    qversion["plugin_path_env"] = pinfo.pathToUnicode(os.environ['QT_PLUGIN_PATH'] if 'QT_PLUGIN_PATH' in os.environ else "")
+    qversion["plugin_path"] = os.path.pathsep.join( [uenv.pathToUnicode(p) for p in QCoreApplication.libraryPaths()])
+    qversion["plugin_path_env"] = uenv.pathToUnicode(os.environ['QT_PLUGIN_PATH'] if 'QT_PLUGIN_PATH' in os.environ else "")
     #
     # qt.conf is no longer tested (reason: other versions like qt6.conf etc. can be used
     #

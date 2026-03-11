@@ -2,7 +2,8 @@
 import os
 import json
 import argparse
-from core.importfiles import UserEnvironment, TargetASCII
+from core.environ import UserEnvironment
+from core.importfiles import TargetASCII
 
 if __name__ == '__main__':
     # get environment parameters (standardmesh)
@@ -19,8 +20,8 @@ if __name__ == '__main__':
     mesh  = release["standardmesh"]
 
     uenv = UserEnvironment()
-    uenv.GetPlatform()
-    conffile = uenv.GetUserConfigFilenames()[0]
+    uenv.getPlatform()
+    conffile = uenv.getUserConfigFilenames()[0]
     userspace = None
     if os.path.isfile(conffile):
         with open(conffile, 'r') as f:

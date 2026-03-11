@@ -95,20 +95,17 @@ The settings in requirements.txt are considered as minimal versions. Newer versi
 
 ## First start and setup
 
-You must start makehuman2 one time to specify your workspace folders. Although possible, do not mix program code and assets. This avoids downloading the assets again and again. The start is done with:
-
+The start is done with:
 
 ```
 python3 makehuman.py
 ```
 
-A window should open. Change the default folders inside Settings/Preferences where the assets should be installed.
+On first startup and when not started before makehuman2 will ask you for your workspace folders. Although possible, do not mix program code and assets. This avoids downloading the assets again and again. A window should open. Change the path in that folder where you want your assets.
 
-Makehuman can work with two asset folders, one is called system folder, which is the place, where makehuman itself is installed and one is the user folder.
+Makehuman can work with two asset folders, one is called system folder, which is the place, where makehuman itself is installed and one is your user folder.
 
-As an example: change MakeHuman user home to e.g. d:\shared\mhuser and logfile to d:\shared\mhuser\log (Windows syntax, Linux accordingly)
-
-We do not recommend redirecting output of the logfile in this early stage. Since most people work with an hm08 mesh, select this as a your current base mesh.
+All further changes can be made in preferences later. Especially you since most people work with an hm08 mesh, select this as a your current base mesh.
 
 When you exit Makehuman2 the preferences will be written to a configuration file which is used for all applications. It will even stay, when you re-install makehuman2.
 
@@ -116,17 +113,15 @@ When you exit Makehuman2 the preferences will be written to a configuration file
 
 To work with makehuman you need to get the assets otherwise it would be pretty boring, so we added some asset packs on MakeHuman fileservers.
 These are assets which are shared with MPFB2 and own assets like cubemaps and poses, floors and animations. Loading assets might take some time.
+This can be done with download assets. First push button to download the asset lists from makehuman-site (this will take some time). Then download:
 
-It could be done by makehuman itself.  Use download button and load predefined asset packs.
-
-Then extract the pack (check context help).
-
-You can also download both packets by script:
-```
-python3 getpackages.py 
 ```
 
-Choose "user space".
+* MakeHuman System Assets
+* MakeHuman2 Additional Assets
+* MakeHuman2 Additional CubeMaps (not needed but might be interesting)
+
+```
 
 
 ## Optimizations
