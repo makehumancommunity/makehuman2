@@ -58,6 +58,12 @@ class ppaBuilder():
         print (text)
         exit(num)
 
+    def removeOldFolder(self):
+        if os.path.isdir(self.ppadir):
+            if self.verbose:
+                print ("need to remove " + self.ppadir)
+            shutil.rmtree(self.ppadir)
+
     def substitute(self, intext):
         return re.sub(r'[^a-zA-Z0-9\._]', '_', intext)
 
@@ -167,13 +173,15 @@ Description: {descr}"""
             self.cleanexit(3, "Missing 'ppadir' in " + self.conf)
         self.ppadir = os.path.join(self.tmp, json_object["ppadir"])
 
+        self.removeOldFolder()
+
         if "reponame" not in json_object:
             self.cleanexit(3, "Missing 'reponame' in " + self.conf)
         self.reponame = json_object["reponame"]
 
         if "linux-dependencies" not in json_object:
             self.cleanexit(3, "Missing 'linux-dependencies' in " + self.conf)
-        self.dependencies = json_object["linux-dependencies"]
+        self.dependencies = ",".join(map(str, json_object["linux-dependencies"]))   # make a comma separated list
 
         if "ppa-control-desc" not in json_object:
             self.cleanexit(3, "Missing 'ppa-control-desc' in " + self.conf)
