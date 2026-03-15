@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd /usr/share/makehuman2
+python3 makehuman.py "$@"
+

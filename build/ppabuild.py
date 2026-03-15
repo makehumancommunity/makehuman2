@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-build a PPA version (not yet finished)
+build a PPA version
 PPA: Personal Package Archive
 
 A debian package is a Unix ar archive.
@@ -38,15 +38,17 @@ class ppaBuilder():
         self.verbose= verbose
         self.ppadir = None
         self.ppadest = None
+        self.ppalogo = None
         self.repofolder = None # root folder
         self.datatarfolder = None # top folder to create data.tar.xz
         self.debianfolder = None # top folder to create control.tar.xz
+        self.linuxstarter = None
+        self.desktopstarter = None
         self.builddir = None
         self.reponame = None
         self.name = None
         self.applvers = None
-        self.script = None
-        self.icon = None
+        self.headlinedesc = ""
         self.ignoredirs = []
         self.ignorefiles = []
         self.md5array = []
@@ -118,6 +120,7 @@ class ppaBuilder():
                 if line.strip():
                     out += " " + line
             else:
+                self.headlinedesc = line.strip()
                 out += line
                 l += 1
         return out
@@ -143,6 +146,19 @@ Description: {descr}"""
         fname = os.path.join(folder, name)
         text = "2.0\n"
         with open(fname, "w") as f:
+            f.write(text)
+
+    def createDesktopFile(self, name):
+        logo = os.path.join(self.ppadest, self.ppalogo)
+        text = f"""[Desktop Entry]
+Name={self.reponame} {self.applvers}
+Comment={self.headlinedesc}
+Exec={self.mh2start}
+Terminal=false
+Type=Application
+Icon={logo}
+Categories=Graphics"""
+        with open(name, "w") as f:
             f.write(text)
 
     def createChangeLogFile(self, folder, name):
@@ -194,6 +210,18 @@ Description: {descr}"""
         if "ppa-destdir" not in json_object:
             self.cleanexit(3, "Missing 'ppa-destdir' in " + self.conf)
         self.ppadest = json_object["ppa-destdir"]
+
+        if "ppa-logo" not in json_object:
+            self.cleanexit(3, "Missing 'ppa-logo' in " + self.conf)
+        self.ppalogo = json_object["ppa-logo"]
+
+        if "ppa-desktopstarter" not in json_object:
+            self.cleanexit(3, "Missing 'ppa-desktopstarter' in " + self.conf)
+        self.ppadesk = json_object["ppa-desktopstarter"]
+
+        if "makehuman2start" not in json_object:
+            self.cleanexit(3, "Missing 'makehuman2start' in " + self.conf)
+        self.mh2start = json_object["makehuman2start"]
 
         if "ignoredirs" in json_object:
             self.ignoredirs = json_object["ignoredirs"]
@@ -290,6 +318,29 @@ Description: {descr}"""
                     if not dontcreate:
                         self.copyfile(os.path.join(root, elem), os.path.join(destdir, elem))
 
+        # create starter
+        #
+        p = self.datatarfolder
+        for d in self.mh2start.split("/")[:-1]:
+            if d != "":
+                p = os.path.join(p,d)
+                self.mkdir(p)
+        sname = os.path.join(self.basepath, "linuxstart")
+        self.linuxstarter = os.path.join(self.datatarfolder, self.mh2start[1:])
+        self.copyfile(sname, self.linuxstarter)
+        os.chmod(self.linuxstarter, 0o755)
+
+        # create desktop starter
+        #
+        p = self.datatarfolder
+        desk = os.path.join(self.ppadest, self.ppadesk)
+        for d in desk.split("/")[:-1]:
+            if d != "":
+                p = os.path.join(p,d)
+                self.mkdir(p)
+        self.desktopstarter = os.path.join(self.datatarfolder, desk[1:])
+        self.createDesktopFile(self.desktopstarter)
+
     def md5sum(self, fname):
         hash_md5 = hashlib.md5()
         with open(fname, "rb") as f:
@@ -302,6 +353,15 @@ Description: {descr}"""
             print ("+ create md5sums of " + self.datatarfolder)
 
         l =len(self.datatarfolder) + 1
+
+        # starter and desktop first
+        #
+        md5 = self.md5sum(self.linuxstarter)
+        self.md5array.append (md5 + "  " + self.linuxstarter[l:] + "\n")
+
+        md5 = self.md5sum(self.desktopstarter)
+        self.md5array.append (md5 + "  " + self.desktopstarter[l:] + "\n")
+
         for root, dirs, files in os.walk(self.repodir, topdown=True):
             if len(dirs) == 0:
                 for elem in files:

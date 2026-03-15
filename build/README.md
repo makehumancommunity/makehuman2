@@ -93,7 +93,7 @@ CreateShortCut "$DESKTOP\MakeHuman II.lnk" "$INSTDIR\Python\python.exe" '"$INSTD
 * An uninstaller will also be placed in that folder. 
 * Registry entries all starting with the name "Software\Microsoft\Windows\CurrentVersion\Uninstall\<MakeHumanName>" will be written to enanble uninstall command.
 
-## Uninstall Windows Version
+### Uninstall Windows Version
 
 To uninstall the program the uninstaller.exe in that installation folder must be called. It will delete the installation folder completely if no files are left in that folder.
 
@@ -138,8 +138,31 @@ The description is taken from data/help/help-description.txt, which is also part
 * It leaves out directories and files mentioned in build.json
 * It creates binary .mhbin files for base mesh and all assets and deletes .mhclo and .obj files (if not in developer mode)
 * It compiles system targets and deletes all ASCII targets (if not in developer mode)
+* It copies starter file linuxstart to data/usr/bin/makehuman2
+* It creates Makehuman2.desktop in data/usr/share/applications, comment is taken from first line of the description
 * It calculates the md5sums
-* It creates data tar-ball using "tar -C /path/to/datatarfolder --owner=0 --group=0" -cJf destfile ."
+* It creates data tar-ball using "tar -C /path/to/datatarfolder --owner=0 --group=0 -cJf destfile ."
 * It creates control tar-ball using "tar --owner=0 --group=0 -cJf destfile files-from-debianfolder"
 * It forms an archive with "ar -r"
+* The result will be an debian package in the destination folder
+
+### Installation
+
+Installation can be done with:
+
+```bash
+	sudo apt install /path/to/debfile
+```
+
+The installation should resolve all dependencies. In the graphics there should be the icon for makehuman2, so you can start it
+from there or link the icon to the desktop.
+
+### Uninstall Linux Version
+
+To remove the packet, use:
+```bash
+	sudo apt remove makehuman2
+```
+
+Be aware that the .config/makehuman2 folder will stay. This would allow update or a new installation.
 

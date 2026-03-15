@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-build a windows version (not yet finished)
+build a windows version
 """
 
 import os
