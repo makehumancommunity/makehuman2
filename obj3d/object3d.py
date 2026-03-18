@@ -695,7 +695,6 @@ class object3d:
         called when starting work with one slider, a copy without the value
         of this slider is created.
         """
-        print ("getInitialCopyForSlider")
         self.createWCopy()
         if factor == 0.0:
             return

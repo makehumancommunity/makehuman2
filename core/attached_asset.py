@@ -19,7 +19,7 @@ class referenceVerts:
         pass
 
     def __str__(self):
-        return("N:"+ str(self._verts) + " W:" + str(self._weights) + " O:" + str(self._offset))
+        return "N:"+ str(self._verts) + " W:" + str(self._weights) + " O:" + str(self._offset)
 
     def identicalValue(self, words, vnum, vertWeights):
         v0 = int(words[0])
@@ -109,7 +109,7 @@ class attachedAsset:
             self.base_verts = num_base_verts
 
     def __str__(self):
-        return(dumper(self))
+        return dumper(self)
 
     def textLoad(self, filename):
         """
@@ -121,7 +121,7 @@ class attachedAsset:
         try:
             fp = open(filename, "r", encoding="utf-8", errors='ignore')
         except IOError as err:
-            return (False, str(err))
+            return False, str(err)
 
         self.filename = filename
         #
@@ -153,7 +153,7 @@ class attachedAsset:
 
             if key == "weights":
                 fp.close()
-                return(False, "weights in mhclo file no longer supported")
+                return False, "weights in mhclo file no longer supported"
 
             if key == "verts":
                 status = 1
@@ -217,7 +217,7 @@ class attachedAsset:
         self.env.logLine(16, str(self))
 
         if self.obj_file is None:
-            return(False, "Obj-File is missing")
+            return False, "Obj-File is missing"
 
         self.obj_file = os.path.join(os.path.dirname(filename), self.obj_file)
         if self.material is not None:
@@ -241,7 +241,7 @@ class attachedAsset:
         if self.scale[0]['dist'] < 0.01 or self.scale[1]['dist'] < 0.01  or  self.scale[2]['dist'] < 0.01:
             self.scale = None
 
-        return (True, "Okay")
+        return True, "Okay"
 
     def createScaleMatrix(self, mesh):
         # 
@@ -260,7 +260,7 @@ class attachedAsset:
             self.scaleMat[n][n] = abs(pos1[n] - pos2[n]) / div
 
     def getScaleData(self, words):
-        return ((int(words[1]), int(words[2]), float(words[3])))
+        return (int(words[1]), int(words[2]), float(words[3]))
 
     def importBinary(self, path):
         self.env.logLine(8, "Read binary asset " + path)
@@ -268,7 +268,7 @@ class attachedAsset:
         for elem in ['asset', 'files', 'ref_vIdxs', 'weights']:
             if elem not in npzfile:
                 error =  "Malformed file, missing component " + elem
-                return (False, error)
+                return False, error
 
         # now get data from binary, asset
         #
@@ -286,7 +286,7 @@ class attachedAsset:
 
         if nrefverts == 3 and 'offsets' not in npzfile:
             error =  "Malformed file, missing component offsets"
-            return (False, error)
+            return False, error
 
         files = list(npzfile['files'][0])
         self.material = files[0].decode("utf-8")
@@ -316,6 +316,11 @@ class attachedAsset:
 
         if "deleteVerts" in npzfile:
             self.deleteVerts = npzfile["deleteVerts"]
+
+            # resize: if mesh has more helpers and we use the binary, this will accept a binary from a different mesh
+            #
+            if len(self.deleteVerts) < self.base_verts:
+                self.deleteVerts.resize(self.base_verts)
 
         self.obj_file = path
         if self.material is not None:
@@ -383,7 +388,7 @@ class attachedAsset:
                     self.obj = object3d(self.glob, None, self.type)
                     (res, err) = self.importBinary(filename)
                     if res == 0:
-                        return (res, err)
+                        return res, err
                     self.obj.filename = filename
                     self.obj.initMaterial(filename)
                     if self.type == "hair":
@@ -393,8 +398,8 @@ class attachedAsset:
 
                     (bwok, err2) = self.calculateBoneWeights()
                     if bwok is False:
-                        return (0, err2)
-                    return (res, err)
+                        return 0, err2
+                    return res, err
 
                 use_ascii = True
                 filename = ascfile
@@ -416,17 +421,17 @@ class attachedAsset:
 
                 (bwok, err2) =self.calculateBoneWeights()
                 if bwok is False:
-                    return (0, err2)
+                    return 0, err2
 
                 # now export binary file
                 #
                 (expok, err2) = self.exportBinary()
                 if expok is False:
-                    return (0, err2)
+                    return 0, err2
                 return res, err
 
         self.env.logLine(1, err )
-        return (0, err)
+        return 0, err
 
     def exportBinary(self, filename=None):
 
@@ -498,6 +503,6 @@ class attachedAsset:
         :return: err-code, error-text
         """
         if not os.path.isfile(path):
-            return (0, err)
-        return(self.load(path, True))
+            return 0, err
+        return self.load(path, True)
 

@@ -94,7 +94,7 @@ class zipBase():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Build a newbase_<base>.zip from user assets")
     parser.add_argument("base", type=str, help="name of the base")
     parser.add_argument("userdir", type=str, help="absolute path of the user documents")
     parser.add_argument("builddir", type=str, nargs='?',

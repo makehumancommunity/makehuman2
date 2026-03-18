@@ -191,7 +191,7 @@ class Scene():
     def prepareSkeleton(self, posed=False):
         """
         prepare graphical presentation of skeleton
-        posed mode: orange, normal mode white, internal=no skeleton red
+        posed mode: orange, normal mode blue, internal=no skeleton red
 
         :param bool posed: if character is posed
         """
@@ -213,7 +213,7 @@ class Scene():
             coltex= self.orange
         else:
             skeleton = bc.skeleton
-            col = [1.0, 1.0, 1.0]
+            col = [0.5, 0.5, 1.0]
             coltex= self.white
 
         if skeleton is None:
