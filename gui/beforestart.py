@@ -105,7 +105,7 @@ class FirstStart():
         self.syspath = syspath
         self.uenv = UserEnvironment()
         self.osindex = self.uenv.getPlatform()[1]
-        self.conffile = self.uenv.getUserConfigFilenames()[0]
+        self.conffile = self.uenv.getUserConfigFilenames(None, True)[0]
 
     def createConffile(self):
         if os.path.isfile(self.conffile):
