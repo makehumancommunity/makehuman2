@@ -22,7 +22,7 @@
 	"reponame": "makehuman2",
 	"remove_ascii_targets": true,
 	"remove_ascii_meshes": true,
-	"ignoredirs": ["__pycache__", "build"],
+	"ignoredirs": ["__pycache__", "build", "^\\..*"],
 	"ignorefiles": [".*\\.pyc", "^\\..*", ".*\\.mhbin", ".*\\.npz"],
 	"pynsist": {
 		"Application": {
