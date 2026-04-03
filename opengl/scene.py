@@ -44,7 +44,7 @@ class Scene():
         # create system uni-colored materials
         #
 
-        for name in ("black", "white", "orange", "red", "normal", "floor"):
+        for name in ("black", "white", "orange", "red", "blue", "normal", "floor"):
             m = Material(self.glob, name, "system")
             self.sysmaterials.append(m)
 
@@ -52,6 +52,7 @@ class Scene():
         self.white = self.sysmaterials[1].uniColor([1.0, 1.0, 1.0])
         self.orange= self.sysmaterials[2].uniColor([1.0, 0.5, 0.0])
         self.red   = self.sysmaterials[3].uniColor([1.0, 0.5, 0.5])
+        self.blue  = self.sysmaterials[3].uniColor([0.5, 0.5, 1.0])
         self.normal= self.sysmaterials[4].uniColor([0.5, 0.5, 1.0])
 
         # and floor texture
@@ -214,7 +215,7 @@ class Scene():
         else:
             skeleton = bc.skeleton
             col = [0.5, 0.5, 1.0]
-            coltex= self.white
+            coltex= self.blue
 
         if skeleton is None:
             skeleton = bc.default_skeleton

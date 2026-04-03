@@ -1,4 +1,4 @@
-<h1>Pose and Animation, Rigs</h1>
+<h1>Add a skeleton.</h1>
 
 This context provides the possibility to add a skeleton or rig to the character. MakeHuman works with an own
 standard skeleton which is always present. So even without a skeleton it is possible to pose or animate
@@ -8,9 +8,18 @@ the character. Nevertheless for an export into another system a skeleton is need
 <p>
 The currently selected skeleton is marked with a yellow frame. A green frame means, that the skeleton is used.
 <p>
+<h3>Change Skeleton Draw Mode</h3>
+<p>
+To activate diamond draw mode for skeleton, simply activate it with the menu (<u>A</u>ctivate). Default is a draw mode using lines.
+<p>The colors indicate the skeleton mode:
+<ul>
+<li>red: no skeleton is applied and internal skeleton is used</li>
+<li>blue: a skeleton is applied</li>
+<li>orange: internal skeleton is used in pose mode</li>
+</ul>
 <h3>Filtering</h3>
 As long as tags are provided, skeleton can be filtered in different ways. Skeletons with no tags are always
-shown.  These are the possibilities to filter  on the left side:
+shown.  These are the possibilities to filter on the left side:
 <ul>
 <li>By expanding the item <b>Skeleton</b>, then select a type.</li>
 <p>
@@ -22,7 +31,7 @@ with extra tags, these tags are then used instead of the tags provided in the sk
 <p>
 <h3>Loading</h3>
 
-To load skeleton, either select it from the right column with a single click. Now the information is
+To load skeleton, select it from the right column with a single click. Now the information is
 displayed on left side. To put it on the character, press the checkmark button on the right side. A double click on an unselected
 skeleton will load it as well.
 <p>
@@ -31,15 +40,17 @@ skeleton will load it as well.
 It is possible to drop the skeleton or simply select another skeleton and replace old one.
 <p>
 <h3>Change Information</h3>
-Select the skeleton before. The asset editor will open. You can now change the information:
+Select the skeleton before. Press <img src="data/icons/information.png" style="background-color: #f0f0f0; vertical-align: middle;"> to open asset editor. You can now change the information:
 <ul>
-<li>The photo icon takes a screenshot to be used as a thumbnail. Best to switch off skybox (the globe)
+<li><img src="data/icons/camera.png" style="background-color: #f0f0f0; vertical-align: middle;"> takes a screenshot to be used as a thumbnail.
+Best to switch off skybox with <img src="data/icons/skybox.png" style="background-color: #f0f0f0; vertical-align: middle;">
 and use a one-colored background. Under "<u>S</u>ettings" change light and scene and select a
-background color with contrast. Best to switch it skeleton view before.</li>
+background color with contrast. Best to switch it skeleton view before. We also recommend diamond draw mode.</li>
 <li>If you want to use own tags, you can either copy tags to tag editor and change the tags there or
 create new ones by using the standard tags (recommended for filtering). A standard tag can be
-inserted by selecting it from the list and press the plus button.
-You can also delete a tag row or delete all tags by pressing the sweep icon.</li>
+inserted by selecting it from the list and press the
+<img src="data/icons/plus.png" style="background-color: #f0f0f0; vertical-align: middle;">  button.
+You can also delete a tag row or delete all tags by pressing <img src="data/icons/sweep.png" style="background-color: #f0f0f0; vertical-align: middle;">.</li>
 </ul>
 In the end you need to save the asset information.
 <p><i>Hint: the tags are saved in the database, the original tags in the files are not changed. The icon
