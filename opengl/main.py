@@ -9,7 +9,8 @@
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QSizePolicy
 from PySide6.QtCore import QSize, Qt, QTimer
-from PySide6.QtGui import QMatrix4x4, QVector3D
+from PySide6.QtGui import QMatrix4x4, QVector3D, QSurfaceFormat
+from PySide6.QtOpenGL import QOpenGLVertexArrayObject
 
 # try to keep only constants here
 #
@@ -28,6 +29,10 @@ class OpenGLView(QOpenGLWidget):
         self.glob = glob
         self.env = glob.env
         super().__init__()
+        # Explicitly apply the default surface format to this widget so that
+        # Linux/Mesa always gets OpenGL 3.3 Core + depth buffer regardless of
+        # the order in which Qt processes the global default format.
+        self.setFormat(QSurfaceFormat.defaultFormat())
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
         self.setMinimumSize(QSize(300, 560))
         self.setMaximumSize(QSize(2000, 2000))
@@ -52,6 +57,7 @@ class OpenGLView(QOpenGLWidget):
         self.glfunc = None
         self.marker = None
         self.scene = None
+        self.vao = None
 
     def setFPS(self, value, callback=None):
         self.fps = value
@@ -220,6 +226,15 @@ class OpenGLView(QOpenGLWidget):
         """
         self.glob.openGLBlock = False
         self.glfunc = self.context().functions()
+
+        # OpenGL 3.3 Core Profile requires at least one VAO to be bound before
+        # any vertex attribute pointer calls (glVertexAttribPointer /
+        # glEnableVertexAttribArray).  Create a single VAO and keep it bound
+        # for the lifetime of this widget so all existing BindBuffersToShader
+        # calls work without needing per-object VAOs.
+        self.vao = QOpenGLVertexArrayObject()
+        self.vao.create()
+        self.vao.bind()
 
         deb = GLDebug(self.env.osindex)
         if deb.checkVersion() is False:
@@ -423,3 +438,6 @@ class OpenGLView(QOpenGLWidget):
         if self.skybox is not None:
             self.skybox.delete()
             self.skybox = None
+        if self.vao is not None:
+            self.vao.destroy()
+            self.vao = None

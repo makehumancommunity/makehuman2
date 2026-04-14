@@ -303,6 +303,7 @@ class Camera():
         """
         xAngle = (self.last_mousex - x) * self.deltaAngleX
         yAngle = (self.last_mousey - y) * self.deltaAngleY
+        self.setLastMousePosition(x, y)
         self.rotation(xAngle, yAngle)
 
     def mousePanning(self, x, y):

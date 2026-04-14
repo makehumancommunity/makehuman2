@@ -32,14 +32,25 @@ class MHApplication(QApplication):
     """
     def __init__(self, glob, argv):
         self.env = glob.env
-        super().__init__(argv)
 
-        # Alphacover (if available), is used to use more than one alpha-layer
+        # QSurfaceFormat must be set BEFORE QApplication is created so that
+        # the OpenGL widget picks up the correct format on all platforms.
+        # On Linux/Mesa the system default is OpenGL 2.0 with no depth buffer,
+        # which causes shaders (#version 330) to fail and the desktop to bleed
+        # through the viewport.  Explicitly request OpenGL 3.3 Core + depth buffer.
         #
         self.sformat = QSurfaceFormat()
+        self.sformat.setVersion(3, 3)
+        self.sformat.setProfile(QSurfaceFormat.OpenGLContextProfile.CoreProfile)
+        self.sformat.setDepthBufferSize(24)
+        self.sformat.setStencilBufferSize(8)
+        self.sformat.setSwapBehavior(QSurfaceFormat.SwapBehavior.DoubleBuffer)
+        # Alphacover (if available), is used to use more than one alpha-layer
         if self.env.noalphacover is False:
             self.sformat.setSamples(4)
-        self.sformat.setDefaultFormat(self.sformat)
+        QSurfaceFormat.setDefaultFormat(self.sformat)
+
+        super().__init__(argv)
 
     def getFormat(self):
         return self.sformat
