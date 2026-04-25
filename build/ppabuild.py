@@ -36,6 +36,7 @@ class ppaBuilder():
         self.tmp = tmp
         self.conf = path
         self.verbose= verbose
+        self.suffix = ""
         self.ppadir = None
         self.ppadest = None
         self.ppalogo = None
@@ -138,7 +139,7 @@ Depends: {self.dependencies}
 Suggests: blender
 Provides: makehuman
 {replaces}Architecture: all
-Description: {descr}"""
+Description: {self.suffix}{descr}"""
         with open(name, "w") as f:
             f.write(text)
 
@@ -244,6 +245,11 @@ Categories=Graphics"""
         if "version" not in mhobject:
             self.cleanexit(4, "Missing version in " + mhconfig)
         self.applvers = ".".join([str(num) for num in mhobject["version"]])
+        if "suffix" not in mhobject or mhobject["suffix"] == "":
+            self.suffix = ""
+        else:
+            self.suffix = mhobject["suffix"] + " version. "
+
         if "url_mhcommunity" not in mhobject:
             self.cleanexit(4, "Missing url_mhcommunity in " + mhconfig)
         self.url_mhcommunity = mhobject["url_mhcommunity"]

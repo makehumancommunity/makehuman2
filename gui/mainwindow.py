@@ -335,7 +335,8 @@ class MHMainWindow(QMainWindow):
 
 
     def setWindowTitle(self, text):
-        title = self.env.release_info["name"] + " (" + text + ")"
+        suffix = " [" + self.env.release_info["suffix"] + "] " if self.env.release_info["suffix"] != "" else ""
+        title = self.env.release_info["name"] + suffix + " (" + text + ")"
         super().setWindowTitle(title)
 
 

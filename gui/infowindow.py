@@ -23,7 +23,8 @@ class MHInfoWindow(QWidget):
         env = glob.env
         rel = env.release_info
         version = ".".join(str(l) for l in env.release_info["version"])
-        text = " ".join([rel["name"], "    Version:", version, "     Authors:", rel["author"]])
+        suffix = " [" + env.release_info["suffix"] + "]" if env.release_info["suffix"] != "" else ""
+        text = " ".join([rel["name"], suffix + "    Version:", version, "     Authors:", rel["author"]])
         title = QLabel(text)
 
         sw, sh = self.glob.app.getScreensize()

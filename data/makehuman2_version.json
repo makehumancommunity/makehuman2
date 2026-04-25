@@ -2,6 +2,7 @@
 	"name": "MakeHuman II",
 	"author": "black punkduck, elvaerwyn, jjones",
 	"version": [2, 0, 1],
+	"suffix": "",
 	"copyright": "(C) 2026 by MakeHuman Team",
 	"maintainer": "black punkduck",
 	"status": "development, use with care",

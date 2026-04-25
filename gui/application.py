@@ -37,11 +37,12 @@ class MHApplication(QApplication):
         # the OpenGL widget picks up the correct format on all platforms.
         # On Linux/Mesa the system default is OpenGL 2.0 with no depth buffer,
         # which causes shaders (#version 330) to fail and the desktop to bleed
-        # through the viewport.  Explicitly request OpenGL 3.3 Core + depth buffer.
+        # through the viewport.  Explicitly request OpenGL 3.3 Compatibility + depth buffer.
+        # Compatibility because of mesh presentation mode
         #
         self.sformat = QSurfaceFormat()
         self.sformat.setVersion(3, 3)
-        self.sformat.setProfile(QSurfaceFormat.OpenGLContextProfile.CoreProfile)
+        self.sformat.setProfile(QSurfaceFormat.OpenGLContextProfile.CompatibilityProfile)
         self.sformat.setDepthBufferSize(24)
         self.sformat.setStencilBufferSize(8)
         self.sformat.setSwapBehavior(QSurfaceFormat.SwapBehavior.DoubleBuffer)
