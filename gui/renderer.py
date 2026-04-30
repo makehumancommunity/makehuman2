@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2
 
     Classes:
     * RendererValues
@@ -338,7 +338,7 @@ class Renderer(QVBoxLayout):
         ImageBox(self.parent, "Viewer", self.image, color=self.view.light.glclearcolor)
 
     def saveImage(self):
-        directory = self.env.stdUserPath()
+        directory = os.path.join(self.env.stdUserPath(), "render")
         freq = MHFileRequest(self.glob, "Image (PNG)", "image files (*.png)", directory, save=".png")
         filename = freq.request()
         if filename is not None:

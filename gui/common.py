@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck, j_jones
+    Author: black-punkduck, j_jones, Elvaerwyn_MH2
 
     Function:
     * ErrorBox
@@ -48,9 +48,11 @@ class clickableProgressBar(QProgressBar):
     def __init__(self, callback, parent=None):
         self.callback = callback
         QProgressBar.__init__(self, parent)
+        self.setObjectName("clickbar")
 
     def mousePressEvent(self, event):
         self.callback()
+        super().mousePressEvent(event) # Keep normal behavior
 
 class IconButton(QPushButton):
     def __init__(self, funcid, path, tip, func, fsize=36, checkable=False):

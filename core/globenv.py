@@ -495,7 +495,7 @@ class programInfo():
 
         # subfolder inside userdata, so usually base folder + special ones
         #
-        for name in self.basefolders + ["themes", "exports","skins", "models", "target", "contarget", "dbcache", "downloads", "shaders", "grab"]:
+        for name in self.basefolders + ["themes", "exports","skins", "models", "target", "contarget", "dbcache", "downloads", "shaders", "grab", "render"]:
             folder = os.path.join(userdata, name)
             if self.mkdir(folder) is False:
                 return False

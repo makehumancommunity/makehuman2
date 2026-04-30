@@ -1,8 +1,8 @@
 {
 	"name": "MakeHuman II",
-	"author": "black punkduck, elvaerwyn, jjones",
+	"author": "black punkduck, elvaerwyn",
 	"version": [2, 0, 1],
-	"suffix": "",
+	"suffix": "development",
 	"copyright": "(C) 2026 by MakeHuman Team",
 	"maintainer": "black punkduck",
 	"status": "development, use with care",

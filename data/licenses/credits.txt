@@ -8,7 +8,7 @@
 - community moderator, programming
 
 <b>Elvaerwyn</b> (Canada)
-- community moderator, art, targets, documentation
+- community moderator, art, targets, documentation, programming, QSS, site
 
 <b>Jonas Hauquier aka duststorm</b> (Belgium)
 - community moderator, programming
@@ -27,6 +27,9 @@
 
 <b>Tomcat</b> (Russia)
 - community moderator
+
+<b>J. Jones</b> (United States)
+- OSX version and help with documentation
 
 
 <h2>Former members, artists and programmers:</h2>
