@@ -4,6 +4,8 @@
 // Trowbridge-Reitz GGX normal distribution function, 1975
 // the term GGX means “ground glass unknown", it is derived from the scattering of glass (volume shading)
 //  by Bruce Walter (Microfacet Models for Refraction through Rough Surfaces)
+//
+// implementation: black-punkduck & Elvaerwyn_MH2
 
 struct PointLight {
     vec3 position;
@@ -40,28 +42,24 @@ uniform vec3 viewPos;
 uniform PointLight pointLights[3];
 
 const float PI = 3.14159265359;
-// const float min_roughness = 0.04;
-const float min_roughness = 0.25;
+const float min_roughness = 0.05;
 const float glossiness = 0.1;
 
 // calculation of normals
 //
-vec3 EvalNormal()
+vec3 EvalNormal(vec3 n)
 {
+	vec3 no = texture(NOTexture, fs_in.TexCoords).rgb * 2.0 - 1.0;
+
 	vec3 pos_dx = dFdx(fs_in.FragPos);
 	vec3 pos_dy = dFdy(fs_in.FragPos);
-	vec3 tex_dx = dFdx(vec3(fs_in.TexCoords, 0.0));
-	vec3 tex_dy = dFdy(vec3(fs_in.TexCoords, 0.0));
-	vec3 t = (tex_dy.t * pos_dx - tex_dx.t * pos_dy) / (tex_dx.s * tex_dy.t - tex_dy.s * tex_dx.t);
+	vec2 tex_dx = dFdx(fs_in.TexCoords);
+	vec2 tex_dy = dFdy(fs_in.TexCoords);
+	vec3 t = normalize(pos_dx * tex_dy.t - pos_dy * tex_dx.t);
 
-	vec3 ng = cross(pos_dx, pos_dy);
-
-	t = normalize(t - ng * dot(ng, t));
-	vec3 b = normalize(cross(ng, t));
-	mat3 tbn_n = mat3(t, b, ng);
-
-	vec3 no = texture(NOTexture, fs_in.TexCoords).rgb;
-	no = normalize(tbn_n * ((2.0 * no - 1.0) * vec3(1.0, 1.0, 1.0)));
+	vec3 b = -normalize(cross(n, t));
+	mat3 TBN = mat3(t, b, n);
+	no = normalize(mix(n, TBN * no, NoMult * 0.8));
 	return no;
 
 }
@@ -150,10 +148,10 @@ void main()
 	vec3 c_diff = mix(vec3(0.0), color * (1 - min_roughness), 1.0 - metallic);
 
 	// reflectance equation
-	vec3 outcolor = vec3(0.0);
+	vec3 lightContribution = vec3(0.0);
 	vec3 normal = normalize(fs_in.Normal);
-	if (NoMult > 0) {
-		normal = mix(normal, EvalNormal(), NoMult * 0.04);
+	if (NoMult > 0.05) {
+		normal = EvalNormal(normal);
 	}
 	vec3 viewDir = normalize(viewPos - fs_in.FragPos);
 
@@ -174,25 +172,44 @@ void main()
 			}
         		vec3 radiance     = pointLights[i].color * attenuation;
 
-			outcolor += brdf(normal, viewDir, L, roughness, F0, c_diff, radiance);
+			lightContribution += brdf(normal, viewDir, L, roughness, F0, c_diff, radiance);
 		}
 	}
 
-	// vec3 ambient = vec3(0.0, 0.0, 0.0);
-	vec3 ambient = ambientLight[3] * vec3(ambientLight) * ao * AOMult;
+	vec3 ambientfactor = ambientLight[3] * vec3(ambientLight) * ao * AOMult;
+
+	float NdotV = max(dot(normal, viewDir), 0.0);
+	vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
+	vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
 
 	// cubemap, create some reflection in case of metal
 	if (useSky) {
-		vec3 r = reflect(-fs_in.FragPos, viewDir);
-		ambient = ambient * color * (1.0 - metallic* glossiness) ;
-		outcolor.rgb = mix(outcolor.rgb, vec3(texture(skybox, r).bgr), metallic* glossiness);
-		color = ambient + outcolor;
-	} else {
-		color = ambient * color + outcolor;
+		vec3 R = reflect(-viewDir, normal);
+
+		// SPECULAR IBL: Sample skybox for sharp highlights
+		// Uses roughness to choose a blurrier mipmap level (0 to 7)
+		vec3 iblSpecular = textureLod(skybox, R, metallic * 7.0).bgr;
+
+		// DIFFUSE IBL: Sample skybox at max blur for soft environment light
+		// work different on metal though
+		vec3 irradiance = vec3(0.0, 0.0, 0.0);
+		if (metallic > 0.5) {
+			irradiance = textureLod(skybox, normal, 8.0).bgr;
+		} else {
+			irradiance = mix(color, textureLod(skybox, normal, 8.0).bgr, (metallic + 0.1) * 0.5);
+		}
+
+		color = (color * irradiance) * kD + iblSpecular * F;
 	}
+
+	// ambient
+	color = (color * ambientfactor) + lightContribution;
 
 	// emissive map
 	color.rgb += EmMult * em;
+
+	// SOFT-CLIP TONEMAPPER: Keeps things bright but prevents "flat white" blowout
+	color = (color * (1.0 + color / 2.0)) / (1.0 + color);
 
 	FragColor = vec4(clamp(color, 0.0, 1.0), transp);
 }
