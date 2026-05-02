@@ -6,6 +6,7 @@
 	"copyright": "(C) 2026 by MakeHuman Team",
 	"maintainer": "black punkduck",
 	"status": "development, use with care",
+	"url_github": "https://github.com/makehumancommunity/makehuman2",
 	"url_mhcommunity": "https://static.makehumancommunity.org",
 	"url_mhfacebook":  "https://www.facebook.com/makehuman",
 	"url_mhfaq":       "https://static.makehumancommunity.org/makehuman/faq.html",
@@ -26,6 +27,7 @@
 	"url_license_assets": "https://github.com/makehumancommunity/makehuman/blob/master/LICENSE.ASSETS.md",
     	"standardmesh" : "hm08",
 	"support_urls": {
+		"Github": "url_github",
 		"Website": "url_mhcommunity",
 		"FaceBook page": "url_mhfacebook",
 		"FAQ": "url_mhfaq",

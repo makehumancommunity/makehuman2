@@ -2,10 +2,10 @@
 
 // PBR using the Cook-Torrance microfacet model
 // Trowbridge-Reitz GGX normal distribution function, 1975
-// the term GGX means “ground glass unknown", it is derived from the scattering of glass (volume shading)
-//  by Bruce Walter (Microfacet Models for Refraction through Rough Surfaces)
+// the term GGX means "ground glass unknown", it is derived from the scattering of glass (volume shading)
+// by Bruce Walter (Microfacet Models for Refraction through Rough Surfaces)
 //
-// implementation: black-punkduck & Elvaerwyn_MH2
+// changes, programming and fixes: black-punkduck & Elvaerwyn_MH2
 
 struct PointLight {
     vec3 position;
@@ -61,7 +61,6 @@ vec3 EvalNormal(vec3 n)
 	mat3 TBN = mat3(t, b, n);
 	no = normalize(mix(n, TBN * no, NoMult * 0.8));
 	return no;
-
 }
 
 // Trowbridge-Reitz GGX, original is without squaring twice the roughness
@@ -69,10 +68,10 @@ vec3 EvalNormal(vec3 n)
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
-	float a      = roughness*roughness;
+	float a      = roughness * roughness;
 	float a2     = a * a;
 	float NdotH  = clamp(dot(N, H), 0.0, 1.0);
-	float NdotH2 = NdotH*NdotH;
+	float NdotH2 = NdotH * NdotH;
         
 	float denom  = (NdotH2 * (a2 - 1.0) + 1.0);
         
@@ -87,7 +86,7 @@ float GeometrySmith(float NdotV, float NdotL, float roughness)
 {
 	// SchlickGGX for view direction   
 	float r = roughness + 1.0;
-    	float k = (r*r) / 8.0;			// original is without squaring
+    	float k = (r * r) / 8.0;
 	float ggx1 = NdotV / (NdotV * (1.0 - k) + k);
 
 	// SchlickGGX for light direction   
@@ -103,25 +102,24 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-
 // bidirectional reflectance distribution function
 
 vec3 brdf(vec3 n, vec3 V, vec3 L, float rough, vec3 F0, vec3 c_diff, vec3 radiance)
 {
-        vec3 H = normalize(L+V);
-        float nl = clamp(dot(n, L), 0.001, 1.0);        // computed only once, used in Smith
-        float nv = clamp(abs(dot(n, V)), 0.001, 1.0);   // and also inside brdf
+	vec3 H = normalize(L + V);
+	float nl = clamp(dot(n, L), 0.001, 1.0);	// computed only once, used in Smith
+	float nv = clamp(abs(dot(n, V)), 0.001, 1.0);	// and also inside brdf
 
 	// cook-torrance brdf
 	float NDF = DistributionGGX(n, H, rough);
 	float G   = GeometrySmith(nv, nl, rough);
 	vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
 
-        vec3 diffuse = (1.0 - F) * c_diff / PI;
-        vec3 spec = F * G * NDF / (4.0 * nl * nv + 0.001);
+	vec3 diffuse = (1.0 - F) * c_diff / PI;
+	vec3 spec = F * G * NDF / (4.0 * nl * nv + 0.001);
 
-        vec3 color = nl * radiance * (diffuse + spec);
-        return color;
+	vec3 color = nl * radiance * (diffuse + spec);
+	return color;
 }
 
 void main()
@@ -141,11 +139,11 @@ void main()
 	vec3  em = texture(EMTexture, fs_in.TexCoords).rgb;
 
 	metallic  = clamp(metallic * (1.0 - MeMult), 0.0, 1.0);
-	roughness = clamp(roughness * RoMult *(1- min_roughness), min_roughness, 1.0);
+	roughness = clamp(roughness * RoMult * (1.0 - min_roughness), min_roughness, 1.0);
 
 	vec3 F0 = mix(vec3(min_roughness), color, metallic);
 
-	vec3 c_diff = mix(vec3(0.0), color * (1 - min_roughness), 1.0 - metallic);
+	vec3 c_diff = mix(vec3(0.0), color * (1.0 - min_roughness), 1.0 - metallic);
 
 	// reflectance equation
 	vec3 lightContribution = vec3(0.0);
@@ -164,13 +162,13 @@ void main()
 				// calculate per-light radiance (point-Light)
         			L = normalize(lightpos - fs_in.FragPos);
         			float distance    = length(lightpos - fs_in.FragPos);
-        			// since light is lm/sr, us a factor
+        			// since light is lm/sr, use a factor
         			attenuation = (pointLights[i].intensity * 50.0) / (distance * distance);
 			} else {
 				L = normalize(lightpos);
         			attenuation = pointLights[i].intensity / 4.0;
 			}
-        		vec3 radiance     = pointLights[i].color * attenuation;
+			vec3 radiance = pointLights[i].color * attenuation;
 
 			lightContribution += brdf(normal, viewDir, L, roughness, F0, c_diff, radiance);
 		}

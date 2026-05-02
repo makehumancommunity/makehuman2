@@ -320,6 +320,7 @@ class TextBox(QDialog):
         textframe.setText(text)
         textframe.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
         textframe.setStyleSheet("font: 11pt;") # TODO make that flexible?
+        textframe.setTextInteractionFlags(Qt.TextBrowserInteraction)
         textframe.setOpenExternalLinks(True)
         textframe.setTextFormat(Qt.RichText)
 

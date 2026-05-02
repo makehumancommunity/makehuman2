@@ -4,6 +4,8 @@
 // Trowbridge-Reitz GGX normal distribution function, 1975
 // the term GGX means "ground glass unknown", it is derived from the scattering of glass (volume shading)
 // by Bruce Walter (Microfacet Models for Refraction through Rough Surfaces)
+//
+// changes, programming and fixes: black-punkduck & Elvaerwyn_MH2
 
 struct PointLight {
     vec3 position;
@@ -36,19 +38,30 @@ uniform vec3 viewPos;
 uniform PointLight pointLights[3];
 
 const float PI = 3.14159265359;
-const float min_roughness = 0.25;
+const float min_roughness = 0.05;
 const float glossiness = 0.1;
 
 // calculation of normals
-vec3 EvalNormal()
+//
+vec3 EvalNormal(vec3 n)
 {
-	// Note: dFdx/dFdy not available in GLSL 1.2, approximate with simplified normal calc
-	// For now, just return the normal as-is
-	return normalize(vNormal);
+	vec3 no = texture2D(NOTexture, vTexCoords).rgb * 2.0 - 1.0;
+
+	vec3 pos_dx = dFdx(vFragPos);
+	vec3 pos_dy = dFdy(vFragPos);
+	vec2 tex_dx = dFdx(vTexCoords);
+	vec2 tex_dy = dFdy(vTexCoords); 
+	vec3 t = normalize(pos_dx * tex_dy.t - pos_dy * tex_dx.t);
+
+	vec3 b = -normalize(cross(n, t));
+	mat3 TBN = mat3(t, b, n);
+	no = normalize(mix(n, TBN * no, NoMult * 0.8));
+	return no;
 }
 
 // Trowbridge-Reitz GGX, original is without squaring twice the roughness
 // input N = normal, H = halfway, roughness (0 = smooth)
+
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
 	float a      = roughness * roughness;
@@ -64,6 +77,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 // smith-shadowing model for microfacet shadows, the Schlick-Beckmann approximation is included not
 // to calculate the roughness twice. 
 // input N = normal, V = view, L= light, roughness (0 = smooth)
+
 float GeometrySmith(float NdotV, float NdotL, float roughness)
 {
 	// SchlickGGX for view direction   
@@ -78,17 +92,19 @@ float GeometrySmith(float NdotV, float NdotL, float roughness)
 }
 
 // Fresnel-Schlick Approximation (simplifying the Fresnel equoations)
+
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
 	return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
 // bidirectional reflectance distribution function
+
 vec3 brdf(vec3 n, vec3 V, vec3 L, float rough, vec3 F0, vec3 c_diff, vec3 radiance)
 {
 	vec3 H = normalize(L + V);
-	float nl = clamp(dot(n, L), 0.001, 1.0);
-	float nv = clamp(abs(dot(n, V)), 0.001, 1.0);
+	float nl = clamp(dot(n, L), 0.001, 1.0);	// computed only once, used in Smith
+	float nv = clamp(abs(dot(n, V)), 0.001, 1.0);	// and also inside brdf
 
 	// cook-torrance brdf
 	float NDF = DistributionGGX(n, H, rough);
@@ -126,10 +142,10 @@ void main()
 	vec3 c_diff = mix(vec3(0.0), color * (1.0 - min_roughness), 1.0 - metallic);
 
 	// reflectance equation
-	vec3 outcolor = vec3(0.0);
+	vec3 lightContribution = vec3(0.0);
 	vec3 normal = normalize(vNormal);
-	if (NoMult > 0.0) {
-		normal = mix(normal, EvalNormal(), NoMult * 0.04);
+	if (NoMult > 0.05) {
+		normal = EvalNormal(normal);
 	}
 	vec3 viewDir = normalize(viewPos - vFragPos);
 
@@ -148,26 +164,46 @@ void main()
 				L = normalize(lightpos);
         			attenuation = pointLights[i].intensity / 4.0;
 			}
-        		vec3 radiance = pointLights[i].color * attenuation;
+			vec3 radiance = pointLights[i].color * attenuation;
 
-			outcolor += brdf(normal, viewDir, L, roughness, F0, c_diff, radiance);
+			lightContribution += brdf(normal, viewDir, L, roughness, F0, c_diff, radiance);
 		}
 	}
 
-	vec3 ambient = ambientLight[3] * vec3(ambientLight) * ao * AOMult;
+	vec3 ambientfactor = ambientLight[3] * vec3(ambientLight) * ao * AOMult;
+
+	float NdotV = max(dot(normal, viewDir), 0.0);
+	vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
+	vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
 
 	// cubemap, create some reflection in case of metal
 	if (useSky) {
-		vec3 r = reflect(-vFragPos, viewDir);
-		ambient = ambient * color * (1.0 - metallic * glossiness);
-		outcolor.rgb = mix(outcolor.rgb, vec3(textureCube(skybox, r).bgr), metallic * glossiness);
-		color = ambient + outcolor;
-	} else {
-		color = ambient * color + outcolor;
+		vec3 R = reflect(-viewDir, normal);
+
+		// SPECULAR IBL: Sample skybox for sharp highlights
+		vec3 iblSpecular = textureCube(skybox, R).bgr * metallic;
+
+		// DIFFUSE IBL: Sample skybox at max blur for soft environment light
+		// work different on metal though
+		vec3 irradiance = vec3(0.0, 0.0, 0.0);
+		if (metallic > 0.5) {
+			irradiance = textureCube(skybox, normal).bgr;
+		} else {
+			irradiance = mix(color, textureCube(skybox, normal).bgr, (metallic + 0.1) * 0.5);
+		}
+
+		color = (color * irradiance) * kD + iblSpecular * F;
+
 	}
+
+	// ambient
+	color = (color * ambientfactor) + lightContribution;
 
 	// emissive map
 	color.rgb += EmMult * em;
+
+	// SOFT-CLIP TONEMAPPER: Keeps things bright but prevents "flat white" blowout
+	color = (color * (1.0 + color / 2.0)) / (1.0 + color);
 
 	gl_FragColor = vec4(clamp(color, 0.0, 1.0), transp);
 }
