@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2
 
     Classes:
     * gltfExport
@@ -115,7 +115,7 @@ class gltfExport:
         self.meshindices = []   # holds meshindices for joints and weights
 
     def __str__(self):
-        return (json.dumps(self.json, indent=3))
+        return json.dumps(self.json, indent=3)
 
     def debug(self, text):
         self.env.logLine (2, "gltf-Export: " + text)
@@ -125,10 +125,10 @@ class gltfExport:
 
     def nodeName(self, filename):
         if filename is None:
-            return("generic")
+            return "generic"
 
         fname = os.path.basename(filename)
-        return(os.path.splitext(fname)[0])
+        return os.path.splitext(fname)[0]
 
     def addBufferView(self, target, data):
         #
@@ -148,7 +148,7 @@ class gltfExport:
         self.bufferoffset += length
         self.bufferoffset += pad
 
-        return(self.bufferview_cnt)
+        return self.bufferview_cnt
 
     def addPosAccessor(self, coord):
         self.accessor_cnt += 1
@@ -170,7 +170,7 @@ class gltfExport:
         buf = self.addBufferView(self.ARRAY_BUFFER, data)
 
         self.json["accessors"].append({"bufferView": buf, "componentType": self.FLOAT, "count": cnt, "type": "VEC3", "min": minimum, "max": maximum})
-        return(self.accessor_cnt)
+        return self.accessor_cnt
 
     def addNormAccessor(self, norm):
         self.accessor_cnt += 1
@@ -183,7 +183,7 @@ class gltfExport:
         data = norm.tobytes()
         buf = self.addBufferView(self.ARRAY_BUFFER, data)
         self.json["accessors"].append({"bufferView": buf, "componentType": self.FLOAT, "count": cnt, "type": "VEC3", "min": minimum, "max": maximum})
-        return(self.accessor_cnt)
+        return self.accessor_cnt
 
     def addTPosAccessor(self, uvcoord):
         self.accessor_cnt += 1
@@ -197,7 +197,7 @@ class gltfExport:
         buf = self.addBufferView(self.ARRAY_BUFFER, data)
 
         self.json["accessors"].append({"bufferView": buf, "componentType": self.FLOAT, "count": cnt, "type": "VEC2", "min": minimum, "max": maximum})
-        return(self.accessor_cnt)
+        return self.accessor_cnt
 
     def addIndAccessor(self, icoord):
         self.accessor_cnt += 1
@@ -209,7 +209,7 @@ class gltfExport:
         buf = self.addBufferView(self.ELEMENT_ARRAY_BUFFER, data)
 
         self.json["accessors"].append({"bufferView": buf, "componentType": self.UNSIGNED_INT, "count": cnt, "type": "SCALAR", "min": [minimum], "max": [maximum]})
-        return(self.accessor_cnt)
+        return self.accessor_cnt
 
     def addBindMatAccessor(self, bonelist):
         self.accessor_cnt += 1
@@ -225,7 +225,7 @@ class gltfExport:
         buf = self.addBufferView(None, data)
 
         self.json["accessors"].append({"bufferView": buf, "componentType": self.FLOAT, "count": cnt, "type": "MAT4"})
-        return(self.accessor_cnt)
+        return self.accessor_cnt
 
     def addJointAndWeightAccessor(self, numverts, bweights, overflow):
         self.accessor_cnt += 1
@@ -287,7 +287,7 @@ class gltfExport:
         data = weights.tobytes()
         buf = self.addBufferView(self.ARRAY_BUFFER, data)
         self.json["accessors"].append({"bufferView": buf, "componentType": self.FLOAT, "count": numverts, "type": "VEC4"})
-        return(self.accessor_cnt)
+        return self.accessor_cnt
 
     def addAnimInputAccessor(self, frames, framelen):
         self.accessor_cnt += 1
@@ -300,7 +300,7 @@ class gltfExport:
         data = timestamps.tobytes()
         buf = self.addBufferView(None, data)
         self.json["accessors"].append({"bufferView": buf, "componentType": self.FLOAT, "count": frames, "min": [ 0.0 ], "max": [maximum],  "type": "SCALAR"})
-        return(self.accessor_cnt)
+        return self.accessor_cnt
 
     def addAnimOutputAccessor(self, values, tlen):
         frames = len(values)
@@ -312,7 +312,7 @@ class gltfExport:
         data = values.tobytes()
         buf = self.addBufferView(None, data)
         self.json["accessors"].append({"bufferView": buf, "componentType": self.FLOAT, "count": frames, "type": jtype})
-        return(self.accessor_cnt)
+        return self.accessor_cnt
 
     def copyImage(self, source, dest):
         self.filedebug("Need to copy " + source + " to " + dest)
@@ -321,7 +321,7 @@ class gltfExport:
             return False
 
         dest = os.path.join(dest, os.path.basename(source))
-        return (self.env.copyfile(source, dest))
+        return self.env.copyfile(source, dest)
 
     def addImage(self, image):
         self.image_cnt += 1
@@ -349,13 +349,13 @@ class gltfExport:
 
             uri = self.env.formatPath(os.path.join(self.imagefolder, os.path.basename(image)))
             self.json["images"].append({"uri": uri})
-        return(True, self.image_cnt)
+        return (True, self.image_cnt)
 
     def addMRTexture(self, roughtex):
         self.texture_cnt += 1
         (okay, image) = self.addImage(roughtex)
         if not okay:
-            return (None)
+            return None
         self.json["textures"].append({"sampler": 0, "source": image})
         return({ "index":  self.texture_cnt })
 
@@ -365,13 +365,13 @@ class gltfExport:
             rtex = self.addMRTexture(roughtex)
             if rtex is not None:
                 pbr["metallicRoughnessTexture"] = rtex
-        return (pbr)
+        return pbr
 
     def addDiffuseTexture(self, texture, metal, rough, roughtex):
         self.texture_cnt += 1
         (okay, image) = self.addImage(texture)
         if not okay:
-            return (None)
+            return None
         self.json["textures"].append({"sampler": 0, "source": image})
 
         pbr = { "baseColorTexture": { "index":  self.texture_cnt}, "metallicFactor": metal, "roughnessFactor": rough }
@@ -381,13 +381,13 @@ class gltfExport:
             if rtex is not None:
                 pbr["metallicRoughnessTexture"] = rtex
 
-        return (pbr)
+        return pbr
 
     def addNormalTexture(self, texture, scale):
         self.texture_cnt += 1
         (okay, image) = self.addImage(texture)
         if not okay:
-            return (None)
+            return None
         self.json["textures"].append({"sampler": 0, "source": image})
         return ({ "index": self.texture_cnt, "scale": scale })
 
@@ -395,7 +395,7 @@ class gltfExport:
         self.texture_cnt += 1
         (okay, image) = self.addImage(texture)
         if not okay:
-            return (None)
+            return None
         self.json["textures"].append({"sampler": 0, "source": image})
         return ({ "index": self.texture_cnt })
 
@@ -403,76 +403,101 @@ class gltfExport:
         self.texture_cnt += 1
         (okay, image) = self.addImage(texture)
         if not okay:
-            return (None)
+            return None
         self.json["textures"].append({"sampler": 0, "source": image})
         return ({ "index": self.texture_cnt, "strength": strength })
 
-    def addMaterial(self, material):
+    def addMaterial(self, material, assettype):
         """
         :param material:  material from opengl.material
-        TODO: alphaMode, alphaCutoff, doubleSided
+        :param assettype: type of asset, identical with name of folder
         """
         self.material_cnt += 1
-        name = material.name if  material.name is not None else "generic"
 
-        roughtex = None
-        if hasattr(material, "metallicRoughnessTexture"):
-            roughtex = material.metallicRoughnessTexture
+        # 1. UNIQUE NAMING: Prevents e.g. Unreal from merging different materials
+        # We sanitize the name and append the counter to make it unique in a Asset Registry of destination system
+
+        raw_name = material.name if  material.name is not None else "material"
+        name = "{}_{:03d}".format(self.env.normalizeName(raw_name), self.material_cnt)
+
+        roughtex = getattr(material, "metallicRoughnessTexture", None)
+        if roughtex is not None:
             self.debug ("Metallic-Roughness " + roughtex)
 
+        # 2. Build Diffuse Material for PBR
+        #
         if hasattr(material, "diffuseTexture"):
             self.debug ("Diffuse " + material.diffuseTexture)
-            if material.colorationMethod > 0:
-                diffusename = material.saveDiffuse()
-            else:
-                diffusename = material.diffuseTexture
-
+            diffusename = material.saveDiffuse() if material.colorationMethod > 0 else material.diffuseTexture
             pbr = self.addDiffuseTexture(diffusename, material.metallicFactor, material.roughnessFactor, roughtex)
         else:   
             pbr = self.pbrMaterial(material.diffuseColor, material.metallicFactor, material.roughnessFactor, roughtex)
 
-        norm = None
+        if pbr is None:
+            return -1
+
+        mat = {"name": name, "pbrMetallicRoughness": pbr,
+                "extras": { "source_material": raw_name, "is_makehuman_material": True, "material_index": self.material_cnt }}
+
+        # 3. Add a Transparency Logic
+        #
+        doublesided = getattr(material, "backfaceCull", True)
+        if hasattr(material, "diffuseTexture"):
+            if getattr(material, "transparent", False):
+                if assettype == "eyelashes" or assettype == "hair":
+                    mat["alphaMode"] = "MASK"
+                    mat["alphaCutoff"] = 0.5
+                else:
+                    mat["alphaMode"] = "BLEND"
+                mat["doubleSided"] = True
+            else:
+                mat["doubleSided"] = doublesided
+        else:
+            mat["doubleSided"] = doublesided    # for objects with only a diffuse color
+
         if hasattr(material, "normalmapTexture"):
             self.debug ("Normals " + material.normalmapTexture)
-            norm = self.addNormalTexture(material.normalmapTexture, material.normalmapIntensity)
+            mat["normalTexture"] = self.addNormalTexture(material.normalmapTexture, material.normalmapIntensity)
 
-        occl = None
         if hasattr(material, "aomapTexture"):
             self.debug ("Ambient-Occlusion " + material.aomapTexture)
-            ao_intensity = min(material.aomapIntensity, 1.0)
-            occl = self.addOcclusionTexture(material.aomapTexture, ao_intensity)
+            mat["occlusionTexture"] = self.addOcclusionTexture(material.aomapTexture, min(material.aomapIntensity, 1.0))
 
-        emis = None
         if hasattr(material, "emissiveTexture"):
             self.debug ("Emissive " + material.emissiveTexture)
-            emis = self.addEmissiveTexture(material.emissiveTexture)
-
-        if pbr is None:
-            return(-1)
-
-        mat = {"name": self.nodeName(name), "pbrMetallicRoughness": pbr}
-        if hasattr(material, "diffuseTexture") and material.transparent:
-            mat["alphaMode"] = "BLEND"
-            mat["doubleSided"] =  material.backfaceCull
-
-        if norm is not None:
-            mat["normalTexture"] = norm
-
-        if occl is not None:
-            mat["occlusionTexture"] = occl
-
-        if emis is not None:
-            mat["emissiveTexture"] = emis
-            emf = material.emissiveFactor
+            mat["emissiveTexture"] = self.addEmissiveTexture(material.emissiveTexture)
+            emf = getattr(material, "emissiveFactor", 0.0)
             mat["emissiveFactor"]  = [ emf, emf, emf ]
 
         self.json["materials"].append(mat)
-        return (self.material_cnt)
 
-    def addMesh(self, obj, nodenumber, bweights):
+        # returns always last element
+        return len(self.json["materials"]) - 1
+
+    def filterMorphDeltas(self, raw_deltas, mapping):
+        """
+        Filters deltas to match the mesh with hidden vertices
+        mapping is an array where -1 = hidden, and any other number = new index
+        """
+        cnt = np.count_nonzero(mapping != -1)
+        filtered_deltas = np.zeros(cnt * 3, dtype=np.float32)
+
+        # Reshape for easier coordinate mapping
+        reshaped_deltas = np.reshape(raw_deltas, (-1, 3))
+
+        for old_idx, new_idx in enumerate(mapping):
+            if new_idx != -1:
+                # Copy the X, Y, Z delta to the new position
+                filtered_deltas[new_idx*3 : new_idx*3+3] = reshaped_deltas[old_idx]
+
+        return filtered_deltas
+
+    def addMesh(self, obj, nodenumber, bweights, morph_data=None):
         icoord = None
+        mapping = None # will contain vertex map for hidden elements
+
         if self.hiddenverts is False:
-            icoord, coord, uvcoord, norm, nweights, overflow = obj.optimizeHiddenMesh(bweights)
+            icoord, coord, uvcoord, norm, nweights, overflow, mapping = obj.optimizeHiddenMesh(bweights)
 
         self.mesh_cnt += 1
         if icoord is not None:
@@ -488,8 +513,44 @@ class gltfExport:
             ind = self.addIndAccessor(obj.gl_icoord)
             self.meshindices.append((len(obj.gl_coord) // 3, bweights, obj.overflow))
 
-        self.json["meshes"].append({"name": obj.name, "primitives": [ {"attributes": { "POSITION": pos, "NORMAL": norm, "TEXCOORD_0": texcoord  }, "indices": ind, "material": nodenumber, "mode": self.TRIANGLES }]})
-        return (self.mesh_cnt)
+        primitive = {
+            "attributes": {
+                "POSITION": pos,
+                "NORMAL": norm,
+                "TEXCOORD_0": texcoord
+            },
+            "indices": ind,
+            "material": nodenumber,
+            "mode": self.TRIANGLES
+        }
+
+        # Handle Morph Targets (TODO: for later use)
+        #
+        if morph_data:
+            primitive["targets"] = []
+            target_names = []
+
+            for name, deltas in morph_data:
+                # If mesh contained hidden vertices, we must filter the deltas to match
+                if mapping is not None:
+                    final_deltas = self.filterMorphDeltas(deltas, mapping)
+                else:
+                    final_deltas = deltas
+
+                target_idx = self.addTargetPosAccessor(final_deltas)
+                primitive["targets"].append({"POSITION": target_idx})
+                target_names.append(name)
+
+            mesh_entry = {
+                "name": obj.name,
+                "primitives": [primitive],
+                "extras": {"targetNames": target_names} # Show names in e.g. UE5
+            }
+        else:
+            mesh_entry = {"name": obj.name, "primitives": [primitive]}
+
+        self.json["meshes"].append(mesh_entry)
+        return len(self.json["meshes"]) - 1
 
     def addWeights(self, num, elem, obj):
         self.env.logLine (2, "gltf-Export: Adding weights to " +  self.json["nodes"][num]["name"])
@@ -507,17 +568,27 @@ class gltfExport:
         self.json["skins"].append({ "inverseBindMatrices": ptr, "joints": self.bonelist, "name": name + "_skeleton" })
 
     def addBones(self, bone, num):
-        #
-        # bone-translations and rotations are fetched from local rest matrix, have to be relative in GLTF
-        # Order of quaternions in GLTF: X Y Z W
-        #
-        trans = bone.getRestLocalTransVector().tolist()
+        """
+        bone-translations and rotations are fetched from local rest matrix, have to be relative in GLTF
+        Order of quaternions in GLTF: X Y Z W
+        """
 
+        trans = bone.getRestLocalTransVector().tolist()
         rot   = bone.getRestLocalRotQVector()
         rot[[0, 1, 2, 3]] = rot[[1, 2, 3, 0]]       # change quaternion order (W is last element)
         rot = rot.tolist()
 
-        node = {"name": bone.name, "translation": trans, "rotation": rot, "children": []  }
+        node = {
+            "name": bone.name,
+            "translation": trans,
+            "rotation": rot,
+            "children": [],
+            "extras": {
+                "bone_index": num,
+                "author": "black-punkduck",
+                "is_skeletal": True
+            }
+        }
         self.json["nodes"].append(node)
         self.bonelist.append(num)
         self.bonenames[bone.name] = [ len(self.bonelist) - self.bonestart, bone, None, None] # count from first bone in bonestart
@@ -529,7 +600,7 @@ class gltfExport:
             num = nextnode
         if len(node["children"]) == 0:
             del node["children"]
-        return (num)
+        return num
 
     def addAnimations(self, skeleton, bvh, orig=True):
 
@@ -634,9 +705,9 @@ class gltfExport:
             start = 0
         charactername = self.nodeName(baseobject.filename)
 
-        mat  = self.addMaterial(skin)
+        mat  = self.addMaterial(skin, "skin")   # type skin (not a real asset)
         if mat == -1:
-            return (False)
+            return False
 
         # in case of onground we need a translation which is then added to the mesh
         #
@@ -678,18 +749,32 @@ class gltfExport:
         # add all assets
         #
         for elem in baseclass.attachedAssets[start:]:
-            mat =  self.addMaterial(elem.obj.material)
-            if mat == -1:
-                return (False)
-            weights = elem.bWeights.transferWeights(baseclass.skeleton) if baseweights is not None else None
-            mesh = self.addMesh(elem.obj, mat, weights)
-            self.json["nodes"].append({"name": self.nodeName(elem.filename), "mesh": mesh })
-            children.append(childnum)
+
+            current_obj = elem.obj
+
+            # 1. Get the Unique Material Index
+            mat_idx =  self.addMaterial(current_obj.material, elem.type)
+            if mat_idx == -1:
+                return False
+
+            # 2. Calculate and Transfer Weights BEFORE adding the mesh
+            weights = None
             if baseweights is not None:
-                self.json["nodes"][childnum]["skin"] = 0
                 elem.calculateBoneWeights()
-                self.addWeights(childnum, elem, elem.obj)
-            childnum += 1
+                weights = elem.bWeights.transferWeights(baseclass.skeleton)
+
+            # 3. Add the Mesh now using the correctly calculated weights
+            mesh_idx = self.addMesh(current_obj, mat_idx, weights)
+
+            # 4. Create the Node
+            self.json["nodes"].append({"name": self.nodeName(elem.filename), "mesh": mesh_idx })
+            this_node_idx = len(self.json["nodes"]) - 1
+            children.append(this_node_idx)
+
+            # 5. Link the Skin
+            if baseweights is not None:
+                self.json["nodes"][this_node_idx]["skin"] = 0
+                self.addWeights(this_node_idx, elem, current_obj)
 
         # add animation, if any
         #
@@ -713,7 +798,7 @@ class gltfExport:
 
         self.json["buffers"].append({"byteLength": self.bufferoffset})
         self.env.logLine(32, str(self))
-        return (True)
+        return True
 
 
     def binSave(self, baseclass, filename):
@@ -770,7 +855,7 @@ class gltfExport:
                     f.write(bytes(elem))
                     b = len(elem) & 3
                     if b !=  0:
-                        f.write(bytes(4-b))
+                        f.write(b'\x00' * (4-b))
 
         except IOError as error: 
             self.env.last_error = str(error)

@@ -603,7 +603,7 @@ class object3d:
 
         mask = self.hiddenMask()
         if mask is None:
-            return None, None, None, None, None, None
+            return None, None, None, None, None, None, None
 
         # in gl_hicoord there is already a "compressed" index
         # so this creates a shorter version already
@@ -688,7 +688,7 @@ class object3d:
 
         overflow = self.shortenOverflow(mapping)
 
-        return gl_index, gl_coord, gl_uvcoord, gl_norm, nweights, overflow
+        return gl_index, gl_coord, gl_uvcoord, gl_norm, nweights, overflow, mapping
 
     def getInitialCopyForSlider(self, factor, targetlower, targetupper):
         """

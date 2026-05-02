@@ -64,7 +64,7 @@ class ExportLeftPanel(QVBoxLayout):
 
         scaletexts = []
         for elem in self.scale_items:
-            scaletexts.append(str(elem[0]) + "   " + elem[1])
+            scaletexts.append(str(elem[1]) + "   = factor " + str(elem[0]))
 
         # folders
         #
