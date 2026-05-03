@@ -197,6 +197,8 @@ class TextureBox(QGroupBox):
 class MHMaterialEditor(QWidget):
     """
     MaterialEditor
+    (proxy changes basemesh & proxy, openGL update for both)
+
     :param parent: parent Window to get environment from
     :param obj: the object what the material is made for
     """
@@ -340,12 +342,11 @@ class MHMaterialEditor(QWidget):
         self.setLayout(layout)
 
     def Tweak(self, update=False):
+        self.object.openGL.setMaterial(self.material, update)
         if self.object.type == "base":
             proxy = self.glob.baseClass.proxy
             if proxy:
-                proxy.material.copy(self.material)
                 proxy.openGL.setMaterial(proxy.material, update)
-        self.object.openGL.setMaterial(self.material, update)
         self.glob.openGLWindow.Tweak()
 
     def setShader(self):

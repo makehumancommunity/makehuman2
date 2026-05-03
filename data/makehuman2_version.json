@@ -11,8 +11,8 @@
 	"url_mhfacebook":  "https://www.facebook.com/makehuman",
 	"url_mhfaq":       "https://static.makehumancommunity.org/makehuman/faq.html",
 	"url_mhforum":     "http://makehumancommunity.org/forum/",
+	"url_mh2patreon":  "https://www.patreon.com/cw/Makehuman2",
 	"url_mhwiki":      "https://static.makehumancommunity.org/makehuman.html",
-	"url_mhpatreon":   "https://www.patreon.com/makehuman",
 	"url_fileserver":  "https://mirror1.makehuman.net",
 	"url_mirrorserver":  "https://files2.makehumancommunity.org",
 	"url_assetpacks":  "https://mirror1.makehuman.net/asset_packs/",
@@ -28,11 +28,11 @@
     	"standardmesh" : "hm08",
 	"support_urls": {
 		"Github": "url_github",
+		"Patreon": "url_mh2patreon",
 		"Website": "url_mhcommunity",
 		"FaceBook page": "url_mhfacebook",
 		"FAQ": "url_mhfaq",
 		"Forum": "url_mhforum",
-		"Wiki": "url_mhwiki",
-		"Patreon": "url_mhpatreon"
+		"Wiki": "url_mhwiki"
 	}
 }

@@ -1,15 +1,50 @@
 /*
- * standard MakeHuman II CSS file
+ * Elvaerwyn MH2 Official MH 2 Colors Steel-Theme MakeHuman II CSS file
+ * True Final Polished Version: MH2 Grey/Orange Version 2026
  */
 
+/* --- Global Background --- */
 QWidget {
-    color: #ffffff;
-    background-color: #323232;
+    color: #FFFFFF;
+    font-weight: bold;
+    /* Brightened center with a smooth transition to keep it from looking like a bullseye */
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.0, fx: 0.5, fy: 0.5,
+                stop: 0 #3c3c3c,    /* Brighter center 'glow' */
+                stop: 0.6 #2b2b2b,  /* Mid-tone transition */
+                stop: 1 #000000);   /* Deep black edges */
+}
+
+/* --- three main boxes Radial Grey Gradient Windows & Panels --- */
+/* --- High-Fidelity Glow (Fixes ALL Corner Gaps) --- */
+QFrame#groupbox, QGroupBox, QListWidget, QTreeView, QTableView, QMenu {
+    border-radius: 8px;
+    border: 3px solid #f69038; /* Solid 'safety' border to lock corners */
+
+    /* We apply a radial gradient to the background that lightens at the edges */
+    /* This creates the 'glow' effect from behind the border */
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.1,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #989898,   /* Light center */
+                stop: 0.8 #323232, /* Darker panel area */
+                stop: 1.0 #f69038); /* Orange edge that bleeds into the border */
+}
+
+/* Modeling Window (Thicker, Brighter Faux-Border) */
+QFrame#groupbox {
+    border-radius: 12px;
+    border: 4px solid #f58220;
+    padding: 6px;
+
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.1,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #989898,
+                stop: 0.7 #323232,
+                stop: 1.0 #fdb863);
 }
 
 QListWidget {
-    margin-top: 6px;
-    color: white;
+    margin-top: 10px;
+    color: #FFFFFF;
     selection-background-color: #d7801a;
 }
 
@@ -17,315 +52,557 @@ QListWidget::item:selected {
     background: #d7801a;
 }
 
-QFrame#groupbox {
-    border: 3px solid #8a979b;
-    background-color: #414141;
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
+/* Top left icon menus */
+QFrame#gboxnontitle, QFrame#gboxseltools {
+   border: 3px solid #1e1e1e;
+   border-radius: 8px;
+   /* Lighter radial gradient to match the dock window fix */
+   background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.2,
+               fx: 0.5, fy: 0.5,
+               stop: 0 #989898, stop: 1 #323232);
 }
 
-QLabel#groupbox {
-    qproperty-alignment: AlignCenter;
-    border: 3px solid #8a979b;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-    border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px;
-    background-color: #cccccc;
-    padding: 5px 0px;
+/* Optional: Add an orange glow when you hover over these cells */
+QFrame#gboxnontitle:hover, QFrame#gboxseltools:hover {
+    border-color: #f69038;
+}
+
+/* --- Big horizontal Push Buttons --- */
+QPushButton {
     color: #000000;
-    max-height: 16px;
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                 stop:0 #ffffff, stop:0.5 #e0e0e0, stop:1 #ffffff);
     font: bold 14px;
-    margin-top: 0px;
-    margin-bottom: -4px;
-}
-
-QFrame#gboxnontitle {
-   border: 3px solid #8a979b;
-   border-radius: 6px;
-}
-
-QFrame#gboxseltools {
-   background-color: #8a979b;
-   border-radius: 6px;
-}
-
-QTreeView {
-    selection-color: white;
-    selection-background-color: #d7801a;
-    color: white;
-    show-decoration-selected: 1;
-}
-
-QTreeView::branch:has-children {
-    border-image: url('data/icons/expand_orange.png');
-}
-
-QTreeView::item:selected {
-    background: #d7801a;
-}
-
-QLabel {
-    background-color: #414141;
-    margin-top: 6px;
-}
-
-QGroupBox {
-    font: bold 12px;
-    background-color: #414141;
-    border: 3px solid #8a979b;
+    border: 3px solid #989898;
     border-radius: 6px;
-    padding: 14px 0px 0px 0px;
+    padding: 4px;
 }
 
-QGroupBox::title {
-    color: #000000;
-    background-color: #cccccc;
-    subcontrol-origin: padding;
-    subcontrol-position: top center;
-    padding: 0px 1000px 2px 1000px;
+QPushButton:hover {
+    background: #f0f0f0;
+    border: 2px solid #f69038;
 }
 
-QGroupBox#subwindow {
-    font: 12px;
-    background-color: #414141;
-    border: 2px solid #8a979b;
+/* Locked-on Steel Glow Effect */
+QPushButton:checked, QPushButton:pressed {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                 stop:0 #989898, stop:0.5 #f69038, stop:1 #989898) !important;
+    color: #FFFFFF;
+    border: 4px solid #FFFFFF !important;
+}
+
+/* Refined Disabled State-asper request */
+QPushButton::disabled {
+    /* Increased the center stop to #888888 for a brighter "sheen" behind the icon */
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                 stop:0 #323232, stop:0.5 #888888, stop:1 #323232);
+
+    /* Brighter text helps the overall button feel less "heavy" */
+    color: #bbbbbb;
+
+    /* Kept the dark orange border for theme consistency */
+    border: 3px solid #8e4e1a;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+/* --- Menu & Navigation --- */
+QMenuBar {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #444444, stop:0.5 #1e1e1e, stop:1 #000000);
+    color: #FFFFFF;
+}
+
+QMenuBar::item:selected, QMenu::item:selected {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #f69038, stop:1 #323232);
+    color: #FFFFFF;
+}
+
+/* --- Sliders --- grooves need to change x and y */
+
+QSlider::groove:horizontal {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #000000, stop:0.5 #333333, stop:1 #000000);
+    height: 10px;
+    border-radius: 5px;
+    border: 1px solid #f58220;
+}
+
+QSlider::groove:vertical {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+                stop:0 #000000, stop:0.5 #333333, stop:1 #000000);
+    width: 10px;
+    border-radius: 5px;
+    border: 1px solid #f58220;
+}
+
+QSlider::sub-page:horizontal {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #989898, stop:0.5 #f69038, stop:1 #323232);
+    border-radius: 5px;
+    border: 1px solid #f58220;
+}
+QSlider::add-page:horizontal {
+}
+
+QSlider::sub-page:vertical {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #989898, stop:0.5 #f69038, stop:1 #323232);
+    border-radius: 5px;
+    border: 1px solid #f58220;
+}
+
+QSlider::add-page:vertical {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+                stop:0 #989898, stop:0.5 #f69038, stop:1 #323232);
+    border-radius: 5px;
+    border: 1px solid #f58220;
+}
+
+QSlider::handle:horizontal {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #ffffff, stop:1 #bbbbbb);
+    border: 2px solid #000000;
+    width: 22px;
+    height: 22px;
     border-radius: 4px;
 }
 
-QGroupBox::title#subwindow {
-    color: #ffffff;
-    background-color: #8a979b;
-    subcontrol-origin: padding;
-    subcontrol-position: top center;
-    padding: 0px 500px 0px 500px;
+QSlider::handle:vertical {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+                stop:0 #ffffff, stop:1 #bbbbbb);
+    border: 2px solid #000000;
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
 }
 
-QPushButton {
-    color: #000000;
-    background-color: #d9d9d9;
-    border: 3px solid #a3a3a3;
+QSlider::groove:hover {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #000000,
+                stop:0.5 #555555,
+                stop:1 #000000);
+    border: 1px solid #f69038;
+}
+
+QSlider::handle:hover {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #ffffff, stop:1 #fdb863);
+    border: 2px solid #f69038;
+}
+
+QSlider::groove:disabled {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #323232, stop:0.5 #888888, stop:1 #323232);
+    height: 14px;
+}
+
+QSlider::sub-page:disabled {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                 stop:0 #323232, stop:0.5 #888888, stop:1 #323232);
+    border-radius: 5px;
+
+    /* Kept the dark orange border for theme consistency */
+    border: 3px solid #8e4e1a;
+}
+
+/* --- Progress Bar --- */
+QProgressBar {
+    background-color: #000000;
+    color: #FFFFFF;
+    border: 1px solid #989898;
+    text-align: center;
     border-radius: 6px;
 }
 
-QPushButton::pressed {
-    color: #ffffff;
-    background-color: #a3a3a3;
+QProgressBar::chunk {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+                stop:0 #323232, stop:0.2 #989898, stop:0.5 #f69038, stop:1 #323232);
+    border-radius: 5px;
 }
 
-QPushButton::checked {
-    background: #d7801a;
-}
-
-QPushButton::disabled {
-    background: #808080;
-    border-color: #606060;
-    color: #a0a0a0;
-}
-
-QMenuBar {
-    color: #000000;
-    background-color: #d9d9d9;
-    border: 4px solid #a3a3a3;
+/* --- High-Contrast Metallic Headers --- */
+/* --- High-Fidelity Glow Headers (Matching Panels) --- */
+QLabel#groupbox {
+    qproperty-alignment: AlignCenter;
+    border: 2px solid #f69038; /* Glowing solid orange edge */
+    border-radius: 4px;
+    max-height: 16px;
     font: bold 14px;
-    spacing: 3px;
+    color: #FFFFFF;
+
+    /* Matches the 'bleed' effect of the main panels */
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.1,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #989898,   /* Bright metallic center */
+                stop: 0.7 #323232, /* Dark mid-tones */
+                stop: 1.0 #f69038); /* Orange edge bleed */
 }
 
-QMenuBar::item {
-    padding: 5px 8px;
-    background: transparent;
-    border-radius: 10px;
+/* --- High-Fidelity Glow Tabs --- */
+QTabBar::tab:selected {
+    border: 3px solid #f69038; /* Matches the box glow */
+    border-bottom: none; /* Keeps it connected to the panel below */
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    padding: 4px 10px;
+    color: #FFFFFF;
+
+    /* Radial glow for the active tab */
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.1,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #989898,
+                stop: 0.7 #323232,
+                stop: 1.0 #f69038);
 }
 
-QMenuBar::item:selected
-{
-    background: transparent;
-    border: 2px solid #8a979b;
+QLabel {
+    background-color: transparent;
+    margin-top: 6px;
 }
 
-QMenuBar::item:pressed
-{
-    background: #a3a3a3;
-    border: 2px solid #8a979b;
-}
-
-QMenu
-{
-    border: 3px solid #8a979b;
-    border-radius: 6px;
-    background-color: #d9d9d9;
-}
-
-QMenu::item
-{
-    color: #323232;
-    padding: 4px 20px 4px 20px;
-    font: bold 12px;
-}
-
-QMenu::item:selected
-{
-    background: #a3a3a3;
-}
-
-QCheckBox {
-    background-color: #414141;
-}
-
-QCheckBox::indicator:unchecked {
-    background-color: #323232;
-}
-
-QCheckBox::disabled {
+QToolTip {
+    border: 1px solid black;
+    background-color: #FFA500; /* Standard MakeHuman Orange */
+    padding: 1px;
+    opacity: 255;
     color: #000000;
 }
 
-QRadioButton {
-    background-color: #414141;
-    color: white;
+/* Sub-windows logic updated for Radial depth */
+QGroupBox#subwindow {
+    font: bold 13px;
+    border: 3px solid #989898;
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.5,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #989898, stop: 1 #323232);
+    /* This creates the 'breathing room' inside the box */
+    padding-top: 25px;
+    margin-top: 10px;
 }
 
+/* Fix the Header (Title) of the Modeling Window */
+QGroupBox::title#subwindow {
+    color: #000000; /* Switch to black text for better legibility on light orange */
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #fdb863, stop:1 #f69038);
+    subcontrol-origin: margin;
+    subcontrol-position: top center;
+    /* Spacing around the header text */
+    padding: 2px 20px;
+    border: 1px solid #1a1a1a;
+    border-radius: 4px;
+}
+
+/* Radio/Checkbox Indicators */
 QRadioButton::indicator:checked {
-    background-color: #d9d9d9; 
+    background-color: #f69038;
+    border: 1px solid #FFFFFF;
     border-radius: 6px;
 }
 
 QRadioButton::indicator:unchecked {
-    background-color: #323232;
+    background-color: #1e1e1e;
+    border: 1px solid #989898;
     border-radius: 6px;
 }
 
-QToolTip
-{
-     border: 1px solid black;
-     background-color: #ffa02f;
-     padding: 1px;
-     border-radius: 3px;
-     opacity: 255;
+QCheckBox::indicator:unchecked {
+    background-color: #1e1e1e;
+    border: 1px solid #989898;
 }
 
-QSlider::horizontal {
-    color: black;
-    background-color:#a3a3a3;
-    padding-top: -3px;
-    padding-bottom: -3px;
-    border: 2px solid #a3a3a3;
-    border-radius: 5px;
+QCheckBox::disabled {
+    color: #808080;
 }
 
-QSlider::groove:horizontal {
-     border: 1px solid #999999;
-     background: #000000;
-     height: 14px;
-     border-radius: 3px;
-}
-QSlider::handle:horizontal {
-
-    width: 24px;
-    margin: -4px 0;
-    height: 20px; image: url('data/icons/slider.png');
-}
-
-QSlider::add-page:horizontal {
-     /*background: white;*/
-}
-
-QSlider::sub-page:horizontal {
-    background: #d7801a;
-    border: 2px solid #a3a3a3;
-    border-radius: 4px;
-    height: 10px;
-    padding: 5px 5px;
-}
-
-QSlider::groove:disabled {
-     border: 1px solid #999999;
-     background: #323232;
-     height: 14px;
-     border-radius: 3px;
-}
-
-QSlider::handle:disabled {
-    width: 24px;
-    margin: -4px 0;
-    height: 5; image: url('data/icons/slider.png'); 
-}
-
-QSlider::sub-page:disabled {
-    background: #323232;
-    border: 2px solid #a3a3a3;
-    border-radius: 4px;
-    height: 10px;
-    padding: 5px 5px;
-}
-
-QSlider::vertical {
-    color: black;
-    background-color:#a3a3a3;
-    padding-left: -3px;
-    padding-right: -3px;
-    border: 2px solid #a3a3a3;
-    border-radius: 5px;
-}
-
-
-QSlider::groove:vertical {
-     border: 1px solid #999999;
-     background: #000000;
-     width: 14px;
-     border-radius: 3px;
-}
-
-QSlider::handle:vertical {
-
-    width: 20px;
-    margin: 0 -4px;
-    height: 24px; image: url('data/icons/vslider.png');
-}
-
-QSlider::add-page:vertical {
-    background: #d7801a;
-    border: 2px solid #a3a3a3;
-    border-radius: 4px;
-    width: 10px;
-    padding: 5px 5px;
-}
-QSlider::sub-page:vertical {
-}
-
-QProgressBar
-{
-    background-color: #000000;
-    border: 2px solid #a3a3a3;
-    border-radius: 5px;
-    text-align: center;
-}
-
-QProgressBar::chunk
-{
-    background-color: #d7801a;
-}
-
-QTableView
-{
+QCheckBox::indicator:hover, QRadioButton::indicator:hover {
+    border: 1px solid #fdb863;
     background-color: #323232;
-    color: white;
 }
 
-QHeaderView {background-color: #5c5c5c; }
+/* Header View sections for Tables */
+QHeaderView {
+    background-color: #989898;
+}
 
-QHeaderView::section {background-color: #5c5c5c; }
+QHeaderView::section {
+    background-color: #989898;
+    color: #FFFFFF;
+    padding: 4px;
+    border: 1px solid #1a1a1a;
+}
 
+/* Slider padding and Selection logic */
+QSlider::horizontal { padding-top: -3px; padding-bottom: -3px; }
+QSlider::vertical { padding-left: -3px; padding-right: -3px; }
+
+QListWidget::item:selected, QTreeView::item:selected, QTableView::item:selected {
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 0.8,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #f69038, stop: 1 #1e1e1e);
+    color: #FFFFFF;
+}
+/* words in tree on left */
+QTreeView {
+    selection-color: #000000;
+    selection-background-color: #d7801a;
+    color: #FFFFFF;
+    QTreeView { show-decoration-selected: 0; }
+}
+/* --- Glowing Orange Inactive Tabs --- */
 QTabBar::tab {
-    background-color: #5c5c5c;
-    border: 2px solid #a3a3a3;
-    border-radius: 5px;
-    padding: 3px 2px;
-    margin-left: 2px;
+    border: 1px solid #555555;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    padding: 4px 10px;
+    color: #FFFFFF; /* White text for inactive tabs */
+
+    /* Dimmed Orange Glow: Darker and moodier than the active tab */
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.1,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #6a3304,   /* Dark MH orange */
+                stop: 0.6 #cc6d1e, /* Darkish MakeHuman Orange */
+                stop: 1.0 #323232); /* Fades into the charcoal panel */
 }
 
+QTabBar::tab:hover {
+    color: #fdb863; /* Text glows light orange on hover */
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.1,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #cc6d1e,
+                stop: 1.0 #1e1e1e);
+}
 
-QTabBar::tab:selected {
-    border-color: #d7801a;
+/* --- Reliable Sub Boxes Hover --- */
+
+/* 1. Targets the small icon cells/frames on the right */
+QFrame[frameShape="6"]:hover,
+QFrame#gboxnontitle:hover,
+QFrame#gboxseltools:hover {
+    border: 2px solid #f69038 !important;
+}
+
+/* 4. Sliders (Groove only) */
+QSlider::groove:hover {
+    border: 1px solid #f69038 !important;
+}
+
+/* little box lower right */
+QLabel#sizeinfo {
+    color: white;
+    border: 3px solid #f69038;
+    border-radius: 8px;
+    margin: 5px;
+    padding: 10px;
+    padding-right: 15px;
+
+    background:
+        /* 3. NEW: The "Fade" layer - white with low opacity */
+        qradialgradient(cx: 0.5, cy: 0.5, radius: 1, fx: 0.5, fy: 0.5,
+            stop: 0 rgba(255, 255, 255, 0.4), stop: 1 transparent),
+        /* 1. The Stamp (Top-Right) */
+        qradialgradient(cx: 0.9, cy: 0.1, radius: 0.4, fx: 0.9, fy: 0.1,
+            stop: 0 rgba(246, 144, 56, 0.2), stop: 1 transparent),
+        /* 2. Main Background */
+        qradialgradient(cx: 0.5, cy: 0.5, radius: 1.1, fx: 0.5, fy: 0.5,
+            stop: 0 #323232, stop: 1.0 #1e1e1e);
+
+    image: url(data/icons/faded_logo.png);
+    qproperty-alignment: 'AlignTop | AlignRight';
+}
+
+QLabel#sizeinfo:hover {
+    color: black;
+    border: 3px solid #1e1e1e;
+
+    /* Hover State: Corner Stamp + Orange Linear Gradient */
+    background:
+        /* 1. The Stamp (Top-Right) - Faint black/dark glow to stand out against orange */
+        qradialgradient(cx: 0.9, cy: 0.1, radius: 0.4, fx: 0.9, fy: 0.1,
+                        stop: 0 rgba(0, 0, 0, 0.15), stop: 1 transparent),
+        /* 2. Main Hover Background */
+        qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                        stop: 0 rgba(246, 144, 56, 0.7), stop: 1 rgba(180, 80, 20, 0.8));
+
+    image: url(data/icons/faded_logo.png);
+}
+
+/* --- Clickable Progress Bar (Clickbar) --- */
+
+QProgressBar#clickbar:hover {
+    border: 2px solid #f69038 !important;
+    /* Intense the glow on hover */
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.0,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #ffb366,   /* Brighter highlight */
+                stop: 1.0 #323232);
+}
+
+/* --- Last min fixes --- */
+
+QTabWidget::pane {
+    border: 3px solid #f69038;
+    top: -3px; /* Pulls the pane up to overlap the tab border */
+}
+
+QListWidget::item:hover, QTreeView::item:hover {
+    background: rgba(246, 144, 56, 0.2); /* Subtle orange tint */
+}
+
+QScrollBar:vertical {
+    border: 1px solid #1e1e1e;
+    background: #323232;
+    width: 12px;
+    margin: 0px;
+}
+QScrollBar::handle:vertical {
+    background: #f69038;
+    min-height: 20px;
+    border-radius: 4px;
+}
+
+QLineEdit, QSpinBox {
+    background-color: #1e1e1e;
+    border: 1px solid #f69038;
+    padding: 2px;
+    color: #ffffff;
+}
+
+QComboBox {
+    background: #323232;
+    border: 1px solid #989898;
+    border-radius: 3px;
+    padding: 1px 18px 1px 3px;
+}
+
+QComboBox::drop-down {
+    border-left: 1px solid #989898;
+}
+
+/* --- Styling the Scrollbar Ends (Up/Down Buttons) --- */
+
+/* --- Metallic Gradient Scrollbars --- */
+QScrollBar:vertical {
+    border: 1px solid #1e1e1e;
+    background: #000000;
+    width: 14px;
+    margin: 18px 0 18px 0; /* Creates space for top/bottom buttons */
+}
+
+QScrollBar:horizontal {
+    border: 1px solid #1e1e1e;
+    background: #000000;
+    height: 14px;
+    margin: 0 18px 0 18px; /* Creates space for left/right buttons */
+}
+
+/* The Handle (The Sliding Part) */
+QScrollBar::handle:vertical {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+                stop:0 #ffffff, stop:0.5 #e0e0e0, stop:1 #ffffff);
+    border: 2px solid #989898;
+    border-radius: 4px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:horizontal {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #ffffff, stop:0.5 #e0e0e0, stop:1 #ffffff);
+    border: 2px solid #989898;
+    border-radius: 4px;
+    min-width: 20px;
+}
+
+/* The Buttons (Ends) */
+QScrollBar::add-line, QScrollBar::sub-line {
+    border: 4px solid #989898;
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1,
+                stop:0 #000000, stop:0.5 #6a3304, stop:1 #000000);
+    border-radius: 4px;
+    subcontrol-origin: margin;
+}
+
+/* --- Pressed State for Scrollbar Buttons --- */
+QScrollBar::add-line:pressed, QScrollBar::sub-line:pressed {
+    /* Glowing orange center with dark edges */
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1,
+                stop:0 #6a3304, stop:0.5 #f69038, stop:1 #6a3304);
+
+    /* Solid black border */
+    border: 3px solid #000000;
+}
+
+/* Vertical Button Positions */
+QScrollBar::sub-line:vertical { height: 16px; subcontrol-position: top; }
+QScrollBar::add-line:vertical { height: 16px; subcontrol-position: bottom; }
+
+/* Horizontal Button Positions */
+QScrollBar::sub-line:horizontal { width: 16px; subcontrol-position: left; }
+QScrollBar::add-line:horizontal { width: 16px; subcontrol-position: right; }
+
+/* Hover & Active States */
+QScrollBar::handle:hover { border-color: #6a3304; }
+QScrollBar::handle:pressed { background: #f69038; }
+
+QComboBox::down-arrow {
+    image: url(data/icons/expand_orange_down.png);
+    /* 1. Set subcontrol origin to make padding work properly */
+    subcontrol-origin: padding;
+    subcontrol-position: center;
+    /* 2. Add padding around the image */
+    padding-right: 2px;
+    padding-left: 4px;
+    /* Optionally set width/height */
+    width: 16px;
+    height: 16px;
+}
+
+QComboBox::down-arrow:hover {
+    image: url(data/icons/expand_orange_down_hover.png);
+    background-color: rgba(255, 165, 0, 50); /* Light orange hover */
+}
+
+/* --- TreeView: The "Every Child Matters" Glow --- */
+/* --- TreeView: The "Single-Glow" Final Fix --- */
+
+/* 1. Reset the base branch so it doesn't double-draw */
+QTreeView::branch {
+    background: transparent;
+}
+
+/* 2. Target the "Adjoins-Item" state ONLY.
+      This is the specific segment right next to the text.
+      It ensures only ONE ball appears per row. */
+QTreeView::branch:adjoins-item {
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 0.4,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #f69038,   /* Orange center */
+                stop: 0.7 #323232, /* Fades into the charcoal panel */
+                stop: 1.0 transparent);
+    border-radius: 4px;
+}
+
+/* 3. Make the ball glow brighter ONLY when the row is hovered or selected */
+QTreeView::branch:adjoins-item:hover,
+QTreeView::item:hover {
+    background: qradialgradient(cx: 0.5, cy: 0.5, radius: 0.5,
+                fx: 0.5, fy: 0.5,
+                stop: 0 #fdb863,   /* Bright highlight */
+                stop: 1.0 transparent);
+}
+
+/* 4. This kills the vertical lines that cause the "Double Ball" effect */
+QTreeView::branch:has-siblings:!adjoins-item {
+    background: transparent; /* No balls for the connecting lines */
+    image: none;
+}
+
+/* 4. Kill the dotted lines but keep the arrows */
+QTreeView::branch:has-siblings:!adjoins-item,
+QTreeView::branch:has-siblings:adjoins-item,
+QTreeView::branch:!has-children:!has-siblings:adjoins-item {
+    border-image: none;
+    /* We keep 'image' as default here so the OS arrow survives */
 }
 

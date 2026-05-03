@@ -23,7 +23,7 @@ class FileHelper():
 
     def getCacheDataMHCLO(self, path, folder):
         """
-        scan MHCLO file
+        scan MHCLO or PROXY file
 
         :param path: path name
         :param folder: folder as category

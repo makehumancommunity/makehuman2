@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2
 
     Classes:
     * object3d
@@ -138,7 +138,7 @@ class object3d:
 
     def setName(self, name):
         if name is None:
-            self.name = "generic"
+            self.name = "generic_" + self.type
         else:
             self.name = name
 

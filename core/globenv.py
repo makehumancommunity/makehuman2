@@ -837,7 +837,7 @@ class programInfo():
                 elif extension == ".mhmat":
                     elem = self.fhelp.getCacheDataSkins(path, folder)
 
-                elif extension == ".mhclo":
+                elif extension == ".mhclo" or extension == ".proxy":
                     elem = self.fhelp.getCacheDataMHCLO(path, folder)
 
                 if elem is not None:

@@ -51,7 +51,7 @@ vec3 EvalNormal(vec3 n)
 	vec3 pos_dy = dFdy(vFragPos);
 	vec2 tex_dx = dFdx(vTexCoords);
 	vec2 tex_dy = dFdy(vTexCoords); 
-	vec3 t = normalize(pos_dx * tex_dy.t - pos_dy * tex_dx.t);
+	vec3 t = normalize(pos_dy * tex_dx.t - pos_dx * tex_dy.t);
 
 	vec3 b = -normalize(cross(n, t));
 	mat3 TBN = mat3(t, b, n);

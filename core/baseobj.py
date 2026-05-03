@@ -52,7 +52,16 @@ class loadEquipment():
 class baseClass():
     """
     get the environment for a base
+
+    Information for proxy:
+    * has no own material, rendering uses baseMesh material
+    * is loaded using addAsset or attached with addAsset
+    * addAsset only links baseMesh material
+    * delAsset calls opengl.deleteObject, which does not free textures in case of proxy
+    * load material works for baseMesh and links again
+    * material editor works on baseMesh, updates openGL for baseMesh and proxy
     """
+
     def __init__(self, glob, name):
         self.env = glob.env
         self.glob = glob
@@ -459,8 +468,7 @@ class baseClass():
         # change also proxy, if there is one
         #
         if self.proxy:
-            self.proxy.newMaterial(fname)
-            self.proxy.openGL.setMaterial(self.proxy.material)
+            self.proxy.openGL.setMaterial(obj.material)
         self.glob.openGLWindow.Tweak()
         self.glob.markAssetByFileName(fname)
 
@@ -565,8 +573,7 @@ class baseClass():
             attach.material = self.skinMaterial
             attach.materialsource = materialsource
             self.proxy = attach.obj
-            self.proxy.newMaterial(self.skinMaterial)
-            self.proxy.material.copy(self.baseMesh.material)
+            self.proxy.material = self.baseMesh.material
         elif materialpath is not None:
             attach.material = materialpath
             attach.materialsource = materialsource

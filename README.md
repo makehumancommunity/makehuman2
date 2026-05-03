@@ -5,7 +5,7 @@
 </p>
 
 
-*Slowly the program becomes more stable and complete, but it is still under development and not yet officially released. If you need the official version, please work with MakeHuman version 1*
+*This program is still in Alpha II state. If you need the official version, please work with MakeHuman version 1*
 
 ## Introduction
 

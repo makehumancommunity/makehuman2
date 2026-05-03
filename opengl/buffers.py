@@ -133,7 +133,12 @@ class RenderedObject:
         self.model_matrix = QMatrix4x4()
         self.normal_matrix = QMatrix4x4()
 
-        self.setMaterial(obj.material)
+        if self.object.type == "proxy":
+            self.proxy = self.glob.baseClass.baseMesh       # for material selection
+            self.setMaterial(self.proxy.material)
+        else:
+            self.proxy = self.object
+            self.setMaterial(obj.material)
 
 
     def __str__(self):
@@ -145,27 +150,28 @@ class RenderedObject:
     def setMaterial(self, material, modify=True):
         """
         set shader and creates textures from material according to shader
-        all shaders use a diffuse texture
+        all shaders use a diffuse texture, used objects are marked by proxy
+        (which is either basemesh or proxy)
         """
         self.material = material
-        self.texture = self.material.loadDiffuse(modify, self.object)
+        self.texture = self.material.loadDiffuse(modify, self.proxy)
         self.material.colorate()
 
         if material.shader == "litsphere":
             self.shader = self.shaders.getShader("litsphere")
-            self.litsphere = self.material.loadLitSphere(modify, self.object)
+            self.litsphere = self.material.loadLitSphere(modify, self.proxy)
         elif material.shader == "pbr":
             self.shader = self.shaders.getShader("pbr")
-            self.aomap = self.material.loadAOMap(self.parent.scene.white, modify, self.object)
-            self.mrmap = self.material.loadMRMap(self.parent.scene.white, modify, self.object)
-            self.emmap = self.material.loadEMMap(self.parent.scene.black, modify, self.object)
-            self.nomap = self.material.loadNOMap(self.parent.scene.normal, modify, self.object)
+            self.aomap = self.material.loadAOMap(self.parent.scene.white, modify, self.proxy)
+            self.mrmap = self.material.loadMRMap(self.parent.scene.white, modify, self.proxy)
+            self.emmap = self.material.loadEMMap(self.parent.scene.black, modify, self.proxy)
+            self.nomap = self.material.loadNOMap(self.parent.scene.normal, modify, self.proxy)
             self.mefac = material.metallicFactor if hasattr(self, 'metallicRoughnessTexture') else 1.0 - material.metallicFactor
         elif material.shader == "toon":
             self.shader = self.shaders.getShader("toon")
         else:
             self.shader = self.shaders.getShader("phong")
-            self.aomap = self.material.loadAOMap(self.parent.scene.white, modify, self.object)
+            self.aomap = self.material.loadAOMap(self.parent.scene.white, modify, self.proxy)
 
     def setTexture(self, texture):
         # only used for colors

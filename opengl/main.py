@@ -203,7 +203,7 @@ class OpenGLView(QOpenGLWidget):
     def deleteObject(self,obj, delMaterial=True):
         if obj.openGL is not None:
             obj.openGL.delete()
-            if delMaterial:
+            if obj.type != "proxy" and delMaterial:
                 obj.material.freeTextures()
             self.objects.remove(obj.openGL)
             obj.openGL = None
