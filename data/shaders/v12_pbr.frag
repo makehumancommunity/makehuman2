@@ -45,17 +45,22 @@ const float glossiness = 0.1;
 //
 vec3 EvalNormal(vec3 n)
 {
-	vec3 no = texture2D(NOTexture, vTexCoords).rgb * 2.0 - 1.0;
+	vec3 no = texture2D(NOTexture, vTexCoords).rgb;
+
+	no.r = 1.0 - no.r;
+	no.g = 1.0 - no.g;
+
+	no = normalize(no * 2.0 - 1.0);
 
 	vec3 pos_dx = dFdx(vFragPos);
 	vec3 pos_dy = dFdy(vFragPos);
 	vec2 tex_dx = dFdx(vTexCoords);
 	vec2 tex_dy = dFdy(vTexCoords); 
-	vec3 t = normalize(pos_dy * tex_dx.t - pos_dx * tex_dy.t);
+	vec3 t = normalize(pos_dx * tex_dy.t - pos_dy * tex_dx.t);
+	vec3 b = normalize(cross(n, t));
 
-	vec3 b = -normalize(cross(n, t));
 	mat3 TBN = mat3(t, b, n);
-	no = normalize(mix(n, TBN * no, NoMult * 0.8));
+	no = normalize(mix(n, TBN * no, NoMult));
 	return no;
 }
 
