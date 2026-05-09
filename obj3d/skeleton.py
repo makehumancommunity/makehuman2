@@ -31,7 +31,7 @@ class skeleton:
         self.filename = None
 
     def __str__(self):
-        return ("Skeleton: " + self.name)
+        return "Skeleton: " + self.name
 
     def loadJSON(self, path):
         json = self.env.readJSON(path)
@@ -267,6 +267,29 @@ class skeleton:
             self.skinBasemesh()
             self.glob.baseClass.updateAttachedAssets()
 
+    def poseFromRestPose(self, changes, bones_only=False):
+        """
+        pose the skeleton starting from rest pose for corrections only
+
+        :param joints: changes dictionary
+        :param bones_only: if True, no skinning
+        """
+        # reset to rest pose
+        self.restPose(bones_only)
+
+        for elem, bone in self.bones.items():
+            # pose each cBone which is mentioned in changes
+            #
+            if elem in changes:
+                bone.calcLocalPoseMat(changes[elem][:3,:3])
+
+            bone.calcGlobalPoseMat()
+            bone.poseBone()
+
+        if not bones_only:
+            self.skinBasemesh()
+            self.glob.baseClass.poseAttachedAssets()
+
     def pose(self, joints: dict, frame=0, bones_only=False):
         """
         pose the skeleton
@@ -355,7 +378,7 @@ class skeleton:
             diff = yroot - ylow
             if diff > mdiff:
                 mdiff = diff
-        return (mdiff)
+        return mdiff
 
     def posebyBlends(self, blends, mask, bones_only=False):
         """

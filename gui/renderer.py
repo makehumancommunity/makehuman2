@@ -8,7 +8,7 @@
 """
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLineEdit, QGridLayout, QLabel, QMessageBox,  QCheckBox, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLineEdit, QGridLayout, QLabel, QMessageBox,  QCheckBox, QHBoxLayout, QComboBox
 
 from gui.common import IconButton, MHFileRequest, MHBusyWindow, WorkerThread, ImageBox
 from gui.slider import SimpleSlider
@@ -24,7 +24,8 @@ class RendererValues():
     """
     def __init__(self, glob):
         self.doCorrections = False
-        self.transparent = False
+        self.rendermode = 0
+        self.showafter = True
         self.posed = False
         self.imwidth  = 1000
         self.imheight = 1000
@@ -44,7 +45,7 @@ class Renderer(QVBoxLayout):
         self.mesh = self.bc.baseMesh
         self.posemod = self.bc.posemodifier
         self.bvh = self.bc.bvh
-        self.blockchange = False
+        self.lastimgview = None
 
         self.image = None
         self.subdiv = False
@@ -70,7 +71,7 @@ class Renderer(QVBoxLayout):
         self.s_objects = []
 
         glayout = QGridLayout()
-        glayout.addWidget(QLabel("Render to offscreen canvas of size:"), 0, 0, 1, 2)
+        glayout.addWidget(QLabel("Render to canvas of size:"), 0, 0, 1, 2)
         glayout.addWidget(QLabel("Width"), 1, 0)
         self.width = QLineEdit()
         self.width.editingFinished.connect(self.acceptIntegers)
@@ -80,18 +81,22 @@ class Renderer(QVBoxLayout):
         self.height = QLineEdit()
         self.height.editingFinished.connect(self.acceptIntegers)
         glayout.addWidget(self.height, 2, 1)
+        glayout.addWidget(QLabel("Foreground limits: w=" + str(self.view.maximumWidth()) + ", h=" + str(self.view.maximumHeight())), 3, 0, 1, 2)
         self.addLayout(glayout)
 
-        self.transButton = QCheckBox("transparent canvas")
-        self.transButton.setLayoutDirection(Qt.LeftToRight)
-        self.transButton.toggled.connect(self.changeTransparency)
-        self.addWidget(self.transButton)
+        self.addWidget(QLabel("Render Mode:"))
+        self.viewBox = QComboBox()
+        self.viewBox.addItems(["Foreground: extended viewport", "Background: unicolored canvas", "Background: transparent canvas"])
+        self.viewBox.currentIndexChanged.connect(self.changeRenderMode)
+        self.viewBox.setToolTip('Rendermode')
+        self.addWidget(self.viewBox)
 
-        if self.bvh:
-            self.corrAnim = QCheckBox("overlay corrections")
-            self.corrAnim.setLayoutDirection(Qt.LeftToRight)
-            self.corrAnim.toggled.connect(self.changeAnim)
-            self.addWidget(self.corrAnim)
+        # corrections now work for standard pose as well
+        #
+        self.corrAnim = QCheckBox("overlay corrections")
+        self.corrAnim.setLayoutDirection(Qt.LeftToRight)
+        self.corrAnim.toggled.connect(self.changeCorr)
+        self.addWidget(self.corrAnim)
 
         if self.bvh or self.posemod:
             self.posedButton = IconButton(1,  os.path.join(self.env.path_sysicon, "an_pose.png"), "character posed", self.changePosed, checkable=True)
@@ -124,8 +129,16 @@ class Renderer(QVBoxLayout):
 
         self.saveButton = IconButton(1,  os.path.join(self.env.path_sysicon, "f_save.png"), "save rendered image", self.saveImage)
         self.viewButton = IconButton(2,  os.path.join(self.env.path_sysicon, "render.png"), "show rendered image", self.viewImage)
-        self.addWidget(self.viewButton)
-        self.addWidget(self.saveButton)
+        glayout = QGridLayout()
+        glayout.addWidget(QLabel("Show rendered image:"), 0, 0)
+        self.showAfter = QCheckBox("show result automatically")
+        self.showAfter.setLayoutDirection(Qt.LeftToRight)
+        self.showAfter.toggled.connect(self.changeShowAfter)
+        glayout.addWidget(self.showAfter, 1,0)
+        glayout.addWidget(self.viewButton, 0, 1, 2, 1)
+        glayout.addWidget(QLabel("Save rendered image:"), 2, 0)
+        glayout.addWidget(self.saveButton, 2, 1)
+        self.addLayout(glayout)
 
 
     def enter(self):
@@ -134,9 +147,15 @@ class Renderer(QVBoxLayout):
             if self.values.posed:
                 self.bc.setPoseMode()
                 self.setFrame(0)
+
+        if self.bvh is None and self.values.doCorrections:
+            self.bc.setPoseMode()
+            self.correctionsOnly()
+
         self.glob.midColumn.renderView(True)
         self.view.scene.newFloorPosition(posed=True)
         self.setButtons()
+        self.view.Tweak()
 
     def rotChanged(self, value):
         self.values.angle = value
@@ -145,9 +164,18 @@ class Renderer(QVBoxLayout):
 
     def setUnsubdivided(self):
         self.subdivbutton.setChecked(False)
-        if self.subdiv:
-            self.unSubdivide()
-            self.subdiv = False
+        self.unSubdivide()
+
+    def correctionsOnly(self):
+        self.bc.setPoseMode()
+        poseskel = self.bc.pose_skeleton
+        blends = self.bc.posecorrections
+        position = self.bc.positioncorrection
+
+        if position is not None:
+            poseskel.setOffset(position)
+        if len(blends) > 0:
+            poseskel.poseFromRestPose(blends, False)
 
     def leave(self):
         self.setUnsubdivided()
@@ -156,17 +184,21 @@ class Renderer(QVBoxLayout):
             self.setFrame(0)
             self.bc.setStandardMode()
 
+        if self.bvh is None and self.values.doCorrections:
+            self.bc.setStandardMode()
+
         self.view.setYRotation(0.0)
         self.view.Tweak()
         self.glob.midColumn.renderView(False)
+
+
 
     def setFrame(self, value):
         if self.posemod:
             self.bc.showPose()
             return
 
-        if self.bvh is None:
-            print ("No file loaded")
+        if self.bvh is None:    # should not be possible
             return
 
         if value < 0:
@@ -184,14 +216,14 @@ class Renderer(QVBoxLayout):
         self.setUnsubdivided()
         self.setFrame(int(value))
 
-    def changeTransparency(self, param):
-        self.values.transparent = param
+    def changeShowAfter(self, param):
+        self.values.showafter = param
+
+    def changeRenderMode(self, param):
+        self.values.rendermode = param
 
     def changePosed(self, param):
-        if self.blockchange:
-            return
-        if self.subdiv:
-            self.unSubdivide()
+        self.setUnsubdivided()
         if self.values.posed:
             self.leave()
             self.values.posed = param
@@ -204,21 +236,25 @@ class Renderer(QVBoxLayout):
     def setButtons(self):
         self.saveButton.setEnabled(self.image is not None)
         self.viewButton.setEnabled(self.image is not None)
-        self.transButton.setChecked(self.values.transparent)
+        self.viewBox.setCurrentIndex(self.values.rendermode)
         self.width.setText(str(self.values.imwidth))
         self.height.setText(str(self.values.imheight))
+        self.showAfter.setChecked(self.values.showafter)
+
+        self.corrAnim.blockSignals(True)    # avoid these buttons to change
+        self.corrAnim.setChecked(self.values.doCorrections)
+        self.corrAnim.blockSignals(False)
+
         if self.bvh or self.posemod:
             self.corrAnim.setEnabled((len(self.bc.bodyposes) > 0 or len(self.bc.faceposes) > 0) and self.values.posed)
 
-            # avoid signal for posedButton
-            #
-            self.blockchange = True
+            self.posedButton.blockSignals(True)
             self.posedButton.setChecked(self.values.posed)
-            self.blockchange = False
+            self.posedButton.blockSignals(False)
 
-            self.corrAnim.setChecked(self.values.doCorrections)
             if self.bvh.frameCount > 1:
                 self.frameSlider.setEnabled(self.values.posed)
+
 
     def acceptIntegers(self):
         m = self.sender()
@@ -238,14 +274,20 @@ class Renderer(QVBoxLayout):
         else:
             self.values.imheight = i
 
-    def changeAnim(self):
-        if self.subdiv:
-            self.unSubdivide()
+    def changeCorr(self):
+        self.setUnsubdivided()
         self.values.doCorrections = self.corrAnim.isChecked()
         if self.values.doCorrections:
-            self.bvh.modCorrections()
+            if self.bvh:
+                self.bvh.modCorrections()
+            else:
+                self.bc.setPoseMode()
+                self.correctionsOnly()
         else:
-            self.bvh.identFinal()
+            if self.bvh:
+                self.bvh.identFinal()
+            else:
+                self.bc.setStandardMode()
         self.bc.showPose()
 
 
@@ -277,9 +319,12 @@ class Renderer(QVBoxLayout):
             self.glob.openGLBlock = False
             self.view.setYRotation(float(self.values.angle))
             self.view.Tweak()
+            self.subdiv = True
             self.glob.parallel = None
 
     def parSubdivide(self):
+        if self.subdiv is True:
+            return
         if self.glob.parallel is None:
             self.prog_window = MHBusyWindow("Subdivision", "start")
             self.prog_window.progress.forceShow()
@@ -297,6 +342,9 @@ class Renderer(QVBoxLayout):
         """
         replaces meshes back to normal
         """
+        if self.subdiv is False:
+            return
+
         self.glob.openGLBlock = True
 
         if self.bc.proxy is None:
@@ -312,14 +360,15 @@ class Renderer(QVBoxLayout):
             elem.obj = self.n_objects[n]
             self.view.createObject(elem.obj)
             n +=1
+        self.subdiv = False
         self.glob.openGLBlock = False
         self.view.setYRotation(float(self.values.angle))
         self.view.Tweak()
 
     def toggleSmooth(self):
         b = self.sender()
-        self.subdiv = b.isChecked()
-        if self.subdiv:
+        subdiv = b.isChecked()
+        if subdiv:
             self.parSubdivide()
         else:
             self.unSubdivide()
@@ -328,14 +377,39 @@ class Renderer(QVBoxLayout):
         width  = int(self.width.text())
         height = int(self.height.text())
 
-        pix = OffScreenRender(self.glob, self.view, self.values.transparent)
-        pix.getBuffer(width, height)
-        self.image = pix.bufferToImage()
-        pix.releaseBuffer()
+        if self.values.rendermode == 0:
+            # 2. Save the current window size
+            orig_size = self.view.size()
+            try:
+                # 2. Force the 3D view to the target shape
+                # This is the "magic" that fixes the perspective stretching
+                self.view.resize(width, height)
+                self.view.Tweak()
+                self.view.update()
+
+                # 3. Capture the now-perfectly-shaped pixels
+                pixmap = self.view.grab()
+                self.image = pixmap.toImage()
+
+            except Exception as e:
+                self.env.logLine(2, f"Render Error: {e}")
+
+            finally:
+                # 4. ALWAYS restore the window size so the UI isn't broken
+                self.view.resize(orig_size)
+                self.view.Tweak()
+        else:
+            pix = OffScreenRender(self.glob, self.view, self.values.rendermode == 2)
+            pix.getBuffer(width, height)
+            self.image = pix.bufferToImage()
+            pix.releaseBuffer()
+
         self.setButtons()
+        if self.values.showafter:
+            self.viewImage()
 
     def viewImage(self):
-        ImageBox(self.parent, "Viewer", self.image, color=self.view.light.glclearcolor)
+        self.lastimgview = ImageBox(self.parent, "Viewer", self.image, color=self.view.light.glclearcolor)
 
     def saveImage(self):
         directory = os.path.join(self.env.stdUserPath(), "render")

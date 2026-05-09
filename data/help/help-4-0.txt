@@ -4,17 +4,21 @@ This context provides a possibility to render the character. This module allows 
 no possibility to use e.g. Blender. Be aware, this will never be as perfect as in a ray-trace system, but it might be a help
 for those using the character as an image to be inserted in a normal paint program.
 <p>
-<i>An existing skybox or cube-map as a background is not used, the character will always be rendered on a single-colored background,
-the color is defined in the scene settings or on a transparent layer.</i>
+Foreground renders are limited by the system to a certain maximum size.
 <p>
+<i>All objects are used in foreground. When rendering in background, an existing skybox or cube-map is not used, the character will always be rendered on a
+single-colored background, the color is defined in the scene settings or the character is rendered on a transparent layer.</i>
+<p>
+The following steps need to be done:
 <ul>
 <li>Select the width and height of the picture.</li>
-<li>Decide if you want to render on a transparent canvas.</li>
-<li>Only for animation, decide if pose corrections should be merged.</li>
+<li>Decide if you want to render in foreground on a bigger viewport or in background on a transparent or unicolored canvas.</li>
+<li>Decide if pose corrections (you can create them in pose editor) should be merged.</li>
 <li>If the animation is longer than one frame, select the frame you want to render by using the slider.</li>
-<li>The character can be rotated in front of the skybox (since that is not used in the render itself it would only be used for screen shots).</li>
+<li>The character can be rotated in front of the skybox (since that is only used in foreground render itself it has no effect for the other modes).</li>
 <li>You can smooth the character. The loop algorithm is used, since the character in MakeHuman works on a triangle base.</i>
 You have to smooth again, if you change pose mode or frame number.</li>
+<li>In the end a window opens to show the final result (if activated)</li>
 <li>When the render is finished, save it to a file by pushing the save-button.</li>
 </ul>
 <p>
