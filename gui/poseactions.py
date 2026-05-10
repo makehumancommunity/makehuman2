@@ -20,17 +20,21 @@ class AnimMode():
     """
     used for Poses, Expressions (selections only)
     """
-    def __init__(self, glob):
+    def __init__(self, glob, changeFloor=False):
         self.glob = glob
         self.view = glob.openGLWindow
         self.bc = glob.baseClass
         self.bc.setPoseMode()
         self.bc.showPoseAndExpression()
+        if changeFloor:
+            self.glob.midColumn.animViews(True)
+
         self.view.scene.newFloorPosition(posed=True)
         self.view.Tweak()
 
     def leave(self):
         self.bc.setStandardMode()
+        self.glob.midColumn.animViews(False)
 
 class AnimPlayerValues():
     """

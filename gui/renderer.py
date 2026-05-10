@@ -143,16 +143,22 @@ class Renderer(QVBoxLayout):
 
     def enter(self):
         self.image = None
+        poseskel = self.bc.pose_skeleton
+
+        poseskel.useOffset(self.values.doCorrections)
+
         if self.bvh or self.posemod:
             if self.values.posed:
                 self.bc.setPoseMode()
                 self.setFrame(0)
+
 
         if self.bvh is None and self.values.doCorrections:
             self.bc.setPoseMode()
             self.correctionsOnly()
 
         self.glob.midColumn.renderView(True)
+        self.glob.midColumn.animViews(True)
         self.view.scene.newFloorPosition(posed=True)
         self.setButtons()
         self.view.Tweak()
@@ -190,8 +196,7 @@ class Renderer(QVBoxLayout):
         self.view.setYRotation(0.0)
         self.view.Tweak()
         self.glob.midColumn.renderView(False)
-
-
+        self.glob.midColumn.animViews(False)
 
     def setFrame(self, value):
         if self.posemod:
@@ -277,13 +282,17 @@ class Renderer(QVBoxLayout):
     def changeCorr(self):
         self.setUnsubdivided()
         self.values.doCorrections = self.corrAnim.isChecked()
+        poseskel = self.bc.pose_skeleton
         if self.values.doCorrections:
+            poseskel.useOffset(True)
+
             if self.bvh:
                 self.bvh.modCorrections()
             else:
                 self.bc.setPoseMode()
                 self.correctionsOnly()
         else:
+            poseskel.useOffset(False)
             if self.bvh:
                 self.bvh.identFinal()
             else:

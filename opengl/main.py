@@ -369,7 +369,7 @@ class OpenGLView(QOpenGLWidget):
 
         # draw all other objects which are in scene
         #
-        self.scene.draw(proj_view_matrix, campos, showskel)
+        self.scene.draw(proj_view_matrix, campos, offset, showskel)
 
         if self.marker is not None:
             self.marker.draw(proj_view_matrix)

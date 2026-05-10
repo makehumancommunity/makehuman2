@@ -5,6 +5,7 @@
     Classes:
     * Scene
 """
+from PySide6.QtGui import QVector3D
 from opengl.material import Material
 from opengl.prims import CoordinateSystem, Grid, BoneList, VisLights, DiamondSkeleton, Cuboid
 
@@ -178,11 +179,15 @@ class Scene():
         :param bool posed: if character is posed
         """
         if self.glob.baseClass.floorCalcMethod == 0:
+            offset = QVector3D(0.0, 0.0, 0.0)
             floorpos = self.lowestPos(posed)
         else:
+            offset = self.glob.baseClass.pose_skeleton.offset
             floorpos = 0.0
         self.prims["floorcuboid"].newGeometry(floorpos)
+        self.prims["floorcuboid"].setPosition(offset)
         self.prims["xzgrid"].newGeometry(floorpos, "xz")
+        self.prims["xzgrid"].setPosition(offset)
 
     # skeleton
     #
@@ -266,7 +271,7 @@ class Scene():
         if "skeleton" in self.prims:
             self.prims["skeleton"].setYRotation(angle)
 
-    def draw(self, proj_view_matrix, campos, showskel):
+    def draw(self, proj_view_matrix, campos, offset, showskel):
         """
         draws the assets
 
@@ -282,6 +287,7 @@ class Scene():
         for name in self.prims:
             if name == "skeleton":
                 if showskel:
+                    self.prims[name].setPosition(offset)
                     if self.diamondskel:
                         self.prims[name].draw(proj_view_matrix, bc.in_posemode)
                     else:

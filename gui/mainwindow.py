@@ -566,7 +566,7 @@ class MHMainWindow(QMainWindow):
                 self.LeftBox.addLayout(layout)
             elif self.category_mode == 1:
                 self.leftColumn.setTitle("Poses :: filter")
-                self.lastForm = AnimMode(self.glob)
+                self.lastForm = AnimMode(self.glob, changeFloor=True)
                 layout = self.animation[self.category_mode]["func"].leftPanel()
                 self.LeftBox.addLayout(layout)
             elif self.category_mode == 2:

@@ -68,6 +68,9 @@ class LineElements:
     def setYRotation(self, rot):
         self.lines.setYRotation(rot)
 
+    def setPosition(self, pos):
+        self.lines.setPosition(pos)
+
     def delete(self):
         if self.lines:
             self.lines.delete()
@@ -184,6 +187,9 @@ class SimpleObject():
 
     def setScale(self, s):
         self.simple.setScale(s)
+
+    def setPosition(self, pos):
+        self.simple.setPosition(pos)
 
     def setRotation(self, rot):
         self.simple.setRotation(rot)

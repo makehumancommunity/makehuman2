@@ -166,7 +166,7 @@ class MHGraphicWindow(QWidget):
             glayout.addWidget(r[0], r[4], r[5])
 
         self.floorCombo = QComboBox()
-        self.floorCombo.addItems(["by lowest vertex", "origin"])
+        self.floorCombo.addItems(["by lowest vertex", "pose origin"])
         self.floorCombo.currentIndexChanged.connect(self.floorIndexChanged)
 
         # now prepare hidden vertices

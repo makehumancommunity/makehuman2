@@ -25,7 +25,7 @@ class skeleton:
         self.bones = {}      # list of cBones
         self.bWeights = None
         self.root = None     # our skeleton accepts one root bone, not more, name of the root
-        self.offset = QVector3D(0, 0, 0) # offset is used for pose skeleton to move root bone
+        self.offset = QVector3D(0.0, 0.0, 0.0) # offset is used for pose skeleton to move root bone
         self.use_offset = False
         self.mesh = self.glob.baseClass.baseMesh
         self.filename = None

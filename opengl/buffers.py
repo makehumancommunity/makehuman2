@@ -424,6 +424,9 @@ class RenderedLines:
     def setYRotation(self, rot):
         self.y_rotation = rot
 
+    def setPosition(self, pos):
+        self.position = pos
+
     def draw(self, proj_view_matrix):
         """
         :param shaderprog: QOpenGLShaderProgram
@@ -474,6 +477,7 @@ class RenderedSimple:
         self.model_matrix = QMatrix4x4()
         self.normal_matrix = QMatrix4x4()
         self.rotation = QMatrix4x4()
+        self.position = QVector3D(0, 0, 0)
         self.glbuffers = glbuffers
         self.indices = indices
         self.infront = infront
@@ -493,6 +497,9 @@ class RenderedSimple:
     def setRotation(self, rot):
         self.rotation = QMatrix4x4(rot.flatten().tolist())
 
+    def setPosition(self, pos):
+        self.position = pos
+
     def delete(self):
         self.glbuffers.Delete()
 
@@ -503,6 +510,7 @@ class RenderedSimple:
         self.glbuffers.BindBuffersToShader(self.shader)  # VAO etc.
 
         self.model_matrix.setToIdentity()
+        self.model_matrix.translate(self.position)
         self.model_matrix = self.model_matrix * self.rotation
         self.model_matrix.scale(self.scale)
         self.mvp_matrix = proj_view_matrix * self.model_matrix
