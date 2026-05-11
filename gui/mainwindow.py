@@ -1,18 +1,22 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2 Makehuman 2 2026
 
     The mainwindow containing menus, left, center and right column
 
     Classes:
     * MHMainWindow
 """
-from PySide6.QtWidgets import ( 
-        QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QFrame, QGroupBox, QListWidget, QLabel,
-        QAbstractItemView, QSizePolicy, QScrollArea, QDialogButtonBox, QMessageBox
-        )
+from PySide6.QtWidgets import (
+    QAbstractItemView, QDialogButtonBox, QFrame, QGroupBox, QHBoxLayout,
+    QLabel, QListWidget, QMainWindow, QMdiArea, QMdiSubWindow,
+    QMessageBox, QPushButton, QScrollArea, QSizePolicy, QSplitter,
+    QVBoxLayout, QWidget
+)
+
+
 from PySide6.QtGui import QIcon, QCloseEvent, QAction, QDesktopServices
-from PySide6.QtCore import QSize, Qt, QUrl
+from PySide6.QtCore import QSize, Qt, QUrl, QTimer
 from gui.prefwindow import  MHPrefWindow
 from gui.logwindow import  MHLogWindow
 from gui.infowindow import  MHInfoWindow
@@ -414,81 +418,110 @@ class MHMainWindow(QMainWindow):
 
     def createCentralWidget(self):
         """
-        create central widget containing 3 columns
+        create central widget with 3 columns and resizable dividers
         """
         env = self.env
         self.central_widget = QWidget()
         self.glob.centralWidget = self.central_widget
 
-        hLayout = QHBoxLayout()         # 3 columns
-        hLayout.setSpacing(2)
-        hLayout.setContentsMargins(2, 3, 2, 3)
+        # 1. Create the Horizontal Splitter and connect movement logic
+        self.mainSplitter = QSplitter(Qt.Horizontal)
+        self.mainSplitter.splitterMoved.connect(self.enforce_limits)
 
-        # left side, two rows of buttons
-        # first select tools
-        #
+        # --- LEFT COLUMN SETUP ---
+        leftColumnContainer = QWidget()
+        v2Layout = QVBoxLayout(leftColumnContainer)
+        v2Layout.setContentsMargins(0, 0, 0, 0)
+
         rowgroup1 = QFrame()
         rowgroup1.setObjectName("gboxseltools")
-        rowgroup1.setMaximumWidth(400)
         self.ToolSelBox = QVBoxLayout()
         row = self.buttonRow(self.tool_buttons)
         self.ToolSelBox.addLayout(row)
         rowgroup1.setLayout(self.ToolSelBox)
 
-        # second select category
-        #
-        rowgroup2  = QFrame()
+        rowgroup2 = QFrame()
         rowgroup2.setObjectName("gboxnontitle")
-        rowgroup2.setMaximumWidth(400)
         self.ButtonBox = QVBoxLayout()
-        self.CategoryBox= self.buttonRow(self.category_buttons[0])
+        # Correctly index based on current mode
+        self.CategoryBox = self.buttonRow(self.category_buttons[self.tool_mode])
         self.ButtonBox.addLayout(self.CategoryBox)
         rowgroup2.setLayout(self.ButtonBox)
 
-        # left side base panel
-        #
         self.LeftBox = QVBoxLayout()
         self.leftColumn = MHGroupBox("Base")
         self.leftColumn.setMinimumWidth(300)
-        self.leftColumn.setMaximumWidth(400)
         self.drawLeftPanel()
 
-        v2Layout = QVBoxLayout()
-        v2Layout.addWidget(rowgroup1)
-        v2Layout.addWidget(rowgroup2)
-        v2Layout.addLayout(self.leftColumn.MHLayout(self.LeftBox),1)
+        v2Layout.addWidget(rowgroup1, 0)
+        v2Layout.addWidget(rowgroup2, 0)
+        v2Layout.addLayout(self.leftColumn.MHLayout(self.LeftBox), 1)
 
-        hLayout.addLayout(v2Layout)
-
-        # create window for graphical output
-        #
+        # --- MIDDLE COLUMN (VIEWPORT) ---
         self.glob.midColumn = self.graph = MHGraphicWindow(self.glob)
         gLayout = self.graph.createLayout()
-        #
-        # keyboard
-        #
+
         self.eventFilter = NavigationEvent(self.graph)
         self.installEventFilter(self.eventFilter)
 
-        # add view in layout
-        #
         frame = MHGroupBox("Viewport")
-        hLayout.addLayout(frame.MHLayout(gLayout),3)
+        middleWidget = QWidget()
+        middleWidget.setLayout(frame.MHLayout(gLayout))
 
-        # right side, ToolBox, can be hidden by visRightColumn
-        #
+        # --- RIGHT COLUMN ---
         self.visRightColumn = QWidget()
         self.ToolBox = QVBoxLayout()
         vis = self.drawRightPanel()
         self.visRightColumn.setVisible(vis)
-        self.rightColumn = MHGroupBox("Default")  # default values
-        self.rightColumn.setMinimumWidth(300)
+        self.rightColumn = MHGroupBox("Default")
+        self.rightColumn.setMinimumWidth(400)
         self.visRightColumn.setLayout(self.rightColumn.MHLayout(self.ToolBox))
-        hLayout.addWidget(self.visRightColumn, 2)
 
-        #
-        self.central_widget.setLayout(hLayout)
+        # 2. Add the three columns to the Splitter
+        self.mainSplitter.addWidget(leftColumnContainer)
+        self.mainSplitter.addWidget(middleWidget)
+        self.mainSplitter.addWidget(self.visRightColumn)
+
+        # Logical Stops: Prevent panels from collapsing to zero
+        self.mainSplitter.setCollapsible(0, False)
+        self.mainSplitter.setCollapsible(1, False)
+        self.mainSplitter.setCollapsible(2, False)
+
+        # 3. Set Stretch Factors (Center column expands)
+        self.mainSplitter.setStretchFactor(0, 0)
+        self.mainSplitter.setStretchFactor(1, 1)
+        self.mainSplitter.setStretchFactor(2, 0)
+
+        # 4. Final Layout Assembly
+        layout = QHBoxLayout(self.central_widget)
+        layout.setContentsMargins(2, 3, 2, 3)
+        layout.addWidget(self.mainSplitter)
+
+        # Set initial widths after UI initializes to avoid layout break
+        QTimer.singleShot(0, self.setInitialSplitterSizes)
+
         self.setCentralWidget(self.central_widget)
+
+    def setInitialSplitterSizes(self):
+        """Sets widths after startup: [Left, Middle, Right]"""
+        self.mainSplitter.setSizes([350, 800, 350])
+
+    def enforce_limits(self, pos, index):
+        """
+        Prevents panels from crossing 50% width
+        index 1 = Left divider | index 2 = Right divider
+        """
+        half_way = self.width() // 2
+
+        # Handle the Left Divider (Handle 1)
+        if index == 1 and pos > half_way:
+            self.mainSplitter.moveSplitter(half_way, index)
+
+        # Handle the Right Divider (Handle 2)
+        # pos is the absolute position from the left edge of the window
+        if index == 2 and pos < half_way:
+            self.mainSplitter.moveSplitter(half_way, index)
+
 
     def drawLeftPanel(self):
         """
