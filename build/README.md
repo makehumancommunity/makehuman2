@@ -32,7 +32,7 @@ for Windows.
 
 Note: The build is done in the folder mentioned by python tempfile.gettempdir(). It is a platform-specific location:
 
-* Windows, the directories C:\TEMP, C:\TMP, \TEMP, and \TMP, in that order.
+* Windows, the temporary folder is usually the private temporary one in AppData (C:\Users\MyUserName\AppData\Local\Temp)
 
 * On all other platforms, the directories /tmp, /var/tmp, and /usr/tmp, in that order.
 
@@ -73,7 +73,8 @@ Usually there is no need to do further manual actions. Here is, what the build d
 * After that makensis itself is called. It creates one of these files:
 
 ```bash
-/tmp/pynsist-work/build/nsis/MakeHuman2.exe		# LINUX, on Windows temp path should be different
+/tmp/pynsist-work/build/nsis/MakeHuman2.exe		                      # LINUX path
+C:\Users\MyUserName\AppData\Local\Temp\pynsist-work\build\nsis\MakeHuman2.exe # Windows path
 /tmp/pynsist-work/build/nsis/MakeHuman2-20260228.exe	# with option -d a timestamp will be appended
 /tmp/pynsist-work/build/nsis/MakeHuman2-alpha1.exe	# with option -V and version name 'alpha1'
 ```
