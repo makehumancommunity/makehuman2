@@ -35,6 +35,7 @@ class winBuilder():
         self.ignorefiles = []
         self.remove_ascii_targets = False
         self.remove_ascii_meshes = False
+        self.isWindows = False
         if version:
             self.infix = version
         elif date:
@@ -47,6 +48,7 @@ class winBuilder():
             self.makensis = "/usr/bin/makensis"
         else:
             # get windows version
+            self.isWindows = True
             import winreg
             try:
                 nsis_dir = winreg.QueryValue(winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\NSIS')
@@ -88,6 +90,12 @@ class winBuilder():
             except OSError as error:
                 self.cleanexit(2, str(error))
 
+    def removeOldFolder(self):
+        if os.path.isdir(self.pynsistdir):
+            if self.verbose:
+                print ("need to remove " + self.pynsistdir)
+            shutil.rmtree(self.pynsistdir)
+
     def copyfile(self, source, dest):
         if self.verbose:
             print ("+ copy " + source + " to " + dest)
@@ -119,6 +127,7 @@ class winBuilder():
             self.cleanexit(3, "Missing 'pynsistdir' in " + self.conf)
         self.pynsistdir = os.path.join(self.tmp, json_object["pynsistdir"])
 
+        self.removeOldFolder()
         if "reponame" not in json_object:
             self.cleanexit(3, "Missing 'reponame' in " + self.conf)
         self.repodir = os.path.join(self.pynsistdir, json_object["reponame"])
@@ -267,7 +276,10 @@ class winBuilder():
         if self.verbose:
             print ("+ calling compile_meshes.py " + mesh + " " + filename)
         try:
-            subprocess.call(["./compile_meshes.py", "-b", mesh, "-f", filename], cwd="..")
+            if self.isWindows:
+                subprocess.call(["python3", "./compile_meshes.py", "-b", mesh, "-f", filename], cwd="..")
+            else:
+                subprocess.call(["./compile_meshes.py", "-b", mesh, "-f", filename], cwd="..")
         except Exception as e:
             self.cleanexit (20, "compile_meshes " + mesh + " " + filename + " failed!")
 
@@ -309,7 +321,10 @@ class winBuilder():
         if self.verbose:
             print ("+ calling compile_targets.py " + filename)
         try:
-            subprocess.call(["./compile_targets.py", "-f", filename], cwd="..")
+            if self.isWindows:
+                subprocess.call(["python3", "./compile_targets.py", "-f", filename], cwd="..")
+            else:
+                subprocess.call(["./compile_targets.py", "-f", filename], cwd="..")
         except Exception as e:
             self.cleanexit (20, "compile_target " + filename + " failed!")
 
@@ -347,10 +362,9 @@ class winBuilder():
         """
         if self.verbose:
             print ("+ placing desktop shortcut in installer.nsi")
-        shortcut = '    CreateShortCut "$DESKTOP\\' + self.name + \
-            '.lnk" "$INSTDIR\Python\python.exe" \'"$INSTDIR\\' + self.script + '"\' "$INSTDIR\\' + self.icon + '"\n\n'
+        shortcut = '    CreateShortCut "$DESKTOP\\' + self.name + '.lnk" "$INSTDIR\\Python\\python.exe" \'"$INSTDIR\\' + self.script + '"\' "$INSTDIR\\' + self.icon + '"\n\n'
 
-        delshortcut = '     Delete "$DESKTOP\MakeHuman II.lnk"\n'
+        delshortcut = '     Delete "$DESKTOP\\MakeHuman II.lnk"\n'
 
         with open(self.nsifile, 'r') as ifile:
             data = ifile.readlines()
@@ -361,7 +375,7 @@ class winBuilder():
                 if added == 1:
                     added = 2
                     continue
-                if "%HOMEDRIVE%\%HOMEPATH%" in l:
+                if "%HOMEDRIVE%\\%HOMEPATH%" in l:
                     ifile.write( "  SetOutPath \"$INSTDIR\"\n")
                 elif added == 0 and "CreateShortCut" in l:
                     ifile.write(shortcut)
@@ -378,7 +392,10 @@ class winBuilder():
         if self.verbose:
             print ("+ calling pynsist " + self.pynsistcfg)
         try:
-            subprocess.call(["pynsist", "--no-makensis", self.pynsistcfg], cwd=self.pynsistdir)
+            if self.isWindows:
+                subprocess.call(["python3", "-m", "nsist", "--no-makensis", self.pynsistcfg], cwd=self.pynsistdir)
+            else:
+                subprocess.call(["pynsist", "--no-makensis", self.pynsistcfg], cwd=self.pynsistdir)
         except Exception as e:
             self.cleanexit (10, "pynsist --no-makensis " + self.pynsistcfg + " failed!")
 
@@ -406,7 +423,7 @@ if __name__ == '__main__':
         args.builddir = tempfile.gettempdir()
     if args.verbose:
         print ("+ working with " + args.builddir)
-
+    
     wb = winBuilder(args.builddir, "./build.json", args.verbose, args.date, args.version)
     outtext = wb.evaluatePynsistCfg()
     wb.createPynsistCfg(outtext)
