@@ -224,7 +224,11 @@ class programInfo():
         self.recreate_repo = args.repository
         self.uselog  = args.l
         self.frozen  = frozen
+        self.oldsysstdout = None
+        self.oldsysstderr = None
         self.path_sys = path_sys
+        if frozen:                                  # frozen used for binary or .exe mode
+            self.uselog = True
  
         self.uenv = UserEnvironment()
         (self.sys_platform, self.osindex, self.ostype, self.platform_version) = self.uenv.getPlatform()
@@ -235,7 +239,7 @@ class programInfo():
         (self.path_userconf, self.path_usersess) = self.uenv.getUserConfigFilenames(create=True)
         if self.path_userconf is None:
             print("cannot create folder " + self.path_usersess)
-            exit(21)
+            sys.exit(21)
 
         #
         # a lot of information for later use
@@ -249,7 +253,7 @@ class programInfo():
         self.numpy_version = [int(x) for x in numpvers.split('.')]
         if self.numpy_version[0] <= 1 and self.numpy_version[1] < 6:
             print ("MakeHuman requires at least numpy version 1.6")
-            exit (20)
+            sys.exit (20)
 
         self.QT_Info = QTVersion(self.uenv)
         gdebug = GLDebug(self.osindex, False) # not yet initialized
@@ -519,8 +523,10 @@ class programInfo():
         """
         if self.config["redirect_messages"] or log is True:
             self.path_stdout = os.path.join(self.path_error, "makehuman-out.txt")
+            self.oldsysstdout = sys.stdout
             sys.stdout = open(self.path_stdout, "w", encoding=self.encodings[0], errors="replace")
             self.path_stderr = os.path.join(self.path_error, "makehuman-err.txt")
+            self.oldsysstderr = sys.stderr
             sys.stderr = open(self.path_stderr, "w", encoding=self.encodings[0], errors="replace")
         else:
             self.path_stdout= None
@@ -1005,7 +1011,13 @@ class programInfo():
         * close files
         """
         if self.path_stdout:
-            sys.stdout.close()
+            if sys.stdout is not None:
+                sys.stdout.close()
         if self.path_stderr:
-            sys.stderr.close()
+            if sys.stderr is not None:
+                sys.stderr.close()
+        if self.oldsysstdout is not None:
+            sys.stdout = self.oldsysstdout
+        if self.oldsysstderr is not None:
+            sys.stderr = self.oldsysstderr
 

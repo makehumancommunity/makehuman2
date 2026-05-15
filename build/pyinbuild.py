@@ -108,6 +108,7 @@ class pyInstall():
             self.cleanexit(3, "Missing 'reponame' in " + self.conf)
         self.repodir = os.path.join(self.pyinstdir, json_object["reponame"])
         self.distdir = os.path.join(self.repodir, "dist", "makehuman")
+        self.datadir = os.path.join(self.distdir, "data")
 
         if "ignoredirs" in json_object:
             self.ignoredirs = json_object["ignoredirs"]
@@ -171,7 +172,6 @@ class pyInstall():
         source = os.path.join("..", "data")
         l = len(source)
 
-        self.datadir = os.path.join(self.distdir, "data")
         self.mkdir(self.datadir)
     
         for root, dirs, files in os.walk(source, topdown=True):
@@ -287,7 +287,8 @@ class pyInstall():
             print ("+ calling py PyInstaller")
         try:
             if self.isWindows:
-                subprocess.call(["python3", "-m", "PyInstaller", "makehuman.py"], cwd=self.repodir)
+                # subprocess.call(["python3", "-m", "PyInstaller", "--noconsole", "--icon=" + os.path.join(self.datadir, "icons", "makehuman2logo.ico"),  "makehuman.py"], cwd=self.repodir)
+                subprocess.call(["python3", "-m", "PyInstaller", "--noconsole", "makehuman.py"], cwd=self.repodir)
             else:
                 subprocess.call(["pyinstaller", "makehuman.py"], cwd=self.repodir)
         except Exception as e:

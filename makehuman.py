@@ -71,7 +71,7 @@ def main():
     result, message = fstart.createConffile()
     if result > 1:
         print (message)
-        exit (result)
+        sys.exit (result)
 
     # get programInfo as environment (only for strings to be printed in JSON)
     # and globalObjects for non-printable objects
@@ -79,16 +79,16 @@ def main():
     env = programInfo(frozen, syspath, args)
     if not env.environment():
         print (env.last_error)
-        exit (20)
+        sys.exit (20)
 
     if args.version:
         env.showVersion()
-        exit(0)
+        sys.exit(0)
 
     glob = globalObjects(env)
     if not glob.readShaderInitJSON():
         print (env.last_error)
-        exit (21)
+        sys.exit (21)
 
     if args.verbose & 2:
         print (env)
@@ -114,13 +114,13 @@ def main():
         dirnames  = env.getDataDirs("base", env.basename)
         if len(dirnames) == 0:
             print("Base mesh " + env.basename + " does not exist")
-            exit(22)
+            sys.exit(22)
 
     modelfile = None
     if args.model is not None:
         if env.basename is None:
             print("Cannot load a model with undefined base mesh")
-            exit(23)
+            sys.exit(23)
         if not args.model.endswith(".mhm"):
             args.model += ".mhm"
 
@@ -128,7 +128,7 @@ def main():
         modelfile  = env.existDataFile("models", env.basename, args.model)
         if modelfile is None:
             print("File '" + args.model + "' does not exist in: " + str(modelpath))
-            exit(24)
+            sys.exit(24)
 
 
     # splash screen
