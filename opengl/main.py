@@ -363,6 +363,8 @@ class OpenGLView(QOpenGLWidget):
                     obj.drawWireframe(proj_view_matrix, campos, self.scene.black, self.scene.white)
                 else:
                     obj.draw(proj_view_matrix, campos, self.light, showskel | self.xrayed)
+        else:
+            offset = QVector3D(0, 0, 0)
 
         if self.light.skybox and self.skybox and self.camera.cameraPers:
             self.skybox.draw(proj_view_matrix)

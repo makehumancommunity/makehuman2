@@ -15,6 +15,8 @@
 	"ppa-logo": "makehuman2/data/icons/makehuman2logo128.png",
 	"ppa-desktopstarter": "applications/MakeHuman2.desktop",
 	"makehuman2start": "/usr/bin/makehuman2",
+	"pyinstdir": "pyinstaller",
+	"ignorepyinstdirs": [ "__pycache__", "build", "^\\..*", "extern", "data", "docu" ],
 	"pynsistdir": "pynsist-work",
 	"pynsistfile": "pynsist.cfg",
 	"exename": "MakeHuman2",
@@ -22,8 +24,8 @@
 	"reponame": "makehuman2",
 	"remove_ascii_targets": true,
 	"remove_ascii_meshes": true,
-	"ignoredirs": ["__pycache__", "build", "^\\..*"],
-	"ignorefiles": [".*\\.pyc", "^\\..*", ".*\\.mhbin", ".*\\.npz"],
+	"ignoredirs": [ "__pycache__", "build", "^\\..*" ],
+	"ignorefiles": [ ".*\\.pyc", "^\\..*", ".*\\.mhbin", ".*\\.npz" ],
 	"pynsist": {
 		"Application": {
 			"name": "TITLE",
