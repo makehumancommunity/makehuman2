@@ -274,7 +274,7 @@ class AssetPack():
 
                     # subpath is determined from name by splitting after '_'
                     #
-                    subcat = root.split("_")
+                    subcat = category.split("_")
                     folder = os.path.join(dest, "shaders", subcat[1])
                     restdirs = os.sep.join(dirs[1:])
                     destfolder = os.path.join(folder, restdirs)
