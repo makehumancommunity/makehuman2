@@ -291,13 +291,15 @@ class BVH():
         restmatrix[:3,:3] = np.identity(3, dtype=np.float32)
         print ("Frame: " + str(num))
         for joint in self.bvhJointOrder:
-            m = np.round(joint.matrixPoses[num], decimals=3)
+            m = joint.matrixPoses[num]
             if not np.array_equiv(m,restmatrix):
-                s = list(m[:3,:3].flatten())
+                s = m[:3,:3].flatten().astype(float).tolist()
+                s = [round(x, 3) for x in s]
                 if np.count_nonzero(m[:,3]) == 0:
                     print("\"" + joint.name + "\": " + str(s))
                 else:
-                    d = list(m[:3,3].flatten())
+                    d = m[:3,3].flatten().astype(float).tolist()
+                    d = [round(x, 3) for x in d]
                     print("\"" + joint.name + "\": " + str(s) + " d=" + str(d))
 
     def debugJoints(self, name):
