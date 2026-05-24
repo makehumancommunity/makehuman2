@@ -806,6 +806,11 @@ class programInfo():
             (latest, files) = self.getFilesFromAssetFolders(".mhpose", "expressions")
         elif subdir == "poses":
             (latest, files) = self.getFilesFromAssetFolders(".bvh", "poses")
+            (l, f) = self.getFilesFromAssetFolders(".mhpose", "poses")
+            if len(f) > 0:
+                files.extend(f)
+                if l > latest:
+                    latest = l
         elif subdir == "models":
             (latest, files) = self.getFilesFromAssetFolders(".mhm", "models")
         elif subdir == "skins":
