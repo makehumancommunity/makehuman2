@@ -136,7 +136,10 @@ class bvhExport:
         #
         if orig is False:
             for bone in skeleton.bones.values():
-                refmap[bone.reference[0]] = bone.name
+                if len(bone.reference) < 1:
+                    refmap[bone.name] = bone.name
+                else:
+                    refmap[bone.reference[0]] = bone.name
 
         # now assign internal animation (replace None in jointtable)
         #
