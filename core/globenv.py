@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2 2026 v1.2
 
     Classes:
     * globalObjects
@@ -74,6 +74,7 @@ class globalObjects():
         self.parallel = None                # for parallel processing. Should avoid more than one process at the time
         self.lastdownload = None            # will contain the filename of last downloaded file
         self.textSlot = [None, None, None, None, None] # text slots for graphical window
+        self.custom_props_list = []         # "studio" assets
 
     def showSubwindow(self, name, parent, mclass, *params):
         if name not in self.subwindows:
@@ -912,6 +913,35 @@ class programInfo():
                 path = "/".join(path.split("/")[1:])
 
         return path
+
+    def manualScanFolder(self, ftype, suffix, cache_ref, tags=["systemasset"]):
+        """
+        manual scanner for folders
+        :param ftype: the folder type, like "props"
+        :param suffix: the suffix, like .obj
+        :param cache_ref: the cache reference
+        :param tags: tags used for the assets
+        """
+        defaultthumb = os.path.join(self.path_sysicon, "eq_" + str(ftype))
+
+        # check in user folder only
+        path = os.path.join(self.stdUserPath(), ftype)
+        if not os.path.exists(path): 
+            self.logLine(8, f"Directory target path not found: {path}")
+            return
+
+        found_assets = []
+        for f in os.listdir(path):
+            if f.endswith(suffix):
+                obj_path = os.path.join(path, f).replace("\\", "/")
+                thumbfile = obj_path.replace(suffix, ".thumb")
+                if not os.path.exists(thumbfile):
+                    thumbfile = defaultthumb
+                name = f[:-4]
+                uuid = ftype + "_" + name
+                asset = cacheRepoEntry(name, uuid, obj_path, ftype, None, thumbfile, "User", tags)
+                found_assets.append(asset)
+        cache_ref.extend(found_assets)
 
     def dictFillGaps(self, standard, testdict):
         """

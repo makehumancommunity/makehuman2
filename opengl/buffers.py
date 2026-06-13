@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2 2026 V1.1
 
     Classes:
     * OpenGlBuffers
@@ -102,7 +102,7 @@ class RenderedObject:
     :param glbuffers: OpenGlBuffers for this object
     :param pos: position of the object as QVector3D
     """
-    def __init__(self, parent, obj, boundingbox, glbuffers, pos):
+    def __init__(self, parent, obj, boundingbox, glbuffers, pos=QVector3D(0.0, 0.0, 0.0)):
 
         self.parent = parent
         self.glob = parent.glob
@@ -128,7 +128,9 @@ class RenderedObject:
         self.getindex = obj.getOpenGLIndex
 
         self.scale = QVector3D(1, 1, 1)
+        self.x_rotation = 0.0
         self.y_rotation = 0.0
+        self.z_rotation = 0.0
         self.mvp_matrix = QMatrix4x4()
         self.model_matrix = QMatrix4x4()
         self.normal_matrix = QMatrix4x4()
@@ -172,6 +174,7 @@ class RenderedObject:
         else:
             self.shader = self.shaders.getShader("phong")
             self.aomap = self.material.loadAOMap(self.parent.scene.white, modify, self.proxy)
+            self.nomap = self.material.loadNOMap(self.parent.scene.normal, modify, self.proxy)  # allow normal map for phong
 
     def setTexture(self, texture):
         # only used for colors
@@ -180,8 +183,17 @@ class RenderedObject:
     def setPosition(self, pos):
         self.position = pos
 
+    def setScale(self, scale):
+        self.scale = scale
+
+    def setXRotation(self, rot):
+        self.x_rotation = rot
+
     def setYRotation(self, rot):
         self.y_rotation = rot
+
+    def setZRotation(self, rot):
+        self.z_rotation = rot
 
     def geomToShader(self, shader, proj_view_matrix, campos):
         """
@@ -198,8 +210,12 @@ class RenderedObject:
 
         self.model_matrix.setToIdentity()
         self.model_matrix.translate(self.position)
+        if self.x_rotation != 0.0:
+            self.model_matrix.rotate(self.x_rotation, 1.0, 0.0, 0.0)
         if self.y_rotation != 0.0:
             self.model_matrix.rotate(self.y_rotation, 0.0, 1.0, 0.0)
+        if self.z_rotation != 0.0:
+            self.model_matrix.rotate(self.z_rotation, 0.0, 0.0, 1.0)
         self.model_matrix.scale(self.scale)
         self.mvp_matrix = proj_view_matrix * self.model_matrix
 
@@ -300,6 +316,14 @@ class RenderedObject:
             functions.glActiveTexture(gl.GL_TEXTURE1)
             self.aomap.bind()
 
+            if self.material.tex_nomap is None:
+                functions.glUniform1f(shader.uniforms['NoMult'], 0.0)
+            else:
+                functions.glUniform1f(shader.uniforms['NoMult'], self.material.normalmapIntensity)
+            functions.glUniform1i(shader.uniforms['NOTexture'], 4)
+            functions.glActiveTexture(gl.GL_TEXTURE4)
+            self.nomap.bind()
+
         elif self.material.shader == "pbr":
             functions.glUniform1f(shader.uniforms['AOMult'], self.material.aomapIntensity)
 
@@ -334,6 +358,13 @@ class RenderedObject:
                 self.parent.skybox.getTexture().bind()
             else:
                 functions.glUniform1i(shader.uniforms['useSky'], False)
+
+            # glass
+            #
+            functions.glUniform1f(shader.uniforms['transmission'], self.material.transmission)
+            functions.glUniform1f(shader.uniforms['ior'], self.material.ior)
+            functions.glUniform1f(shader.uniforms['glassRoughness'], self.material.glassRoughness)
+            shader.setUniformValue(shader.uniforms['glassColor'], QVector3D(*self.material.glassColor))
 
         self.drawObject()
         self.glReset()
@@ -421,11 +452,11 @@ class RenderedLines:
     def delete(self):
         self.glbuffers.Delete()
 
-    def setYRotation(self, rot):
-        self.y_rotation = rot
-
     def setPosition(self, pos):
         self.position = pos
+
+    def setYRotation(self, rot):
+        self.y_rotation = rot
 
     def draw(self, proj_view_matrix):
         """
@@ -477,7 +508,7 @@ class RenderedSimple:
         self.model_matrix = QMatrix4x4()
         self.normal_matrix = QMatrix4x4()
         self.rotation = QMatrix4x4()
-        self.position = QVector3D(0, 0, 0)
+        self.position = QVector3D(0.0, 0.0, 0.0)
         self.glbuffers = glbuffers
         self.indices = indices
         self.infront = infront
@@ -494,11 +525,11 @@ class RenderedSimple:
     def setScale(self, s):
         self.scale = QVector3D(s, s, s)
 
-    def setRotation(self, rot):
-        self.rotation = QMatrix4x4(rot.flatten().tolist())
-
     def setPosition(self, pos):
         self.position = pos
+
+    def setRotation(self, rot):
+        self.rotation = QMatrix4x4(rot.flatten().tolist())
 
     def delete(self):
         self.glbuffers.Delete()
@@ -510,7 +541,6 @@ class RenderedSimple:
         self.glbuffers.BindBuffersToShader(self.shader)  # VAO etc.
 
         self.model_matrix.setToIdentity()
-        self.model_matrix.translate(self.position)
         self.model_matrix = self.model_matrix * self.rotation
         self.model_matrix.scale(self.scale)
         self.mvp_matrix = proj_view_matrix * self.model_matrix

@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2 2026 V1.2
 
     * class TextureBox
     * class MHMaterialEditor
@@ -228,9 +228,15 @@ class MHMaterialEditor(QWidget):
                 ["metallicFactor", "[PBR] Metal map strength: ",     "[PBR] Metallic Factor: "],
                 ["roughnessFactor", "[PBR] Roughness map strength: ", "[PBR] Roughness Factor: "],
                 ["aomapIntensity", "[PBR/Phong] AO map strength: ",        "[PBR/Phong] Ambient Occlusion: "],
-                ["normalmapIntensity", "Normalmap strength: ",  "--- no effect ---: "],
+                ["normalmapIntensity", "[PBR/Phong] Normalmap strength: ",  "--- no effect ---: "],
                 ["emissiveFactor", "Emission map strength: ",  "Emission value strength: "],
                 ["sp_AdditiveShading", "Litsphere additive shading: ",  "--- no effect ---: "]
+        ]
+
+        self.glass_factors = [
+                ["transmission", "[PBR] Glass Transmission: "],
+                ["ior", "[PBR] Index of Refraction (IOR): "],
+                ["glassRoughness", "[PBR] Glass Frosted Blur: "]
         ]
         self.setWindowTitle("Material Editor")
         self.resize(600, 750)
@@ -241,8 +247,11 @@ class MHMaterialEditor(QWidget):
         self.colorwheel = IconButton(0, colorwheelicon, "colorate", self.colorate, checkable=True)
 
         layout = QVBoxLayout()
+        hlayout = QHBoxLayout()
+        hlayout.addWidget(QLabel("Material name:"))
         self.namebox = QLineEdit(self.material.name)
-        layout.addWidget(self.namebox)
+        hlayout.addWidget(self.namebox)
+        layout.addLayout(hlayout)
 
         scrollContainer = QWidget()
         slayout = QVBoxLayout()
@@ -319,10 +328,38 @@ class MHMaterialEditor(QWidget):
         slayout.addWidget(t)
         self.TBoxes.append(t)
 
-
         t = TextureBox (self, self.object, "Litsphere/Matcap", "sp_litsphereTexture", self.factors[5])
         slayout.addWidget(t)
         self.TBoxes.append(t)
+
+        # glass shader
+        #
+        self.glassGroup = QGroupBox("PBR Glass & Refraction Parameters")
+        self.glassGroup.setObjectName("subwindow")
+        glassLayout = QVBoxLayout()
+
+        # glass tint bubble
+        color_layout = QHBoxLayout()
+        glass_color_label = QLabel("Glass Tint Color: ")
+        self.glassColorButton = ColorButton(self.glob, "Tint: ", self.glassColorChanged)
+        color_layout.addWidget(glass_color_label)
+        color_layout.addWidget(self.glassColorButton)
+        color_layout.addStretch()
+        glassLayout.addLayout(color_layout)
+
+        # create transmission, ior and frosted blurr roughness
+        #
+        self.transmissionSlider = SimpleSlider(self.glass_factors[0][1], 0, 100, self.transmissionChanged, minwidth=250)
+        glassLayout.addWidget(self.transmissionSlider)
+
+        self.iorSlider = SimpleSlider(self.glass_factors[1][1], 100, 250, self.iorChanged, minwidth=250)
+        glassLayout.addWidget(self.iorSlider)
+
+        self.glassRoughnessSlider = SimpleSlider(self.glass_factors[2][1], 0, 100, self.glassRoughnessChanged, minwidth=250)
+        glassLayout.addWidget(self.glassRoughnessSlider)
+
+        self.glassGroup.setLayout(glassLayout)
+        slayout.addWidget(self.glassGroup)
 
         scrollContainer.setLayout(slayout)
         scroll = QScrollArea()
@@ -380,6 +417,16 @@ class MHMaterialEditor(QWidget):
         self.backfacecull.setChecked(self.material.backfaceCull)
         self.alphacov.setChecked(self.material.alphaToCoverage)
 
+        self.transmissionSlider.setSliderValue(self.material.transmission * 100.0)
+        self.iorSlider.setSliderValue(self.material.ior * 100.0)
+        self.glassRoughnessSlider.setSliderValue(self.material.glassRoughness * 100.0)
+
+        # Pull color floats out of memory data structures and update button bubble UI
+        self.glassColorButton.setColorValue(QColor.fromRgbF(*self.material.glassColor))
+
+        # Control sub-panel visibility when moving across different shader profiles
+        self.glassGroup.setVisible(self.material.shader == "pbr")
+
         for t in self.TBoxes:
             t.updateMap(self.object, False)
 
@@ -405,6 +452,7 @@ class MHMaterialEditor(QWidget):
             for shader in self.shadertypes:
                 if m is shader[0]:
                     self.material.shader =  shader[2]
+                    self.glassGroup.setVisible(shader[2] == "pbr")      # glass only for PBR
         if self.checkLitsphere() is False:
             self.updateWidgets(self.object)
         else:
@@ -453,6 +501,24 @@ class MHMaterialEditor(QWidget):
             self.colorwheel.setChecked(False)   # if change, set it back
             self.Tweak()
 
+    # glass callbacks
+    def transmissionChanged(self, value):
+        self.material.transmission = value / 100.0
+        self.Tweak(False)
+
+    def iorChanged(self, value):
+        self.material.ior = value / 100.0
+        self.Tweak(False)
+
+    def glassRoughnessChanged(self, value):
+        self.material.glassRoughness = value / 100.0
+        self.Tweak(False)
+
+    def glassColorChanged(self, color):
+        self.material.glassColor = list(color.getRgbF())[:3]
+        self.Tweak(False)
+
+    # coloration
     def colorate(self):
         if self.colorwheel.isChecked():
             method = self.getColMeth()

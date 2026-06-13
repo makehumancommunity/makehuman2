@@ -1,11 +1,18 @@
 #version 330
+#ifdef GL_KHR_blend_equation_advanced
+#extension GL_ARB_fragment_coord_conventions : enable
+#extension GL_KHR_blend_equation_advanced : enable
+#endif
+#define lowp
+#define mediump
+#define highp
+#line 1
 
 // PBR using the Cook-Torrance microfacet model
 // Trowbridge-Reitz GGX normal distribution function, 1975
 // the term GGX means "ground glass unknown", it is derived from the scattering of glass (volume shading)
 // by Bruce Walter (Microfacet Models for Refraction through Rough Surfaces)
-//
-// changes, programming and fixes: black-punkduck & Elvaerwyn_MH2
+// changes, programming and fixes: black-punkduck, Elvaerwyn_MH2
 
 struct PointLight {
     vec3 position;
@@ -36,6 +43,12 @@ uniform float EmMult;
 uniform float NoMult;
 uniform bool useSky;
 
+// glass
+uniform float transmission;
+uniform float ior;
+uniform float glassRoughness;
+uniform vec3 glassColor;
+
 uniform vec4 ambientLight;
 uniform vec3 viewPos;
 
@@ -43,7 +56,6 @@ uniform PointLight pointLights[3];
 
 const float PI = 3.14159265359;
 const float min_roughness = 0.05;
-const float glossiness = 0.1;
 
 // calculation of normals
 //
@@ -84,17 +96,17 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 }
 
 // smith-shadowing model for microfacet shadows, the Schlick-Beckmann approximation is included not
-// to calculate the roughness twice. 
+// to calculate the roughness twice.
 // input N = normal, V = view, L= light, roughness (0 = smooth)
 
 float GeometrySmith(float NdotV, float NdotL, float roughness)
 {
-	// SchlickGGX for view direction   
+	// SchlickGGX for view direction
 	float r = roughness + 1.0;
-    	float k = (r * r) / 8.0;
+	float k = (r * r) / 8.0;
 	float ggx1 = NdotV / (NdotV * (1.0 - k) + k);
 
-	// SchlickGGX for light direction   
+	// SchlickGGX for light direction
 	float ggx2 = NdotL / (NdotL * (1.0 - k) + k);
 
 	return ggx1 * ggx2;
@@ -123,8 +135,7 @@ vec3 brdf(vec3 n, vec3 V, vec3 L, float rough, vec3 F0, vec3 c_diff, vec3 radian
 	vec3 diffuse = (1.0 - F) * c_diff / PI;
 	vec3 spec = F * G * NDF / (4.0 * nl * nv + 0.001);
 
-	vec3 color = nl * radiance * (diffuse + spec);
-	return color;
+	return nl * radiance * (diffuse + spec);
 }
 
 void main()
@@ -141,12 +152,27 @@ void main()
 	float ao = texture(AOTexture, fs_in.TexCoords).r;
 	float metallic = texture(MRTexture, fs_in.TexCoords).b;
 	float roughness = texture(MRTexture, fs_in.TexCoords).r + min_roughness;
-	vec3  em = texture(EMTexture, fs_in.TexCoords).rgb;
+	vec3 em = texture(EMTexture, fs_in.TexCoords).rgb;
 
 	metallic  = clamp(metallic * (1.0 - MeMult), 0.0, 1.0);
 	roughness = clamp(roughness * RoMult * (1.0 - min_roughness), min_roughness, 1.0);
 
 	vec3 F0 = mix(vec3(min_roughness), color, metallic);
+
+	// Not to destroy normal skin color, only allow a new F0 value, when transmission (glass) is set
+	//
+	if (transmission > 0.01) {
+		// a material is fully dielectric when it has 0 metallic values.
+		// This generates a perfect 1.0 on a non-metallic material and a 0.0 on glass.
+
+		float nonMetal = clamp(1.0 - (metallic + transmission), 0.0, 1.0);
+
+		// When nonMetal = 1.0, force roughness to its absolute maximum
+		roughness = mix(roughness, 1.0, nonMetal);
+
+		// Kill the baseline 4% physical reflection layer only on nonMetal surfaces
+		F0 = mix(F0, vec3(0.0), nonMetal);
+	}
 
 	vec3 c_diff = mix(vec3(0.0), color * (1.0 - min_roughness), 1.0 - metallic);
 
@@ -165,13 +191,13 @@ void main()
 			vec3 L = vec3(0.0);
 			if (pointLights[i].type == 0) {
 				// calculate per-light radiance (point-Light)
-        			L = normalize(lightpos - fs_in.FragPos);
-        			float distance    = length(lightpos - fs_in.FragPos);
-        			// since light is lm/sr, use a factor
-        			attenuation = (pointLights[i].intensity * 50.0) / (distance * distance);
+				L = normalize(lightpos - fs_in.FragPos);
+				float distance = length(lightpos - fs_in.FragPos);
+				// since light is lm/sr, use a factor
+				attenuation = (pointLights[i].intensity * 50.0) / (distance * distance);
 			} else {
 				L = normalize(lightpos);
-        			attenuation = pointLights[i].intensity / 4.0;
+				attenuation = pointLights[i].intensity / 4.0;
 			}
 			vec3 radiance = pointLights[i].color * attenuation;
 
@@ -179,19 +205,20 @@ void main()
 		}
 	}
 
-	vec3 ambientfactor = ambientLight[3] * vec3(ambientLight) * ao * AOMult;
+	vec3 ambientfactor = ambientLight.rgb * vec3(ambientLight.a) * ao * AOMult;
 
 	float NdotV = max(dot(normal, viewDir), 0.0);
 	vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
 	vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
 
 	// cubemap, create some reflection in case of metal
+	vec3 iblSpecular = vec3(0.0);
 	if (useSky) {
 		vec3 R = reflect(-viewDir, normal);
 
 		// SPECULAR IBL: Sample skybox for sharp highlights
-		// Uses roughness to choose a blurrier mipmap level (0 to 7)
-		vec3 iblSpecular = textureLod(skybox, R, metallic * 7.0).bgr;
+		// Uses metallic to choose a blurrier mipmap level (0 to 7)
+		iblSpecular = textureLod(skybox, R, metallic * 7.0).bgr;
 
 		// DIFFUSE IBL: Sample skybox at max blur for soft environment light
 		// work different on metal though
@@ -211,9 +238,57 @@ void main()
 	// emissive map
 	color.rgb += EmMult * em;
 
+	// Glass: using transmission and gaussian noise for frosting
+	//
+	if (transmission > 0.01 && useSky) {
+		// 1. YOUR ORIGINAL, PERFECT, UN-WARPED GLASS PATH (COMPLETELY RESTORED)
+		vec3 refractDir = refract(-viewDir, normal, 1.0 / clamp(ior, 1.0, 2.5));
+		vec3 clearGlass = textureLod(skybox, refractDir, roughness * 7.0).bgr;
+
+		// 2. ISOLATED 2D NOISE SCATTERING (LEAVES THE Z-DEPTH VECTOR COMPLETELY UNTOUCHED)
+		vec3 frostedScatter = vec3(0.0);
+		float totalWeight = 0.0;
+		float spread = glassRoughness * 0.12; // Calibrated 2D blurring boundary
+
+		// Stable analytical sine-wave seed based on the flat texture plane coordinates
+		float seed = sin(dot(fs_in.TexCoords, vec2(12.9898, 78.233))) * 43758.5453;
+
+		for (int s = 1; s <= 16; s++) {
+			// Generate pure pseudo-random 2D circular offsets
+			float angle = fract(sin(seed + float(s) * 1.4142)) * 6.2831853; // Random angle in radians
+			float linearDist = float(s) / 16.0;
+			float radius = spread * sqrt(linearDist); // Balanced concentric step distribution
+
+			// Restrict shifts strictly to a flat 2D tangent coordinate plane
+			vec3 planeOffset = vec3(cos(angle) * radius, sin(angle) * radius, 0.0);
+
+			// GAUSSIAN DISTRIBUTION: Tightly centers the density to erase tracking lines
+			float weight = exp(-3.0 * linearDist * linearDist);
+
+			// Sample the skybox safely without warping the 3D normal vector paths
+			frostedScatter += textureLod(skybox, refractDir + planeOffset, roughness * 7.0).bgr * weight;
+			totalWeight += weight;
+		}
+
+		if (totalWeight > 0.0) {
+			frostedScatter /= totalWeight;
+		} else {
+			frostedScatter = clearGlass;
+		}
+
+		// 3. Smoothly transition based on your frosted slider value
+		vec3 finalGlassOutput = mix(clearGlass, frostedScatter, clamp(glassRoughness * 1.5, 0.0, 1.0));
+
+		// Apply your original texture tint properties cleanly
+		vec3 iblTransmission = finalGlassOutput * (basecolor.rgb * glassColor);
+		color = mix(color, iblTransmission, transmission) + (iblSpecular * F * transmission);
+
+		// now change transparency
+		transp = mix(transp, F.r, transmission);
+	}
+
 	// SOFT-CLIP TONEMAPPER: Keeps things bright but prevents "flat white" blowout
 	color = (color * (1.0 + color / 2.0)) / (1.0 + color);
 
 	FragColor = vec4(clamp(color, 0.0, 1.0), transp);
 }
-
