@@ -12,7 +12,8 @@ import os
 import numpy as np
 
 class objExport:
-    def __init__(self, glob, exportfolder, imagefolder="textures", hiddenverts=False, onground=True, helper=False, normals=False, scale =0.1):
+    def __init__(self, glob, exportfolder, imagefolder="textures", hiddenverts=False, onground=True, helper=False,
+            normals=False, animation=False, saveprops=False, scale=0.1):
 
         self.imagefolder = imagefolder
         self.exportfolder = exportfolder
@@ -24,6 +25,8 @@ class objExport:
         self.lowestPos = 0.0
         self.normals = normals
         self.helper = helper
+        self.animation = animation
+        self.saveprops = saveprops
 
         self.coordlines = []
         self.normlines = []
@@ -38,7 +41,7 @@ class objExport:
 
 
     def copyImage(self, source, dest):
-        self.env.logLine (8, "Need to copy " + source + " to " + dest)
+        self.env.logLine(8, "Need to copy " + source + " to " + dest)
 
         if self.env.mkdir(dest) is False:
             return False
@@ -58,28 +61,31 @@ class objExport:
         return True
 
     def addCoords(self, num, coords):
-        mcoord = np.reshape(coords, (len(coords)//3,3))
+        mcoord = np.reshape(coords, (len(coords)//3, 3))
         for co in mcoord:
-            self.coordlines.append("v %.4f %.4f %.4f\n" % (co[0]*self.scale, co[1]*self.scale -self.lowestPos, co[2]*self.scale))
+            self.coordlines.append("v %.4f %.4f %.4f\n" % (co[0]*self.scale, co[1]*self.scale - self.lowestPos, co[2]*self.scale))
         self.obj[num]["lenV"] = len(mcoord)
 
     def addNormals(self, num, values):
-        mvalues = np.reshape(values, (len(values)//3,3))
+        mvalues = np.reshape(values, (len(values)//3, 3))
         for val in mvalues:
             self.normlines.append("vn %.6f %.6f %.6f\n" % tuple(val))
 
     def addUVCoords(self, num, coords):
-        mcoord = np.reshape(coords, (len(coords)//2,2))
+        mcoord = np.reshape(coords, (len(coords)//2, 2))
         for co in mcoord:
-            self.uvlines.append("vt %.6f %.6f\n" % (co[0], 1.0 -co[1]))
+            self.uvlines.append("vt %.6f %.6f\n" % (co[0], 1.0 - co[1]))
         self.obj[num]["lenUV"] = len(mcoord)
 
     def addFaces(self, num, name, material, vpf, faces, ov):
         self.facelines.append("usemtl " + material.name + "\n")
         self.facelines.append("g " + name + "\n")
+
+        # --- overflow array is defined as pairs
         overflow = {}
-        for l in ov:
-            overflow[l[1]] = l[0]
+        if ov is not None:
+            for l in ov:
+                overflow[l[1]] = l[0]
         x = 0
 
         if self.normals:
@@ -108,10 +114,13 @@ class objExport:
 
     def addMaterial(self, num, material):
         """
-        since OBJ is very old, materials are not always supported, we try to do our best
+        :param num: not used
+        :param material: class material
+            material is a class and the definition (defaults) prevents wrong values.
+            If this is not given all openGL processes would immediately crash
         """
         diff = material.diffuseColor
-        spec = material.diffuseColor
+        spec = material.diffuseColor    # spec color is NOT really supported
         emis = material.emissiveColor
         alpha = 1
 
@@ -124,34 +133,30 @@ class objExport:
         self.matlines.append("Pr %.4g\n" % material.roughnessFactor)
         self.matlines.append("Pm %.4g\n" % material.metallicFactor)
 
-        if hasattr(material, "aomapTexture"):
+        if hasattr(material, "aomapTexture") and material.aomapTexture:
             if self.addImage("map_Ka", material.aomapTexture) is False:
                 return False
 
-        if hasattr(material, "diffuseTexture"):
-            if material.colorationMethod > 0:
-                diffusename = material.saveDiffuse()
-            else:
-                diffusename = material.diffuseTexture
-
+        if hasattr(material, "diffuseTexture") and material.diffuseTexture:
+            diffusename = material.saveDiffuse() if getattr(material, 'colorationMethod', 0) > 0 else material.diffuseTexture
             if self.addImage("map_Kd", diffusename) is False:
                 return False
 
         # metallic roughness are two channels
         #
-        if hasattr(material, "metallicRoughnessTexture"):
+        if hasattr(material, "metallicRoughnessTexture") and material.metallicRoughnessTexture:
             if self.addImage("map_Pr -imfchan g", material.metallicRoughnessTexture) is False:
                 return False
             self.addImage("map_Pm -imfchan b", material.metallicRoughnessTexture, copy=False)
 
-        if hasattr(material, "emissiveTexture"):
+        if hasattr(material, "emissiveTexture") and material.emissiveTexture:
             if self.addImage("map_Ke", material.specularmapTexture) is False:
                 return False
 
         # some software can use Bump map textures as normal maps (e.g. 3Ds MAX)
         # load as Bump use as normal map
 
-        if hasattr(material, "normalmapTexture"):
+        if hasattr(material, "normalmapTexture") and material.normalmapTexture:
             if self.addImage("map_Bump", material.normalmapTexture) is False:
                 return False
 
@@ -215,15 +220,10 @@ class objExport:
         try:
             with open(filename, 'w', encoding="utf-8") as f:
                 f.write(header)
-                for line in self.coordlines:
-                    f.write(line)
-                for line in self.normlines:
-                    f.write(line)
-                for line in self.uvlines:
-                    f.write(line)
-                for line in self.facelines:
-                    f.write(line)
-
+                f.writelines(self.coordlines)
+                f.writelines(self.normlines)
+                f.writelines(self.uvlines)
+                f.writelines(self.facelines)
         except IOError as error:
             self.env.last_error = str(error)
             return False
@@ -232,13 +232,11 @@ class objExport:
         try:
             with open(materialfile, 'w', encoding="utf-8") as f:
                 f.write(matheader)
-                for line in self.matlines:
-                    f.write(line)
+                f.writelines(self.matlines)
 
         except IOError as error:
             self.env.last_error = str(error)
             return False
 
         return True
-                               
 

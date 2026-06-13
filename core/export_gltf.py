@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck, Elvaerwyn_MH2
+    Author: black-punkduck, Elvaerwyn_MH2 V 1.2 2026
 
     Classes:
     * gltfExport
@@ -32,7 +32,8 @@ class gltfExport:
     :param float scale: the scale of the output
     """
 
-    def __init__(self, glob, exportfolder, imagefolder="textures", includetextures=False, hiddenverts=False, onground=True, animation=False, scale =0.1):
+    def __init__(self, glob, exportfolder, imagefolder="textures", includetextures=False, hiddenverts=False,
+            onground=True, animation=False, saveprops=False, scale=0.1):
 
         # subfolder for textures
         #
@@ -44,6 +45,7 @@ class gltfExport:
         self.hiddenverts = hiddenverts
         self.onground = onground
         self.animation = animation
+        self.saveprops = saveprops
         self.scale = scale
         self.lowestPos = 0.0
         self.animYoffset = 0.0
@@ -154,12 +156,8 @@ class gltfExport:
         self.accessor_cnt += 1
 
         cnt = len(coord) // 3
-
         ncoord = np.copy(coord)
-
         meshCoords = np.reshape(ncoord, (cnt,3))
-        if self.lowestPos != 0.0:
-            meshCoords -= [0.0, self.lowestPos, 0.0]
 
         if self.scale != 1.0:
             ncoord = ncoord * self.scale
@@ -674,131 +672,177 @@ class gltfExport:
         self.json["animations"].append({"name": bvh.name, "channels": channels, "samplers": samplers})
 
     def addNodes(self, baseclass):
-        #
-        # add the basemesh itself
-        # then the skeleton and then the assets all these  nodes will be children
-        # here one node will always have one mesh
-        #
-        skin = baseclass.baseMesh.material
-
+        """
+        Populates the glTF scene graph hierarchy.
+        Will safely process standalone workspace props even when a character mesh is not present!
+        """
+        # 1. Safely detect if a valid character mesh exists in the scene
+        has_character = baseclass is not None and getattr(baseclass, 'baseMesh', None) is not None
         baseweights = None
 
-        if baseclass.skeleton is not None:
+        if has_character:
+            skin = baseclass.baseMesh.material
+            if baseclass.skeleton is not None:
+                # Recalculate skeletal skinning weights
+                baseweights = baseclass.default_skeleton.bWeights.transferWeights(baseclass.skeleton)
+                self.json["skins"] = []
 
-            # recalculate weights for different skeleton
-            #
-            baseweights =  baseclass.default_skeleton.bWeights.transferWeights(baseclass.skeleton)
-            self.json["skins"] = []
-
-
-        # in case of a proxy use the proxy as first mesh, get weights for proxy
-        #
-        if baseclass.proxy is not None:
-            proxy = baseclass.attachedAssets[0]
-            if baseweights is not None:
-                proxy.calculateBoneWeights()
-                baseweights = proxy.bWeights.transferWeights(baseclass.skeleton)
-            baseobject = proxy.obj
-            start = 1
-        else:
-            baseobject = baseclass.baseMesh
-            start = 0
-        charactername = self.nodeName(baseobject.filename)
-
-        mat  = self.addMaterial(skin, "skin")   # type skin (not a real asset)
-        if mat == -1:
-            return False
-
-        # in case of onground we need a translation which is then added to the mesh
-        #
-        if self.onground:
-            self.lowestPos = baseclass.getLowestPos()
-
-
-        mesh = self.addMesh(baseobject, mat, baseweights)
-
-        self.json["nodes"].append({"name": charactername, "mesh": mesh,  "children": []  })
-        self.json["scenes"][0]["nodes"].append(0)
-        children = self.json["nodes"][0]["children"]
-
-        childnum = 1
-
-        # add skeleton, if baseweights are available
-        #
-        if baseweights is not None:
-            self.json["nodes"][0]["skin"] = 0
-            if self.scale != 1.0 or self.onground:
-                self.debug("Resizing or repositining, get a new skeleton")
-                skeleton = newSkeleton(self.glob, "copy")
-                skeleton.copyScaled(baseclass.skeleton, self.scale, self.lowestPos, False)
+            if baseclass.proxy is not None:
+                proxy = baseclass.attachedAssets[0]
+                if baseweights is not None:
+                    proxy.calculateBoneWeights()
+                    baseweights = proxy.bWeights.transferWeights(baseclass.skeleton)
+                baseobject = proxy.obj
+                start = 1
             else:
-                skeleton = baseclass.skeleton
-
-            bonename = list(skeleton.bones)[0]
-            bone = skeleton.bones[bonename]
-
-            self.bonestart = childnum
-            children.append(childnum)
-            childnum = self.addBones(bone, childnum)
-            self.addSkins(charactername)
-
-            # now add weights and joints
-            #
-            self.addWeights(0, skeleton, baseobject)
-
-        # add all assets
-        #
-        for elem in baseclass.attachedAssets[start:]:
-
-            current_obj = elem.obj
-
-            # 1. Get the Unique Material Index
-            mat_idx =  self.addMaterial(current_obj.material, elem.type)
-            if mat_idx == -1:
+                baseobject = baseclass.baseMesh
+                start = 0
+                
+            charactername = self.nodeName(baseobject.filename)
+            mat = self.addMaterial(skin, "skin")
+            if mat == -1:
                 return False
 
-            # 2. Calculate and Transfer Weights BEFORE adding the mesh
-            weights = None
+            if self.onground:
+                self.lowestPos = baseclass.getLowestPos()
+
+            mesh = self.addMesh(baseobject, mat, baseweights)
+            
+            # --- THE PLASTIC MAN FIX ---
+            # Instead of changing internal bones or subtracting vertices separately,
+            # we shift the parent node. In glTF, +Y is Up. Shifting the translation array 
+            # here pushes the model to sit on top of the ground plane (Y=0) without breaking skin weights.
+            if self.onground and self.lowestPos != 0.0:
+                char_translation = [0.0, -self.lowestPos * self.scale, 0.0]
+            else:
+                char_translation = [0.0, 0.0, 0.0]
+
+            self.json["nodes"].append({
+                "name": charactername, 
+                "mesh": mesh, 
+                "children": [],
+                "translation": char_translation # Shifts mesh and root bone concurrently!
+            })
+            
+            # Safely append the parent node to the scene structure
+            if "nodes" not in self.json["scenes"][0]:
+                self.json["scenes"][0]["nodes"] = []
+            self.json["scenes"][0]["nodes"].append(len(self.json["nodes"]) - 1)
+
+            children = self.json["nodes"][0]["children"]
+            childnum = 1
+
+            # Keep skeleton structure unchanged to prevent weight explosions
             if baseweights is not None:
-                elem.calculateBoneWeights()
-                weights = elem.bWeights.transferWeights(baseclass.skeleton)
+                self.json["nodes"][0]["skin"] = 0
+                if self.scale != 1.0:
+                    self.debug("Resizing skeleton")
+                    skeleton = newSkeleton(self.glob, "copy")
+                    skeleton.copyScaled(baseclass.skeleton, self.scale, 0.0, False)
+                else:
+                    skeleton = baseclass.skeleton
 
-            # 3. Add the Mesh now using the correctly calculated weights
-            mesh_idx = self.addMesh(current_obj, mat_idx, weights)
+                bonename = list(skeleton.bones)[0]
+                bone = skeleton.bones[bonename]
 
-            # 4. Create the Node
-            self.json["nodes"].append({"name": self.nodeName(elem.filename), "mesh": mesh_idx })
-            this_node_idx = len(self.json["nodes"]) - 1
-            children.append(this_node_idx)
+                self.bonestart = childnum
+                children.append(childnum)
+                childnum = self.addBones(bone, childnum)
+                self.addSkins(charactername)
+                self.addWeights(0, skeleton, baseobject)
 
-            # 5. Link the Skin
-            if baseweights is not None:
-                self.json["nodes"][this_node_idx]["skin"] = 0
-                self.addWeights(this_node_idx, elem, current_obj)
+            # Process human assets attached directly to the base skeleton loop tracks
+            assets_pool = baseclass.attachedAssets[start:] if hasattr(baseclass, 'attachedAssets') else []
+            for elem in assets_pool:
+                current_obj = elem.obj
+                mat_idx = self.addMaterial(current_obj.material, elem.type)
+                if mat_idx == -1: return False
 
-        # add animation, if any
-        #
-        if self.animation and baseweights is not None and baseclass.bvh:
+                weights = None
+                if baseweights is not None:
+                    elem.calculateBoneWeights()
+                    weights = elem.bWeights.transferWeights(baseclass.skeleton)
 
-            # modify internal bones with corrections
-            #
+                mesh_idx = self.addMesh(current_obj, mat_idx, weights)
+                self.json["nodes"].append({"name": self.nodeName(elem.filename), "mesh": mesh_idx})
+                this_node_idx = len(self.json["nodes"]) - 1
+                children.append(this_node_idx)
+
+                if baseweights is not None:
+                    self.json["nodes"][this_node_idx]["skin"] = 0
+                    self.addWeights(this_node_idx, elem, current_obj)
+        else:
+            self.json["nodes"].append({"name": "Scene_Root_Props_Only", "children": []})
+            if "nodes" not in self.json["scenes"][0]:
+                self.json["scenes"][0]["nodes"] = []
+            self.json["scenes"][0]["nodes"].append(0)
+
+        # Extract and translate your custom scene props independently
+        if self.saveprops:
+            custom_pool = self.glob.custom_props_list
+        """
+        for prop in custom_pool:
+            if hasattr(prop, 'mesh_reference') and prop.mesh_reference:
+                current_obj = prop.mesh_reference.obj
+                if not current_obj:
+                    continue
+
+                mat_idx = self.addMaterial(current_obj.material, "props")
+                if mat_idx == -1:
+                    return False
+
+                mesh_idx = self.addMesh(current_obj, mat_idx, None)
+
+                prop_node = {
+                    "name": getattr(prop, 'name', 'prop_asset'),
+                    "mesh": mesh_idx
+                }
+
+                # TODO: position. rotation etc. should be calculated in routines in a math module!!
+
+                if hasattr(prop, 'position'):
+                    prop_node["translation"] = [float(p) * self.scale for p in prop.position]
+                if hasattr(prop, 'rotation'):
+                    try:
+                        angles = np.radians(np.array(prop.rotation, dtype=float))
+                        cx, cy, cz = np.cos(angles / 2.0)
+                        sx, sy, sz = np.sin(angles / 2.0)
+
+                        qx = sx * cy * cz - cx * sy * sz
+                        qy = cx * sy * cz + sx * cy * sz
+                        qz = cx * cy * sz - sx * cy * sz
+                        qw = cx * cy * cz + sx * sy * sz
+
+                        prop_node["rotation"] = [float(qx), float(qy), float(qz), float(qw)]
+                    except Exception as rot_err:
+                        prop_node["rotation"] = [0.0, 0.0, 0.0, 1.0]
+                if hasattr(prop, 'scale'):
+                    prop_node["scale"] = [float(s) for s in prop.scale]
+
+                self.json["nodes"].append(prop_node)
+                new_node_idx = len(self.json["nodes"]) - 1
+                
+                if "scenes" in self.json and len(self.json["scenes"]) > 0:
+                    if "nodes" not in self.json["scenes"][0]:
+                        self.json["scenes"][0]["nodes"] = []
+                    self.json["scenes"][0]["nodes"].append(new_node_idx)
+        """
+
+        # Handle animations safely if a baseline human remains active in view loops
+        if has_character and self.animation and baseweights is not None and baseclass.bvh:
             baseclass.bvh.modCorrections()
-
-            # TODO offset might be used different, when anim editor is completed
-            #
             self.animYoffset = baseclass.skeleton.rootLowestDistance(baseclass.bvh.joints, 0, baseclass.bvh.frameCount) + self.lowestPos
-
             if baseclass.skeleton == baseclass.default_skeleton:
                 self.addAnimations(skeleton, baseclass.bvh, True)
             else:
-                self.debug ("Animation will be posed by references")
+                self.debug("Animation will be posed by references")
                 self.addAnimations(skeleton, baseclass.bvh, False)
-
             baseclass.bvh.identFinal()
 
         self.json["buffers"].append({"byteLength": self.bufferoffset})
         self.env.logLine(32, str(self))
         return True
+
 
 
     def binSave(self, baseclass, filename):

@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2 2026 V1.2
 
     Classes:
     * Material
@@ -56,6 +56,13 @@ class Material:
         self.description = None
         self.aomapIntensity = 1.0
         self.normalmapIntensity = 1.0
+
+        # glass components
+        #
+        self.transmission = 0.0
+        self.ior = 1.00
+        self.glassRoughness = 0.05 # Baseline default smooth glass
+        self.glassColor = [1.0, 1.0, 1.0] # Clear white glass tint
 
     def copy(self, source):
         """
@@ -178,15 +185,21 @@ class Material:
 
             # colors
             #
-            elif key in ["ambientColor", "diffuseColor", "emissiveColor", "specularColor", "colorationColor" ]:
+            elif key in ["ambientColor", "diffuseColor", "emissiveColor", "specularColor", "colorationColor", "glassColor" ]:
                 setattr (self, key, [float(w) for w in words[1:4]])
 
             # intensities (all kind of floats)
             #
-            elif key in ["normalmapIntensity", "roughnessFactor", "metallicFactor", "emissiveFactor" ]:
+            elif key in ["normalmapIntensity", "roughnessFactor", "metallicFactor", "emissiveFactor", "transmission", "glassRoughness" ]:
                 setattr (self, key, max(0.0, min(1.0, float(words[1]))))
                 if key == "roughnessFactor":
                     self.mr_found = True
+
+            # ior with different boundaries
+            #
+            elif key == "ior":
+                self.ior = max(1.0, min(2.5, float(words[1])))
+
 
             # aomap is used different to intensify light
             #
@@ -314,6 +327,14 @@ class Material:
         else:
             coloration = ""
 
+        # save glass values only for pbr and when transmission > 0
+        #
+        if self.shader == "pbr" and self.transmission > 0:
+            glass = "transmission " + str(self.transmission) + "\nior " + str(self.ior) + "\nglassRoughness " + str(self.glassRoughness) + \
+                    f"\nglassColor  {self.glassColor[0]} {self.glassColor[1]} {self.glassColor[2]}\n"
+        else:
+            glass = ""
+
         try:
             fp = open(path, "w", encoding="utf-8", errors='ignore')
         except IOError as err:
@@ -335,7 +356,7 @@ transparent {self.transparent}
 alphaToCoverage {self.alphaToCoverage}
 backfaceCull {self.backfaceCull}
 
-{diffuse}{normal}{occl}{metrough}{emissive}{coloration}
+{diffuse}{normal}{occl}{metrough}{emissive}{coloration}{glass}
 
 {shader}{litsphere}
 

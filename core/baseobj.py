@@ -665,10 +665,15 @@ class baseClass():
     def restPose(self):
         self.pose_skeleton.restPose()
 
-    def showPose(self):
+    def showPose(self, frame=None):
+        """
+        shows pose of a certain frame. If frame is none, bvh.currentFrame is used.
+        :param frame: frame number or none
+        """
         if self.bvh:
-            self.pose_skeleton.pose(self.bvh.joints, self.bvh.currentFrame)
-            #self.bvh.debugChanged(self.bvh.currentFrame)
+            frame = self.bvh.currentFrame if frame is None else frame
+            self.pose_skeleton.pose(self.bvh.joints, frame)
+            #self.bvh.debugChanged(frame)
         elif self.posemodifier:
             self.showPoseModifiers()
         self.glob.openGLWindow.Tweak()

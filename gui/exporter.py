@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2 2026 V1.2
 
     Classes:
     * ExporterValues
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from gui.poseactions import AnimMode
 from gui.common import DialogBox, ErrorBox, IconButton, MHFileRequest
+from gui.slider import SimpleSlider
 from core.export_gltf import gltfExport
 from core.export_stl import stlExport
 from core.export_obj import objExport
@@ -40,6 +41,7 @@ class ExporterValues():
         self.normals = True
         self.inpose = False
         self.animation = False
+        self.save_props = False  # prepared for props
 
 class ExportLeftPanel(QVBoxLayout):
     """
@@ -50,6 +52,7 @@ class ExportLeftPanel(QVBoxLayout):
         self.glob = parent.glob
         self.env = self.glob.env
         self.bc  = parent.glob.baseClass
+        self.bvh = self.bc.bvh
         self.animmode = None        # will keep animation mode
         self.values = self.glob.guiPresets["Exporter"]
         etype = self.values.export_type
@@ -96,7 +99,8 @@ class ExportLeftPanel(QVBoxLayout):
         self.binsave.setLayoutDirection(Qt.LeftToRight)
         self.binsave.toggled.connect(self.changeBinary)
         self.binsave.setChecked(self.values.binmode)
-        self.binsave.setToolTip('Some exports offer binary and ASCII modes, binary mode is usually faster and smaller')
+        # stl also has an ASCII mode
+        self.binsave.setToolTip('Some exports offer binary and ASCII modes, binary mode is usually faster and smaller<br>e.g. Unchecked = readable text-based .gltf, Checked = packed self-contained binary .glb archive')
         self.addWidget(self.binsave)
 
         self.binimg= QCheckBox("pack textures into file")
@@ -120,6 +124,12 @@ class ExportLeftPanel(QVBoxLayout):
         self.posed.setToolTip('Export character posed instead of default pose (set pose in animation)')
         self.addWidget(self.posed)
 
+        if self.bvh and self.bvh.frameCount > 1:
+            self.frameSlider = SimpleSlider("Frame number: ", 0, self.bvh.frameCount-1, self.frameChanged, minwidth=250)
+            self.frameSlider.setSliderValue(self.bvh.currentFrame)
+            self.frameSlider.setEnabled(True)
+            self.addWidget(self.frameSlider)
+
         self.hverts= QCheckBox("save hidden vertices")
         self.hverts.setLayoutDirection(Qt.LeftToRight)
         self.hverts.toggled.connect(self.changeHVerts)
@@ -133,7 +143,14 @@ class ExportLeftPanel(QVBoxLayout):
         self.anim.setChecked(self.values.animation)
         self.anim.setToolTip('Append animation to export [also includes corrections]<br>Skeleton and animation must be selected.')
         self.addWidget(self.anim)
-        
+
+        self.props_toggle = QCheckBox("save custom studio props")
+        self.props_toggle.setLayoutDirection(Qt.LeftToRight)
+        self.props_toggle.toggled.connect(self.changePropsToggle)
+        self.props_toggle.setChecked(self.values.save_props)
+        self.props_toggle.setToolTip('TODO: Include custom scene props and room layout assets in your final 3D file export')
+        self.addWidget(self.props_toggle)
+
         self.helperw= QCheckBox("save helper")
         self.helperw.setLayoutDirection(Qt.LeftToRight)
         self.helperw.toggled.connect(self.changeHelper)
@@ -163,32 +180,51 @@ class ExportLeftPanel(QVBoxLayout):
         #
         self.setExportType(etype)
 
+    def changePropsToggle(self, param):
+        self.values.save_props = param
+
     def leave(self):
         if self.animmode is not None:
             self.animmode.leave()
 
+    def setFrame(self, value):
+        if self.bvh is None or value < 0 or value >= self.bvh.frameCount:
+            return
+
+        self.bvh.currentFrame = value
+        self.bc.showPose()
+
+    def frameChanged(self, value):
+        self.setFrame(int(value))
+
     def setExportType(self, etype):
         common = "MakeHuman works with unit decimeter. "
-        expAttrib = { ".stl":  {"tip": common + "STL files are unit less. When working with printers 1 unit equals 1 millimeter (preset scale 1:10)",
+        expAttrib = {
+            ".stl":  {"tip": common + "STL files are unit less. When working with printers 1 unit equals 1 millimeter (preset scale 1:10)",
                 "num": 3, "binset": True, "binmode": "both", "imgset": False, "imgmode": False, "hiddenset": True, "hiddenmode": False,
                 "animset": False, "animmode": False, "poseset": True, "posemode": False,
-                "helpset": False, "helpmode": False, "normset": False, "normmode": False},
+                "helpset": False, "helpmode": False, "normset": False, "normmode": False,
+                "customset": False, "custommode": False},
             ".glb": { "tip": common + "GLB/GLTF units are usually meters",
                 "num": 0, "binset": False, "binmode": True, "imgset": True, "imgmode": "both", "hiddenset": True, "hiddenmode": False,
                 "animset": True, "animmode": False, "poseset": False, "posemode": False,
-                "helpset": False, "helpmode": False, "normset": False, "normmode": True},
+                "helpset": False, "helpmode": False, "normset": False, "normmode": True,
+                "customset": True, "custommode": False},
             ".mh2b": { "tip": common + "Blender units are usually meters",
                 "num": 0, "binset": False, "binmode": True, "imgset": False, "imgmode": False, "hiddenset": True, "hiddenmode": False,
                 "animset": True, "animmode": False, "poseset": False, "posemode": False,
-                "helpset": False, "helpmode": False, "normset": False, "normmode": False},
+                "helpset": False, "helpmode": False, "normset": False, "normmode": False,
+                "customset": False, "custommode": False},
             ".obj": { "tip": common + "Wavefront units are usually meters",
                 "num": 0, "binset": False, "binmode": False, "imgset": False, "imgmode": False, "hiddenset": True, "hiddenmode": False,
-                "animset": False, "animmode": False, "poseset": False, "posemode": False,
-                "helpset": True, "helpmode": False, "normset": True, "normmode": False},
+                "animset": False, "animmode": False, "poseset": True, "posemode": False,
+                "helpset": True, "helpmode": False, "normset": True, "normmode": False,
+                "customset": True, "custommode": False},
             ".bvh": { "tip": common + "BVH units are usually the same as the internal scale",
                 "num": 0, "binset": False, "binmode": False,  "imgset": False, "imgmode": False, "hiddenset": False, "hiddenmode": False,
                 "animset": False, "animmode": True, "poseset": False, "posemode": False,
-                "helpset": False, "helpmode": False, "normset": False, "normmode": False}
+                "helpset": False, "helpmode": False, "normset": False, "normmode": False,
+                "customset": False, "custommode": False},
             }
 
 
@@ -208,6 +244,7 @@ class ExportLeftPanel(QVBoxLayout):
             self.values.normals = attr["normmode"]
             self.values.inpose = attr["posemode"]
             self.values.animation = attr["animmode"]
+            self.values.save_props = attr["custommode"]
 
         self.newfilename()
         self.newfoldername()
@@ -226,6 +263,14 @@ class ExportLeftPanel(QVBoxLayout):
 
         self.norm.setChecked(self.values.normals)
         self.norm.setEnabled(attr["normset"])
+
+        # in case of no props
+        if len(self.glob.custom_props_list) == 0:
+            self.props_toggle.setChecked(False)
+            self.props_toggle.setEnabled(False)
+        else:
+            self.props_toggle.setChecked(self.values.save_props)
+            self.props_toggle.setEnabled(attr["customset"])
 
         if self.bc.bvh is None or self.bc.skeleton is None:
             self.anim.setChecked(False)
@@ -293,12 +338,11 @@ class ExportLeftPanel(QVBoxLayout):
 
     def newfilename(self):
         """
-        not empty, always ends with export type
+        not empty, always ends with export type,
+        gltf ASCII mode is NOT supported (so only glb)
         """
-        text = self.filename.text()
-        if not text.endswith(self.values.export_type):
-            text = os.path.splitext(text)[0]
-            self.filename.setText(text + self.values.export_type)
+        base = os.path.splitext(self.filename.text())[0]
+        self.filename.setText(base + self.values.export_type)
 
     def newtexfolder(self):
         """
@@ -329,12 +373,12 @@ class ExportLeftPanel(QVBoxLayout):
                 return
 
         current = self.scalebox.currentIndex()
-        scale = self.scale_items[current][0]
+        scale = float(self.scale_items[current][0])
 
         etype = self.values.export_type
         if etype == ".glb":
             gltf = gltfExport(self.glob, folder, texfolder, self.values.imgmode, self.values.savehiddenverts,
-                    self.values.onground,  self.values.animation, scale)
+                    self.values.onground,  self.values.animation, self.values.save_props, scale)
             success = gltf.binSave(self.bc, path)
 
         elif etype == ".stl":
@@ -351,7 +395,7 @@ class ExportLeftPanel(QVBoxLayout):
 
         elif etype == ".obj":
             obj = objExport(self.glob, folder, texfolder, self.values.savehiddenverts,
-                    self.values.onground, self.values.helper, self.values.normals, scale)
+                    self.values.onground, self.values.helper, self.values.normals, self.values.save_props, scale)
             success = obj.ascSave(self.bc, path)
 
         elif etype == ".bvh":
@@ -363,7 +407,7 @@ class ExportLeftPanel(QVBoxLayout):
             return
 
         if success:
-            QMessageBox.information(self.parent, "Done!", "Character exported as " + path)
+            QMessageBox.information(self.parent, "Done!", "Successful exported as " + path)
         else:
             ErrorBox(self.parent, self.env.last_error)
 
@@ -377,10 +421,10 @@ class ExportRightPanel(QVBoxLayout):
         self.leftPanel = connector
         self.exportimages = [
                 { "button": None, "icon": "gltf_sym.png", "tip": "export as GLTF2/GLB", "func": self.exportgltf},
-                { "button": None, "icon": "stl_sym.png", "tip": "export as STL (Stereolithography)", "func": self.exportstl},
-                { "button": None, "icon": "blend_sym.png", "tip": "export as MH2B (Blender)", "func": self.exportmh2b},
-                { "button": None, "icon": "wavefront_sym.png", "tip": "export as OBJ (Wavefront)", "func": self.exportobj},
-                { "button": None, "icon": "bvh_sym.png", "tip": "export animation/pose as BVH (BioVision Hierarchy)\nOrientation: Y forward, Z up", "func": self.exportbvh}
+                { "button": None, "icon": "stl_sym.png", "tip": "export as STL<br>(Stereolithography)", "func": self.exportstl},
+                { "button": None, "icon": "blend_sym.png", "tip": "export as MH2B<br>(Blender)", "func": self.exportmh2b},
+                { "button": None, "icon": "wavefront_sym.png", "tip": "export as OBJ<br>(Wavefront)", "func": self.exportobj},
+                { "button": None, "icon": "bvh_sym.png", "tip": "export animation/pose as BVH<br>(BioVision Hierarchy)\nOrientation: Y forward, Z up", "func": self.exportbvh}
         ]
         for n, b in enumerate(self.exportimages):
             b["button"] = IconButton(n, os.path.join(self.env.path_sysicon, b["icon"]), b["tip"], b["func"], 130, checkable=True)
