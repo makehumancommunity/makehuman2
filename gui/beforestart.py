@@ -52,6 +52,8 @@ Hint: The top folder will always be 'makehuman2'.
         layout.addWidget(self.ql_path_home)
         olayout.addLayout(layout)
 
+        self.errorTest = QLabel()
+        olayout.addWidget(self.errorTest)
         layout = QHBoxLayout()
         abort = QPushButton("Abort")
         abort.clicked.connect(self.abortCall)
@@ -84,6 +86,22 @@ Hint: The top folder will always be 'makehuman2'.
         if name is not None:
             self.testHomePath(name)
 
+    def testWritable(self, path):
+        """
+        try to write a test file
+        """
+        filepath = os.path.join(path, ".makehumantest.txt")
+        try:
+            with open(filepath, "w") as f:
+                f.write("Test")
+
+        except:
+            self.errorTest.setText("<font color='orange'>" + path + " is not writable for this user. It cannot be used.</font>")
+            return False
+        os.remove(filepath)
+        self.errorTest.setText(path + " is writable and can be used.")
+        return True
+
     def testHomePath(self, name=None):
         """
         test the pathname, it should not be equal to installation path and longer than 3
@@ -96,6 +114,10 @@ Hint: The top folder will always be 'makehuman2'.
             up = self.old_homepath
         if not up.endswith("makehuman2"):
             up = os.path.join(up, "makehuman2")
+        dest = os.path.dirname(up)
+        if not self.testWritable(dest):
+            up = self.old_homepath
+
         self.old_homepath = up
         self.ql_path_home.setText(up)
 
