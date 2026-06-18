@@ -33,6 +33,11 @@ class Material:
         self.tex_nomap = None
         self.tex_mrmap = None
         self.tex_emmap = None
+        # reset keys
+        for key in ["diffuseTexture", "normalmapTexture", "aomapTexture", "metallicRoughnessTexture",
+                "emissiveTexture", "sp_litsphereTexture"]:
+            if hasattr(self, key):
+                delattr(self, key)
         self.colorationOldColor = [1.0, 1.0, 1.0 ]
         self.colorationOldMethod= 0
         self.colorationMethod = 0 # 0: off, 1: hue-to-fixed, 2: desaturate + color multiply
@@ -369,25 +374,62 @@ backfaceCull {self.backfaceCull}
     def getCurrentMatFilename(self):
         return self.filename
 
-    def listAllMaterials(self, objdir = None):
-        if objdir is None:
-            objdir = self.mhmatdir
-        
-        materialfiles=[]
+    def _getMaterialList(self, objdir, mlist):
+        found = False
         for (root, dirs, files) in  os.walk(objdir):
             for name in files:
                 if name.endswith(".mhmat"):
-                    materialfiles.append(os.path.join(root, name))
+                    mlist.append(os.path.join(root, name))
+                    found = True
 
         # second way is a parallel materials folder for common materials
         #
-        if len( materialfiles) == 0:
+        if found is False:
             objdir = os.path.join(os.path.dirname(objdir), "materials")
             for (root, dirs, files) in  os.walk(objdir):
                 for name in files:
                     if name.endswith(".mhmat"):
-                        materialfiles.append(os.path.join(root, name))
+                        mlist.append(os.path.join(root, name))
+        return mlist
 
+    def listAllMaterials(self, objdir = None):
+        if objdir is None:
+            objdir = self.mhmatdir
+
+        materialfiles=[]
+        materialfiles = self._getMaterialList(objdir, materialfiles)
+
+        # eyes can be special, when no extra mesh is in user section
+        # if we already found materials and these are in system folder
+        # check user folder as well
+        if self.type == "eyes":
+            sysstart = self.env.stdSysPath()
+            if len(materialfiles) > 0:
+                if materialfiles[0].startswith(sysstart):
+                    path = os.path.join(self.env.stdUserPath(self.type))
+                    materialfiles = self._getMaterialList(path, materialfiles)
+
+                    # create a set from the names and keep duplicates
+                    #
+                    names = set()
+                    double = []
+                    for item in materialfiles:
+                        b = os.path.basename(item)
+                        if b in names:
+                            double.append(b)
+                        else:
+                            names.add(b)
+
+                    # and delete duplicates with system
+                    # collect these and delete them
+                    rem = []
+                    if len(double) > 0:
+                        for item in materialfiles:
+                            b = os.path.basename(item)
+                            if item.startswith(sysstart) and b in double:
+                                rem.append(item)
+                    for item in rem:
+                        materialfiles.remove(item)
         return materialfiles
 
     def colorate(self):

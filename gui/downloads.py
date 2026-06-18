@@ -126,11 +126,18 @@ class DownLoadImport(QVBoxLayout):
             ilayout.addWidget(self.systembutton)
 
 
-        ilayout.addWidget(QLabel("\nAfter download use the filename inserted by\nprogram or type in a name of an already\ndownloaded asset pack and press extract:"))
+        ilayout.addWidget(QLabel("\nAfter download use the filename inserted by\nprogram or select an already downloaded\nasset pack and press extract:"))
+
+        #  enter zip file name
+        hlayout = QHBoxLayout()
+        self.zipfilebuttton = IconButton(0, os.path.join(self.env.path_sysicon, "files.png"), "Select zip file.", self.searchzipfile, 16)
+        hlayout.addWidget(self.zipfilebuttton)
+
         self.filename = QLineEdit("")
         self.filename.editingFinished.connect(self.fnameinserted)
         self.filename.setText(self.parent.glob.lastdownload)
-        ilayout.addWidget(self.filename)
+        hlayout.addWidget(self.filename)
+        ilayout.addLayout(hlayout)
 
         self.savebutton=QPushButton("Extract")
         self.savebutton.clicked.connect(self.extractZip)
@@ -144,6 +151,14 @@ class DownLoadImport(QVBoxLayout):
         self.addWidget(gb)
         self.packinserted()
         self.fnameinserted()
+
+    def searchzipfile(self):
+        print ("search zip file called")
+        freq = MHFileRequest(self.glob, "Select zipfile", "compressed file (*.zip)", "")
+        name = freq.request()
+        if name is not None:
+            self.filename.setText(name)
+            self.fnameinserted()
 
     def defaultList(self):
 

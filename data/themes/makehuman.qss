@@ -106,6 +106,15 @@ QPushButton::disabled {
     padding: 4px;
 }
 
+QPushButton#colnum1 {
+    color: white;
+    background-color: #2b5c8f;
+    font: bold 14px;
+    border: 3px solid #989898;
+    border-radius: 6px;
+    padding: 5px;
+}
+
 /* --- Menu & Navigation --- */
 QMenuBar {
     background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,

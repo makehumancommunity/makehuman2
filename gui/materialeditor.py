@@ -253,6 +253,11 @@ class MHMaterialEditor(QWidget):
         hlayout.addWidget(self.namebox)
         layout.addLayout(hlayout)
 
+        self.loadMatButton = QPushButton("Import / Choose .mhmat File...")
+        self.loadMatButton.setObjectName("colnum1")
+        self.loadMatButton.clicked.connect(self.chooseMaterialFile)
+        layout.addWidget(self.loadMatButton)
+
         scrollContainer = QWidget()
         slayout = QVBoxLayout()
 
@@ -530,6 +535,22 @@ class MHMaterialEditor(QWidget):
 
         self.material.colorate()
         self.Tweak()
+
+    def chooseMaterialFile(self):
+        directory = self.material.mhmatdir
+        freq = MHFileRequest(self.glob, "Material (MHMAT)", "material files (*.mhmat)", directory)
+        filename = freq.request()
+        if filename is not None:
+            # free textures
+            for tbox in self.TBoxes:
+                if hasattr(self.material, tbox.attrib):
+                    self.material.freeTexture(tbox.attrib)
+
+            # for all terms not contained in material file use default
+            self.material.default()
+
+            self.material.loadMatFile(filename)
+            self.updateWidgets(self.object)
 
     def save_call(self):
         if self.checkLitsphere() is False:

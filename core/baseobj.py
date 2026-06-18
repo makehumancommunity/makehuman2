@@ -215,7 +215,7 @@ class baseClass():
         for elem in loaded.attached:
             # print (self.env.basename, elem.type, elem.name, elem.relmaterial, elem.path)
             if elem.path is None:
-                self.env.logLine(8, elem.name  + " no path available")
+                self.env.logLine(8, "asset: " + elem.name  + " is not available neither in system nor in user path")
             elif elem.relmaterial is not None:
                 matfilename = self.env.existFileInBaseFolder(self.env.basename, elem.type, elem.path, elem.relmaterial)
                 if matfilename is not None:

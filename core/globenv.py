@@ -533,7 +533,10 @@ class programInfo():
             self.path_stdout= None
             self.path_stderr= None
 
-    def stdSysPath(self, category, filename=None):
+    def stdSysPath(self, category=None, filename=None):
+        if category is None:
+            return self.path_sysdata
+
         if self.basename is not None:
             if filename:
                 return os.path.join(self.path_sysdata, category, self.basename, filename)
