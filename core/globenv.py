@@ -275,7 +275,7 @@ class programInfo():
 
     def helpVerbose(self):
         verbosedefinition = [(1, "low log level"), (2, "mid log level"), (4, "memory management"),
-            (8, "file access"), (16, "high level and numpy runtime error messages"),
+            (8, "file access"), (16, "high level runtime messages (e.g. shaders)"),
             (32, "JSON (e.g glTF) or to get lines for face or body poses when loading bvh file")]
         return verbosedefinition
 

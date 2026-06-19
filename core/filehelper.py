@@ -159,16 +159,16 @@ class FileHelper():
 
     def getCacheDataMHM(self, path, folder):
         """
-        scan MHM files for models
+        scan MHM files for models, since name can be identical and uuid is not always regenerated
+        filename without extension will be uuid, otherwise files are not found
 
         :param path: path name
         :param folder: folder as category
         :return: data entry for fileCache or None in case of error
         """
-
+        fname = os.path.basename(os.path.splitext(path)[0])
         with open(path, 'r') as fp:
             thumbfile = self.hasThumb(path)
-            uuid = 0
             name = None
             author = "unknown"
             tags = []
@@ -183,13 +183,12 @@ class FileHelper():
                     name = " ".join(words[1:])
                 if words[0] == "author":        # last words joined
                     author = " ".join(words[1:])
-                elif words[0] == "uuid":        # always second word
-                    uuid = words[1]
                 elif "tags" in line:
                     tags =" ".join(words[1:]).split(";")
 
+            uuid = fname
             if name is None:                    # worst case take filename for name
-                name = os.path.basename(os.path.splitext(path)[0])
+                name = fname
 
             mtags = "|".join(tags)
             return [name, uuid, path, folder, None, thumbfile, author, mtags]

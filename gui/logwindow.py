@@ -7,7 +7,7 @@
 """
 
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
         QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QPushButton, QListWidgetItem, QRadioButton,
         QGroupBox, QCheckBox, QLineEdit, QGridLayout
@@ -25,6 +25,7 @@ class MHLogWindow(QWidget):
         super().__init__()
         self.parent = parent
         self.env = parent.env
+        self.redispdata = True
         self.f_displayed = self.env.path_stdout
         self.f_match = re.compile(r"^\[(\d+)\]\s+")
         self.setWindowTitle("Messages")
@@ -42,15 +43,22 @@ class MHLogWindow(QWidget):
 
         hlayout = QHBoxLayout()
 
-        fdisp = QGroupBox("Files")
+        fdisp = QGroupBox("Modes")
         fdisp.setObjectName("subwindow")
         me_layout = QVBoxLayout()
+
+        self.cb_redisp = QCheckBox("Automatic redisplay\n(5 seconds)")
+        self.cb_redisp.setLayoutDirection(Qt.LeftToRight)
+        self.cb_redisp.setChecked(self.redispdata)
+        self.cb_redisp.stateChanged.connect(self.handleTimer)
+
+        me_layout.addWidget(self.cb_redisp)
         me_layout.addWidget(self.f_stdout)
         me_layout.addWidget(self.f_stderr)
         fdisp.setLayout(me_layout)
         hlayout.addWidget(fdisp)
 
-        rbutton = QPushButton("Redisplay")
+        rbutton = QPushButton("Manual Redisplay")
         rbutton.clicked.connect(self.redisplay_call)
         hlayout.addWidget(rbutton)
         button = QPushButton("Close")
@@ -60,6 +68,16 @@ class MHLogWindow(QWidget):
         layout.addLayout(hlayout)
         self.setLayout(layout)
 
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.redisplay_call)
+        self.timer.start(5000) 
+
+    def handleTimer(self, value):
+        state = Qt.CheckState(value)
+        if state == Qt.CheckState.Checked:
+            self.timer.start()
+        elif state == Qt.CheckState.Unchecked:
+            self.timer.stop()
 
     def fillListWidget(self):
         """

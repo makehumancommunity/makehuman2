@@ -115,14 +115,14 @@ class ShaderRepository():
         shader = self._shaders[num]
         for key in shader.uniforms.keys():
             shader.uniforms[key] = shader.uniformLocation(key)
-        self.env.logLine(2, "Shader: " + self._shaders[num].name + " " + str(shader.uniforms))
+        self.env.logLine(16, "Shader: " + self._shaders[num].name + " " + str(shader.uniforms))
 
     def setShaderUniform(self, shader, name, var):
         if name in shader.uniforms:
             if shader.uniforms[name] != -1:
                 shader.setUniformValue(shader.uniforms[name], var)
             else:
-                print (name + " not registered")
+                self.env.logLine(16, "Shader " + shader.name + ": " + name + " not registered")
 
     def setShaderArrayStruct(self, shader, name, index, member, var):
         name = name + "[" + str(index) + "]." + member
@@ -133,5 +133,5 @@ class ShaderRepository():
             else:
                 shader.setUniformValue(loc, var)
         else:
-            print (name + " not registered")
+            self.env.logLine(16, "Shader " + shader.name + ": " + name + " not registered")
 

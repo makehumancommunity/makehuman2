@@ -178,7 +178,7 @@ class baseClass():
                 #
                 loaded.attached.append(loadEquipment(key, words[1], words[2], None, None, None))
             else:
-                print (key + " is still unknown")
+                self.env.logLine(2, filename + ": unknown or deprecated keyword " + key )
 
         fp.close()
 
@@ -338,7 +338,8 @@ class baseClass():
 
     def saveMHMFile(self, filename):
         """
-        self the MHM file and keep names in UNIX encoding
+        save the MHM file and keep names in URL encoding (use /)
+        :param filename: name of the file
         """
 
         self.env.logLine(8, "Save: " + filename)
