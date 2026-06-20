@@ -51,23 +51,23 @@ class PoseItem(ScaleComboItem):
         pass
 
 class GenericPoseEdit():
-    def __init__(self, parent, glob, poses, redraw, units, infos, mask, offset_used):
+    def __init__(self, parent, glob, poses, redraw, units, infos, mask, used_as_basepose):
         self.glob = glob
         self.parent = parent
         self.redraw = redraw
         self.units = units
         self.infos = infos
         self.bonemask = mask
-        self.offset_used = offset_used
+        self.used_as_basepose = used_as_basepose
         self.view = glob.openGLWindow
         self.env = glob.env
-        self.baseClass = glob.baseClass
-        self.baseClass.setPoseMode()
-        self.bvh = self.baseClass.bvh
+        self.bc = glob.baseClass
+        self.bc.setPoseMode()
+        self.bvh = self.bc.bvh
         self.poses = poses
         self.preposed = False
         self.thumbimage = None
-        self.poseskel = self.baseClass.pose_skeleton
+        self.poseskel = self.bc.pose_skeleton
         self.poseskel.useOffset(True)
         self.position = [0.0, 0.0, 0.0]
 
@@ -112,13 +112,19 @@ class GenericPoseEdit():
         self.description = QLineEdit()
         layout.addWidget(self.description)
 
-        if self.bvh:
-            self.posedButton = IconButton(1,  os.path.join(self.env.path_sysicon, "an_pose.png"), "character posed", self.togglePosed, checkable=True)
+        posed, frames = self.bc.hasPoses()
+        if self.bc.posemodifier and self.used_as_basepose:
+            tip = "pose file loaded, press here to change this pose."
+        else:
+            tip = "bvh file loaded, press here to pose\nand create corrections."
+
+        if posed:
+            self.posedButton = IconButton(1,  os.path.join(self.env.path_sysicon, "an_pose.png"), tip, self.togglePosed, checkable=True)
             ilayout = QHBoxLayout()
             ilayout.addWidget(self.posedButton)
 
-            if self.bvh and self.bvh.frameCount > 1:
-                self.frameSlider = SimpleSlider("Frame number: ", 0, self.bvh.frameCount-1, self.frameChanged, minwidth=250)
+            if frames > 1:
+                self.frameSlider = SimpleSlider("Frame number: ", 0, frames-1, self.frameChanged, minwidth=250)
                 self.frameSlider.setSliderValue(self.bvh.currentFrame)
                 self.frameSlider.setEnabled(self.preposed)
                 ilayout.addWidget(self.frameSlider)
@@ -147,11 +153,14 @@ class GenericPoseEdit():
         self.imglabel.setPixmap(pixmap)
 
     def setFrame(self, value):
+        if self.bc.posemodifier:
+            self.bc.showPose()
+
         if self.bvh is None or value < 0 or value >= self.bvh.frameCount:
             return
 
         self.bvh.currentFrame = value
-        self.baseClass.showPose()
+        self.bc.showPose()
 
     def showCorrectedPose(self):
         blends, pos = self.getChangedValues()
@@ -164,31 +173,56 @@ class GenericPoseEdit():
             for bone in changed:
                 elem = self.poseskel.bones[bone]
                 corrections[bone] = elem.getRelativeCorrection()
-            self.bvh.modCorrections(corrections)
+            if self.bvh:
+                self.bvh.modCorrections(corrections)
         else:
             # no blends at all, reset
             #
-            self.bvh.identFinal()
-        self.baseClass.showPose()
+            if self.bvh:
+                self.bvh.identFinal()
+        self.bc.showPose()
 
     def togglePosed(self, param):
         self.preposed = param
         if param is False:
+            # switch pose off
             self.glob.midColumn.animViews(False)
-            self.baseClass.restPose()
+            self.bc.restPose()
             blends, position = self.getChangedValues()
             if position is not None:
                 self.poseskel.setOffset(position)
             self.poseskel.posebyBlends(blends, None)
         else:
             self.glob.midColumn.animViews(True)
-            self.showCorrectedPose()
-        if self.bvh.frameCount > 1:
+
+            # in case an mhpose file is loaded it used. I cannot be corrected
+            #
+            if self.bc.posemodifier and self.used_as_basepose:
+                self.poseGet(self.bc.posemodifier)
+                self.bc.posemodifier = None
+                self.preposed = False
+                self.posedButton.deleteLater()
+            else:
+                self.showCorrectedPose()
+        if self.bvh and self.bvh.frameCount > 1:
             self.frameSlider.setEnabled(param)
         self.view.Tweak()
 
     def frameChanged(self, value):
         self.setFrame(int(value))
+
+    def poseGet(self, pose):
+        self.bc.restPose()
+        self.editname.setText(pose.name)
+        self.description.setText(pose.description)
+        self.tagsline.setText(";".join(pose.tags))
+        self.author.setText(pose.author)
+        self.license.setText(pose.license)
+        for elem in self.poses:
+            if elem.name in pose.poses:
+                elem.value =  pose.poses[elem.name] * 100
+        self.redraw(None)
+        self.poseskel.posebyBlends(pose.blends, self.bonemask)
 
     def fillPoses(self):
 
@@ -226,7 +260,7 @@ class GenericPoseEdit():
                 elif elem.value > 0.0:
                     v = elem.max * elem.value / 100.0
                 self.position[elem.direct] = v
-        return blends, self.position if self.offset_used else None
+        return blends, self.position if self.used_as_basepose else None
 
     def changedPoses(self):
         # change if there are blends, otherwise reset to rest pose
@@ -249,13 +283,13 @@ class GenericPoseEdit():
     def resetButton(self):
         self.resetPoseSliders()
         self.redraw(None)
-        if self.offset_used:
+        if self.used_as_basepose:
             self.poseskel.setOffset([0.0, 0,0, 0.0])
         if self.preposed:
             self.bvh.identFinal()
-            self.baseClass.showPose()
+            self.bc.showPose()
         else:
-            self.baseClass.restPose()
+            self.bc.restPose()
         self.view.Tweak()
 
     def getValue(self, name):
@@ -291,12 +325,12 @@ class GenericPoseEdit():
 
         # get corrections before, if not in bonemask, keep them
         #
-        for bone, elem in self.baseClass.posecorrections.items():
+        for bone, elem in self.bc.posecorrections.items():
             if bone not in self.bonemask:
                 corrections[bone] = elem
 
         if pos is not None:
-            self.baseClass.positioncorrection[:] = self.position[:]
+            self.bc.positioncorrection[:] = self.position[:]
             poscorr = ", Position: " + str(self.position)
         else:
             poscorr = ""
@@ -305,7 +339,7 @@ class GenericPoseEdit():
 
             # reset these corrections
             #
-            self.baseClass.posecorrections = corrections
+            self.bc.posecorrections = corrections
             HintBox(self.parent.central_widget, "Corrections reset" + poscorr)
             return
 
@@ -314,7 +348,7 @@ class GenericPoseEdit():
             elem = self.poseskel.bones[bone]
             corrections[bone] = elem.getRelativeCorrection()
 
-        self.baseClass.posecorrections = corrections
+        self.bc.posecorrections = corrections
         HintBox(self.parent.central_widget, "Corrections added to be used in animation" + poscorr)
 
     def loadButton(self, path, convert=None):
@@ -327,17 +361,7 @@ class GenericPoseEdit():
             if res is False:
                 ErrorBox(self.parent.central_widget, text)
                 return
-            self.baseClass.restPose()
-            self.editname.setText(pose.name)
-            self.description.setText(pose.description)
-            self.tagsline.setText(";".join(pose.tags))
-            self.author.setText(pose.author)
-            self.license.setText(pose.license)
-            for elem in self.poses:
-                if elem.name in pose.poses:
-                    elem.value =  pose.poses[elem.name] * 100
-            self.redraw(None)
-            self.poseskel.posebyBlends(pose.blends, self.bonemask)
+            self.poseGet(pose)
             self.view.Tweak()
 
             iconpath = filename[:-7] + ".thumb"
@@ -384,7 +408,7 @@ class GenericPoseEdit():
         self.setFrame(0)
         if self.bvh:
             self.bvh.identFinal()
-        self.baseClass.setStandardMode()
+        self.bc.setStandardMode()
         self.preposed = False
         self.glob.midColumn.animViews(False)
 

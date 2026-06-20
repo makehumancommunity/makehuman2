@@ -43,7 +43,6 @@ class Renderer(QVBoxLayout):
         self.view = glob.openGLWindow
         self.bc  = glob.baseClass
         self.mesh = self.bc.baseMesh
-        self.posemod = self.bc.posemodifier
         self.bvh = self.bc.bvh
         self.lastimgview = None
 
@@ -98,13 +97,14 @@ class Renderer(QVBoxLayout):
         self.corrAnim.toggled.connect(self.changeCorr)
         self.addWidget(self.corrAnim)
 
-        if self.bvh or self.posemod:
+        posed, frames = self.bc.hasPoses()
+        if posed:
             self.posedButton = IconButton(1,  os.path.join(self.env.path_sysicon, "an_pose.png"), "character posed", self.changePosed, checkable=True)
             ilayout = QHBoxLayout()
             ilayout.addWidget(self.posedButton)
 
-            if self.bvh and self.bvh.frameCount > 1:
-                self.frameSlider = SimpleSlider("Frame number: ", 0, self.bvh.frameCount-1, self.frameChanged, minwidth=250)
+            if frames > 1:
+                self.frameSlider = SimpleSlider("Frame number: ", 0, frames-1, self.frameChanged, minwidth=250)
                 self.frameSlider.setSliderValue(self.bvh.currentFrame)
                 ilayout.addWidget(self.frameSlider)
             else:
@@ -147,13 +147,13 @@ class Renderer(QVBoxLayout):
 
         poseskel.useOffset(self.values.doCorrections)
 
-        if self.bvh or self.posemod:
+        posed, frames = self.bc.hasPoses()
+        if posed:
             if self.values.posed:
                 self.bc.setPoseMode()
                 self.setFrame(0)
 
-
-        if self.bvh is None and self.values.doCorrections:
+        if posed is False and self.values.doCorrections:
             self.bc.setPoseMode()
             self.correctionsOnly()
 
@@ -186,11 +186,13 @@ class Renderer(QVBoxLayout):
     def leave(self):
         self.setUnsubdivided()
 
-        if (self.bvh or self.posemod) and self.values.posed:
+        posed, frames = self.bc.hasPoses()
+
+        if posed and self.values.posed:
             self.setFrame(0)
             self.bc.setStandardMode()
 
-        if self.bvh is None and self.values.doCorrections:
+        if posed is False and self.values.doCorrections:
             self.bc.setStandardMode()
 
         self.view.setYRotation(0.0)
@@ -199,7 +201,7 @@ class Renderer(QVBoxLayout):
         self.glob.midColumn.animViews(False)
 
     def setFrame(self, value):
-        if self.posemod:
+        if self.bc.posemodifier:
             self.bc.showPose()
             return
 
@@ -250,14 +252,15 @@ class Renderer(QVBoxLayout):
         self.corrAnim.setChecked(self.values.doCorrections)
         self.corrAnim.blockSignals(False)
 
-        if self.bvh or self.posemod:
-            self.corrAnim.setEnabled((len(self.bc.bodyposes) > 0 or len(self.bc.faceposes) > 0) and self.values.posed)
+        posed, frames = self.bc.hasPoses()
+        if posed:
+            self.corrAnim.setEnabled((len(self.bc.posecorrections) > 0 or len(self.bc.faceposes) > 0) and self.values.posed)
 
             self.posedButton.blockSignals(True)
             self.posedButton.setChecked(self.values.posed)
             self.posedButton.blockSignals(False)
 
-            if self.bvh.frameCount > 1:
+            if frames > 1:
                 self.frameSlider.setEnabled(self.values.posed)
 
 

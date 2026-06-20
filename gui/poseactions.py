@@ -150,7 +150,8 @@ class AnimPlayer(QVBoxLayout):
         enable = (self.anim is not None and self.anim.frameCount > 1)
         for button in self.playerButtons:
             button[0].setEnabled(enable)
-        self.corrAnim.setEnabled(len(self.bc.bodyposes) > 0 or len(self.bc.faceposes) > 0)
+        self.corrAnim.setEnabled((len(self.bc.posecorrections) > 0 or len(self.bc.faceposes) > 0))
+
 
     def enter(self):
         self.glob.midColumn.poseViews(True)
@@ -161,16 +162,18 @@ class AnimPlayer(QVBoxLayout):
 
         self.bc.setPoseMode()
         self.view.setRotSkyBox(self.values.rotSkybox)
+        self.corrAnim.setChecked(self.values.doCorrections)
         if self.anim:
             self.anim.identFinal()
             self.firstframe()
             if self.anim.frameCount > 1:
                 self.speedSlider.setSliderValue(self.values.speedValue)
             self.faceAnim.setChecked(self.values.doFaceAnim)
-            self.corrAnim.setChecked(self.values.doCorrections)
             self.changeAnim()
         elif self.posemod:
             self.bc.showPose()
+        else:
+            self.changeAnim()
         self.view.scene.newFloorPosition(posed=True)
         self.refreshPlayerButtons()
 
@@ -185,6 +188,17 @@ class AnimPlayer(QVBoxLayout):
         self.bc.setStandardMode()
         self.glob.midColumn.poseViews(False)
         self.glob.midColumn.animViews(False)
+
+    def correctionsOnly(self):
+        self.bc.setPoseMode()
+        poseskel = self.bc.pose_skeleton
+        blends = self.bc.posecorrections
+        position = self.bc.positioncorrection
+
+        if position is not None:
+            poseskel.setOffset(position)
+        if len(blends) > 0:
+            poseskel.poseFromRestPose(blends, False)
 
     def changeAnim(self):
         self.values.doFaceAnim = self.faceAnim.isChecked()
@@ -207,6 +221,14 @@ class AnimPlayer(QVBoxLayout):
                 poseskel.useOffset(True)
             if not self.looping:
                 self.bc.showPose()
+        else:
+            # no animation, only corrections
+            #
+            if self.values.doCorrections:
+                self.correctionsOnly()
+            else:
+                poseskel.restPose()
+            self.view.Tweak()
 
     def changeRotSkyBox(self, param):
         self.values.rotSkybox = param

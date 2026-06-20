@@ -663,6 +663,16 @@ class baseClass():
         self.glob.openGLWindow.Tweak()
         self.glob.midColumn.setSizeInfo()
 
+    def hasPoses(self):
+        """
+        return number if pose is available and number of frames
+        """
+        if self.bvh is not None:
+            return True, self.bvh.frameCount
+        if self.posemodifier:
+            return True, 1
+        return False, 0
+
     def restPose(self):
         self.pose_skeleton.restPose()
 
