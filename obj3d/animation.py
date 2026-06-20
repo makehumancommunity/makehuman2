@@ -279,6 +279,16 @@ class BVH():
                     # also allow face animation again
                     joint.identFinal()
 
+            # this is done to allow corrections on non-mentioned bones of animation
+            for bname in corrections:
+                if bname not in self.joints:
+                    if bname in skeleton.bones:
+                        bone = skeleton.bones[bname]
+                        bone.calcLocalPoseMat(corrections[bname][:3,:3])
+                        bone.calcGlobalPoseMat()
+                        bone.poseBone()
+
+
     def debugChanged(self, num):
         """
         print a frame (pose) for debugging

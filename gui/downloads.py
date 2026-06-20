@@ -243,7 +243,7 @@ class DownLoadImport(QVBoxLayout):
 
         # recreate internal repos to avoid a new start
         #
-        self.glob.MainWindow.redoImageSelectionRepos()
+        self.glob.MainWindow.syncRepositories()
 
         if self.error:
             QMessageBox.critical(self.parent, "Error", self.error)

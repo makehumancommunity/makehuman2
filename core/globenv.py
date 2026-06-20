@@ -125,7 +125,9 @@ class globalObjects():
                 return True
         return False
 
-    def rescanAssets(self, asset_type=None):
+    def rescanAssets(self, asset_type=None, force=False):
+        if force:
+            self.env.recreate_repo = True
         self.env.fileScanFolders(asset_type)
         self.getCacheData()
         return self.cachedInfo
@@ -307,7 +309,23 @@ class programInfo():
         path = path.lower()
         return re.sub('[^a-z0-9_+=-]', "_", path)
 
+    def developmentPyCacheCleanup(self):
+        purged_paths = []
+        errors = []
 
+        current_root = os.path.dirname(self.path_sysdata)
+        try:
+            for root, dirs, files in os.walk(current_root):
+                if "__pycache__" in dirs:
+                    cache_dir = os.path.join(root, "__pycache__")
+                    shutil.rmtree(cache_dir)
+                    purged_paths.append(cache_dir)
+        except Exception as e:
+            errors.append(f"Workspace Flush Failure: {str(e)}")
+
+        return purged_paths, errors
+
+        
     def mkdir(self,folder):
         if not os.path.isdir(folder):
             if os.path.isfile(folder):

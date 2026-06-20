@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2 2026 V1.1
 
     Classes:
     * KeyPrefFilter
@@ -8,7 +8,7 @@
 """
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QPushButton, QAbstractItemView, QRadioButton,
-    QGroupBox, QCheckBox, QLineEdit, QGridLayout, QTabWidget, QTableWidget, QTableWidgetItem
+    QGroupBox, QCheckBox, QLineEdit, QGridLayout, QTabWidget, QTableWidget, QTableWidgetItem, QMessageBox
 )
 from PySide6.QtCore import Qt, QEvent, QObject
 from PySide6.QtGui import QIntValidator, QKeySequence
@@ -51,6 +51,12 @@ class MHPrefWindow(QWidget):
         layout.addWidget(self.tab_widget)
         self.initMainTab(self.maintab)
         self.initKeyTab(self.keytab)
+
+        # === clear python caches ===
+        self.cache_button = QPushButton("Clear Python Caches")
+        self.cache_button.setToolTip("Developer function, clears python caches. Next start will recreate them. Will not change anything when folder is not writable.")
+        self.cache_button.clicked.connect(self.clear_system_cache_action)
+        layout.addWidget(self.cache_button)
 
         # buttons for cancel and save
         #
@@ -373,3 +379,42 @@ class MHPrefWindow(QWidget):
         if env.writeJSON(env.path_userconf, env.config) is False:
             env.logLine(1, env.last_error)
         self.close()
+
+    def clear_system_cache_action(self):
+        """
+        Locates and purges the application's configuration cache files,
+        """
+
+        env =  self.parent.env
+
+        # 1. Ask for user confirmation before deleting
+        confirm = QMessageBox.question(
+            self.parent,
+            "Confirm Cache Purge",
+            "This will completely clear your python caches.\nPathes will be recreated when started again.\nThis is helpful in development process. Proceed?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        if confirm != QMessageBox.Yes:
+            return
+
+        # 2. Wipe compiled Python byte caches
+        purged_paths, error = env.developmentPyCacheCleanup()
+
+        # 3. Display the final status result to the user interface panel
+        if purged_paths:
+            summary = "\n".join(purged_paths[:10]) # Limit display layout text lines
+            if len(purged_paths) > 10:
+                summary += f"\n... and {len(purged_paths) - 10} more items."
+            QMessageBox.information(
+                self.parent,
+                "Cache Cleared Successfully",
+                f"The following paths have been cleared:\n\n{summary}\n\nPlease restart the application to apply the clean slate."
+            )
+        else:
+            QMessageBox.warning(
+                self.parent,
+                "No Cache Found",
+                "The cache paths are already clean or could not be detected.\n" + "\n".join(errors)
+            )
+    

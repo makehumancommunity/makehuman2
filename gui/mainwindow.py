@@ -160,6 +160,7 @@ class MHMainWindow(QMainWindow):
         self.addActCallBack(set_menu, "Preferences", self.pref_call)
         self.addActCallBack(set_menu, "Lights and Scene", self.scene_call)
         self.addActCallBack(set_menu, "Messages", self.log_call)
+        self.addActCallBack(set_menu, "Sync Repositories", self.syncRepositories)
 
         binaries = set_menu.addMenu("Create Binaries")
         self.addActCallBack(binaries, "User 3d Objects", self.compress_user3dobjs)
@@ -324,11 +325,11 @@ class MHMainWindow(QMainWindow):
             elem["func"].prepare()
             elem["menu"] = self.addActCallBack(self.animenu, elem["name"], self.anim_call)
 
-    def redoImageSelectionRepos(self):
+    def syncRepositories(self):
         """
-        this function is used after e.g. a download took place
+        this function is used after e.g. a download took place or direct forced sync
         """
-        cache = self.glob.rescanAssets()
+        cache = self.glob.rescanAssets(force=True)
         for elem in self.equipment:
             if elem["func"] is not None:
                 elem["func"].prepare(cache)
