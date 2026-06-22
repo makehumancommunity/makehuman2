@@ -204,7 +204,7 @@ class skeleton:
             diff = v[2]-v[1]
             yvec = diff / np.linalg.norm(diff)
             cross = np.cross(yvec, pvec)
-            return (cross / np.linalg.norm(cross))
+            return cross / np.linalg.norm(cross)
         else:
             return np.asarray([0,1,0], dtype=np.float32)
 

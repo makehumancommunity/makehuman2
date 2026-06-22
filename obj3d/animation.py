@@ -36,6 +36,17 @@ class BVHJoint():
         self.matrixPoses = None         # array of local location/rotation matrices for complete animation
         self.finalPoses  = None         # used for combination
 
+    def setDefaultData(self, number):
+        """
+        set default channels
+        """
+        if number == 3:
+            self.nChannels = number
+            self.channelorder = [-1, -1, -1, 0, 1, 2]
+        elif number == 6:
+            self.nChannels = number
+            self.channelorder = [0, 1, 2, 3, 4, 5]
+
     def initFrames(self, count: int):
         self.animdata = np.zeros(shape=(count, 6), dtype=np.float32)
         self.matrixPoses = np.zeros((count,3,4), dtype=np.float32)
@@ -80,7 +91,7 @@ class BVHJoint():
 
     def __repr__(self):
         output = self.name if self.name is not None else "end-site"
-        return (output + " " + str(self.channelorder) + " " + str(self.animdata))
+        return output + " " + str(self.channelorder) + " " + str(self.animdata)
 
 class BVH():
     """
@@ -92,6 +103,8 @@ class BVH():
         self.env = glob.env
         self.name = name
         self.filename = None
+
+        self.skeleton = self.glob.baseClass.pose_skeleton   # pose skeleton used for animation
 
         self.bvhJointOrder = []
         self.joints = {}
@@ -109,6 +122,31 @@ class BVH():
         self.z_up = True                # read in different direction
         self.rotationorder = "yzx"      # usually it would be zyx, but z-up it is zyx (first rotation is used last)
 
+    def createDefaultAnimation(self):
+        """
+        a one frame default animation created from pose skeleton
+        """
+        for name, bone in self.skeleton.bones.items():
+            if bone.parent is not None:
+                boneptr = self.joints[bone.parent.name]
+            else:
+                boneptr = None
+            self.addJoint(name, boneptr)
+
+        # add additional values (channels) and copy rest matrix from skeleton
+        #
+        for elem in self.bvhJointOrder:
+            elem.setDefaultData(3 if elem.parent is not None else 6)
+            sourcebone = self.skeleton.bones[elem.name]
+            elem.matRestLocal = sourcebone.matRestLocal
+            elem.matRestGlobal = sourcebone.matRestGlobal
+
+        # and create one frame
+        #
+        self.frameCount = 1
+        self.initFrames()
+        self.identFinal()
+
     def keyParam(self, key, fp):
         param = fp.readline().split()
         if param[0] != key:
@@ -124,7 +162,7 @@ class BVH():
         joint.parent = parent
         if parent is not None:
             parent.children.append(joint)
-        return (joint)
+        return joint
 
     def getChannelOrder(self, joint, fp):
         param = self.keyParam('CHANNELS', fp)
@@ -268,8 +306,7 @@ class BVH():
         if positioncorrection is None:
             positioncorrection = self.glob.baseClass.positioncorrection
 
-        skeleton = self.glob.baseClass.pose_skeleton
-        skeleton.setOffset(positioncorrection)
+        self.skeleton.setOffset(positioncorrection)
         if corrections is not None:
             for joint in self.bvhJointOrder:
                 if joint.name in corrections:
@@ -282,11 +319,27 @@ class BVH():
             # this is done to allow corrections on non-mentioned bones of animation
             for bname in corrections:
                 if bname not in self.joints:
-                    if bname in skeleton.bones:
-                        bone = skeleton.bones[bname]
+                    if bname in self.skeleton.bones:
+                        bone = self.skeleton.bones[bname]
                         bone.calcLocalPoseMat(corrections[bname][:3,:3])
                         bone.calcGlobalPoseMat()
                         bone.poseBone()
+
+    def MHPoseToAnimation(self, mhpose):
+        #if pos is not None:
+        #    self.skeleton.setOffset(pos)
+        corrections = {}
+        changed = self.skeleton.posebyBlends(mhpose.blends, None)
+
+        if len(changed) > 0:
+            for bone in changed:
+                elem = self.skeleton.bones[bone]
+                corrections[bone] = elem.getRelativeCorrection()
+            self.modCorrections(corrections)
+        else:
+            # no blends at all, reset
+            #
+            self.identFinal()
 
 
     def debugChanged(self, num):
@@ -396,7 +449,7 @@ class MHPose():
         self.filename = filename
         pose = self.env.readJSON(filename)
         if pose is None:
-            return (False, self.env.last_error)
+            return False, self.env.last_error
 
         if convert:
             pose = convert(pose)
@@ -418,11 +471,12 @@ class MHPose():
                 setattr (self, elem, pose[elem])
             else:
                 setattr (self, elem, "")
-        return (True, "Okay")
+        return True, "Okay"
 
     def save(self, filename, json):
         json["name"] = self.name
-        return(self.env.writeJSON(filename, json))
+        return self.env.writeJSON(filename, json)
+
 
 class MHPoseFaceConverter():
     """
@@ -504,7 +558,7 @@ class MHPoseFaceConverter():
             del u[key]
         for key, val in newones.items():
             u[key] = val
-        return (json)
+        return json
 
 class PosePrims():
     def __init__(self, glob):
@@ -516,7 +570,7 @@ class PosePrims():
         self.bonemask = []
 
     def __str__(self):
-        return(str(self.units.keys()))
+        return str(self.units.keys())
 
     def getInfo(self):
         return self.units
@@ -525,16 +579,16 @@ class PosePrims():
         self.filterparam = []
         for elem in self.groups:
             self.filterparam.append(elem)
-        return (self.filterparam)
+        return self.filterparam
 
     def load(self, name):
         filename =self.env.existDataFile("base", self.env.basename, name)
         if filename is None:
-            return (False, name + " is not existent")
+            return False, name + " is not existent"
 
         prims = self.env.readJSON(filename)
         if prims is None:
-            return (False, self.env.last_error)
+            return False, self.env.last_error
 
         # create a bone mask and collect groups,
         # in the dictionary the values are replaced by 3x3 posematrices instead of the array
@@ -561,5 +615,5 @@ class PosePrims():
                     g[bone] = np.asarray(g[bone], dtype=np.float32).reshape(3,3)
 
         self.units = prims
-        return (True, "Okay")
+        return True, "Okay"
 
