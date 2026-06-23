@@ -58,6 +58,9 @@ class BVHJoint():
     def cloneToFinal(self):
         self.finalPoses = np.copy(self.matrixPoses)
 
+    def finalToMatrix(self):
+        self.matrixPoses = np.copy(self.finalPoses)
+
     def resetFinal(self, count: int):
         self.finalPoses = np.zeros((count,3,4), dtype=np.float32)
         self.finalPoses[:,:3,:3] = np.identity(3, dtype=np.float32)
@@ -253,6 +256,13 @@ class BVH():
         for joint in self.bvhJointOrder:
             joint.cloneToFinal()
 
+    def finalToMatrix(self):
+        """
+        copy the final matrix as new matrix
+        """
+        for joint in self.bvhJointOrder:
+            joint.finalToMatrix()
+
     def calcLocRotMat(self, frame, data):
         """
         calculation is done once after loading the file
@@ -340,7 +350,8 @@ class BVH():
             # no blends at all, reset
             #
             self.identFinal()
-
+        # this copies the animation to matrixposes
+        self.finalToMatrix()
 
     def debugChanged(self, num):
         """

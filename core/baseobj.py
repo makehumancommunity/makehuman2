@@ -741,12 +741,12 @@ class baseClass():
         if not loaded:
             self.env.logLine(1, "mhpose: " + path + " " + msg)
         else:
-            """
-            # TODO one frame animation
-            self.bvh = BVH(self.glob, "dummy")
+            # use the posemodifier as a one frame animation
+            #
+            self.bvh = BVH(self.glob, name)
             self.bvh.createDefaultAnimation()
             self.bvh.MHPoseToAnimation(self.posemodifier)
-            """
+
             self.showPoseAndExpression()
             self.glob.markAssetByFileName(path)
             self.recalcLowestPosePos()

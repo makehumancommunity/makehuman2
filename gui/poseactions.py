@@ -66,7 +66,6 @@ class AnimPlayer(QVBoxLayout):
         self.bc  = glob.baseClass
         self.mesh = self.bc.baseMesh
         self.anim = self.bc.bvh
-        self.posemod = self.bc.posemodifier
         self.looping = False
         self.values = self.glob.guiPresets["Animplayer"]
         super().__init__()
@@ -152,14 +151,12 @@ class AnimPlayer(QVBoxLayout):
             button[0].setEnabled(enable)
         self.corrAnim.setEnabled((len(self.bc.posecorrections) > 0 or len(self.bc.faceposes) > 0))
 
-
     def enter(self):
         self.glob.midColumn.poseViews(True)
         self.glob.midColumn.animViews(True)
         self.playerButtons[4][0].setChecked(False)
         self.rotSkyBox.setChecked(self.values.rotSkybox)
         self.rotangSlider.setSliderValue(self.values.rotAngle * 4)
-
         self.bc.setPoseMode()
         self.view.setRotSkyBox(self.values.rotSkybox)
         self.corrAnim.setChecked(self.values.doCorrections)
@@ -170,8 +167,6 @@ class AnimPlayer(QVBoxLayout):
                 self.speedSlider.setSliderValue(self.values.speedValue)
             self.faceAnim.setChecked(self.values.doFaceAnim)
             self.changeAnim()
-        elif self.posemod:
-            self.bc.showPose()
         else:
             self.changeAnim()
         self.view.scene.newFloorPosition(posed=True)

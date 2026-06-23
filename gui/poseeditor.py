@@ -113,13 +113,9 @@ class GenericPoseEdit():
         layout.addWidget(self.description)
 
         posed, frames = self.bc.hasPoses()
-        if self.bc.posemodifier and self.used_as_basepose:
-            tip = "pose file loaded, press here to change this pose."
-        else:
-            tip = "bvh file loaded, press here to pose\nand create corrections."
 
         if posed:
-            self.posedButton = IconButton(1,  os.path.join(self.env.path_sysicon, "an_pose.png"), tip, self.togglePosed, checkable=True)
+            self.posedButton = IconButton(1,  os.path.join(self.env.path_sysicon, "an_pose.png"), "press to pose and create corrections.", self.togglePosed, checkable=True)
             ilayout = QHBoxLayout()
             ilayout.addWidget(self.posedButton)
 
@@ -194,16 +190,7 @@ class GenericPoseEdit():
             self.poseskel.posebyBlends(blends, None)
         else:
             self.glob.midColumn.animViews(True)
-
-            # in case an mhpose file is loaded it used. I cannot be corrected
-            #
-            if self.bc.posemodifier and self.used_as_basepose:
-                self.poseGet(self.bc.posemodifier)
-                self.bc.posemodifier = None
-                self.preposed = False
-                self.posedButton.deleteLater()
-            else:
-                self.showCorrectedPose()
+            self.showCorrectedPose()
         if self.bvh and self.bvh.frameCount > 1:
             self.frameSlider.setEnabled(param)
         self.view.Tweak()

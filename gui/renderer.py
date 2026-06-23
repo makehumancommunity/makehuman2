@@ -201,10 +201,6 @@ class Renderer(QVBoxLayout):
         self.glob.midColumn.animViews(False)
 
     def setFrame(self, value):
-        if self.bc.posemodifier:
-            self.bc.showPose()
-            return
-
         if self.bvh is None:    # should not be possible
             return
 
