@@ -121,13 +121,13 @@ class ExportLeftPanel(QVBoxLayout):
         self.posed.setLayoutDirection(Qt.LeftToRight)
         self.posed.toggled.connect(self.changePosed)
         self.posed.setChecked(self.values.inpose)
-        self.posed.setToolTip('Export character posed instead of default pose (set pose in animation)')
+        self.posed.setToolTip('Export character posed instead of default pose (set pose and expression from files)')
         self.addWidget(self.posed)
 
         if self.bvh and self.bvh.frameCount > 1:
             self.frameSlider = SimpleSlider("Frame number: ", 0, self.bvh.frameCount-1, self.frameChanged, minwidth=250)
             self.frameSlider.setSliderValue(self.bvh.currentFrame)
-            self.frameSlider.setEnabled(True)
+            self.frameSlider.setEnabled(self.values.inpose)
             self.addWidget(self.frameSlider)
 
         self.hverts= QCheckBox("save hidden vertices")
@@ -184,8 +184,7 @@ class ExportLeftPanel(QVBoxLayout):
         self.values.save_props = param
 
     def leave(self):
-        if self.animmode is not None:
-            self.animmode.leave()
+        self.setAnimMode(False)
 
     def setFrame(self, value):
         if self.bvh is None or value < 0 or value >= self.bvh.frameCount:
@@ -301,13 +300,20 @@ class ExportLeftPanel(QVBoxLayout):
     def changeGround(self, param):
         self.values.onground = param
 
-    def changePosed(self, param):
-        if self.animmode is None:
-            self.animmode = AnimMode(self.glob)
+    def setAnimMode(self, param):
+        if param is False:
+            if self.animmode is not None:
+                self.animmode.leave()
+                self.animmode = None
         else:
-            self.animmode.leave()
-            self.animmode = None
+            if self.animmode is None:
+                self.animmode = AnimMode(self.glob)
+
+    def changePosed(self, param):
+        self.setAnimMode(param)
         self.values.inpose = param
+        if hasattr(self, "frameSlider"):
+            self.frameSlider.setEnabled(param)
 
     def changeHelper(self, param):
         self.values.helper = param
@@ -317,6 +323,7 @@ class ExportLeftPanel(QVBoxLayout):
 
     def changeAnim(self, param):
         self.values.animation = param
+        self.setAnimMode(param)
 
     def selectfolder(self):
         folder = self.foldername.text()
@@ -374,12 +381,17 @@ class ExportLeftPanel(QVBoxLayout):
 
         current = self.scalebox.currentIndex()
         scale = float(self.scale_items[current][0])
-
+        lastanim = self.animmode is not None
         etype = self.values.export_type
+
+        # saving with skeleton needs to reset animmode
+        #
         if etype == ".glb":
+            self.setAnimMode(False)
             gltf = gltfExport(self.glob, folder, texfolder, self.values.imgmode, self.values.savehiddenverts,
                     self.values.onground,  self.values.animation, self.values.save_props, scale)
             success = gltf.binSave(self.bc, path)
+            self.setAnimMode(lastanim)
 
         elif etype == ".stl":
             stl = stlExport(self.glob, folder, self.values.savehiddenverts, scale)
@@ -389,9 +401,11 @@ class ExportLeftPanel(QVBoxLayout):
                 success = stl.ascSave(self.bc, path)
 
         elif etype == ".mh2b":
+            self.setAnimMode(False)
             blcom = blendCom(self.glob, folder, texfolder, self.values.savehiddenverts,
                     self.values.onground, self.values.animation, scale)
             success = blcom.binSave(self.bc, path)
+            self.setAnimMode(lastanim)
 
         elif etype == ".obj":
             obj = objExport(self.glob, folder, texfolder, self.values.savehiddenverts,
@@ -399,8 +413,10 @@ class ExportLeftPanel(QVBoxLayout):
             success = obj.ascSave(self.bc, path)
 
         elif etype == ".bvh":
+            self.setAnimMode(False)
             bvh = bvhExport(self.glob, self.values.onground, scale)
             success = bvh.ascSave(self.bc, path)
+            self.setAnimMode(lastanim)
 
         else:
             self.env.logLine(1, "not yet implemented")
