@@ -88,26 +88,35 @@ class objExport:
                 overflow[l[1]] = l[0]
         x = 0
 
+        last= self.startvert + self.obj[num]["lenV"]
         if self.normals:
             for n in vpf:
                 out = "f "
+                saveit = True
                 for i in range(n):
                     uvface = faces[x]
                     face = overflow[uvface] if uvface in overflow else uvface
+                    if (face + self.startvert) >= last:
+                        saveit = False
 
                     out += "%d/%d/%d " % (face+self.startvert, uvface+self.startuv, face+self.startvert)
                     x += 1
-                self.facelines.append(out + "\n")
+                if saveit:
+                    self.facelines.append(out + "\n")
         else:
             for n in vpf:
                 out = "f "
+                saveit = True
                 for i in range(n):
                     uvface = faces[x]
                     face = overflow[uvface] if uvface in overflow else uvface
+                    if (face + self.startvert) >= last:
+                        saveit = False
 
                     out += "%d/%d " % (face+self.startvert, uvface+self.startuv)
                     x += 1
-                self.facelines.append(out + "\n")
+                if saveit:
+                    self.facelines.append(out + "\n")
 
         self.startvert += self.obj[num]["lenV"]
         self.startuv   += self.obj[num]["lenUV"]
