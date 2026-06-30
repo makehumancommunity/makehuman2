@@ -38,6 +38,8 @@ class DownLoadImport(QVBoxLayout):
         self.assets = AssetPack()
 
         stdmesh =  self.env.release_info["standardmesh"]
+        self.parentmesh = self.glob.baseClass.baseInfo.get("parentmesh")
+
         assetname = os.path.split(self.env.release_info["url_assetlist"])[1]
         assetpackname = os.path.split(self.env.release_info["url_assetpacklist"])[1]
 
@@ -45,6 +47,8 @@ class DownLoadImport(QVBoxLayout):
         self.assetlistpath = os.path.join(dl, assetname)
 
         pdl = os.path.join(self.env.path_userdata, "downloads", stdmesh)            # pack list will be in standard path
+        self.env.mkdir(pdl)                                                         # create folder if not there
+
         self.assetpacklistpath = os.path.join(pdl, assetpackname)
 
         self.getAssetPackList()
@@ -161,15 +165,16 @@ class DownLoadImport(QVBoxLayout):
             self.fnameinserted()
 
     def defaultList(self):
-
+        """
+        create an assetpack list according to base, parentmesh and given names
+        """
         self.packitems= [""]
         self.packurls= [""]
-
         sysassets  = self.env.release_info["url_systemassets"]
         fileserver = self.env.release_info["url_fileserver"]
         for elem in sysassets:
             base = elem.get("base")
-            if base == self.env.basename or base == "*":
+            if base == self.env.basename or base == "*" or self.parentmesh == base:
                 self.packitems.append(elem["title"])
                 self.packurls.append(fileserver +  "/" + elem["url"])
 
@@ -178,7 +183,7 @@ class DownLoadImport(QVBoxLayout):
         self.packurls= []
         for key, elem in packs.items():
             base = elem.get("base")
-            if base == self.env.basename or base == "*":
+            if base == self.env.basename or base == "*" or self.parentmesh == base:
                 if "url" in elem:
                     if "descr" in elem:
                         text = elem["descr"]
