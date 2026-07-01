@@ -209,27 +209,30 @@ class AssetPack():
                 print ("Cleanup " + self.unzipdir)
                 shutil.rmtree(self.unzipdir)
 
+    def localLogLine(self, dummy, text):
+        print (text)
 
-    def copyFile(self, sourcename, destname, replace):
+    def copyFile(self, sourcename, destname, replace, debugfunc):
         """
         copy file depending to replace option
 
         :param str sourcename: name of source file
         :param str destname: name of destination file
         :param bool replace: should file be replaced
+        :param debugfunc: function to print debugs
         """
         if replace is False and os.path.isfile(destname):
-            print (destname + " is already existent")
+            debugfunc (1, destname + " is already existent")
         else:
-            print ("copy " + sourcename + " => " + destname)
+            debugfunc (1, "copy " + sourcename + " => " + destname)
             shutil.copyfile(sourcename, destname)
 
-    def createFolder(self, folder):
+    def createFolder(self, folder, debugfunc):
         if not os.path.isdir(folder):
-            print("create " + folder)
+            debugfunc (1, "create " + folder)
             os.makedirs(folder, exist_ok = True)
 
-    def copyAssets(self, source, dest, mesh, replace=True):
+    def copyAssets(self, source, dest, mesh, replace=True, parentmesh=None, debugfunc=None):
         """
         after unzip copy assets to destination, also may create mesh folders for 'newbase' packs
 
@@ -237,8 +240,13 @@ class AssetPack():
         :param str dest: destination folder
         :param str mesh: name of mesh e.g. hm08
         :param bool replace: should files be replaced
+        :param str parentmesh: name of parentmesh or None (determines if rigs are copied)
         """
         l = len(source)
+
+        if debugfunc is None:
+            debugfunc = self.localLogLine
+
         for root, dirs, files in os.walk(source, topdown=True):
             for name in files:
                 if root.startswith(source):
@@ -250,12 +258,19 @@ class AssetPack():
 
                 category = dirs[0]
                 if category in ["clothes", "eyes", "eyelashes", "eyebrows", "hair", "skins", "teeth", "tongue", "proxymeshes", "rigs", "poses", "expressions"]:
+
+                    # rigs are not copied, in case of parentmesh is not None
+                    #
+                    if category == "rigs" and parentmesh is not None:
+                        debugfunc (1, "parentmesh given, rigs not accepted, no copy of" + name)
+                        continue
+
                     # proxy is renamed
                     #
                     if category == "proxymeshes":
                         category = "proxy"
                     folder = os.path.join(dest, category, mesh)
-                    self.createFolder(folder)
+                    self.createFolder(folder, debugfunc)
 
                     # for subfolders we always change to materials
                     #
@@ -264,11 +279,11 @@ class AssetPack():
 
                     restdirs = os.sep.join(dirs[1:])
                     destfolder = os.path.join(folder, restdirs)
-                    self.createFolder(destfolder)
+                    self.createFolder(destfolder, debugfunc)
                     #
                     destname = os.path.join(destfolder, name)
 
-                    self.copyFile(sourcename, destname, replace)
+                    self.copyFile(sourcename, destname, replace, debugfunc)
 
                 elif category in ["shader_floor", "shader_litspheres", "shader_skybox"]:
 
@@ -278,33 +293,33 @@ class AssetPack():
                     folder = os.path.join(dest, "shaders", subcat[1])
                     restdirs = os.sep.join(dirs[1:])
                     destfolder = os.path.join(folder, restdirs)
-                    self.createFolder(destfolder)
+                    self.createFolder(destfolder, debugfunc)
 
                     destname = os.path.join(destfolder, name)
 
-                    self.copyFile(sourcename, destname, replace)
+                    self.copyFile(sourcename, destname, replace, debugfunc)
 
                 elif category == "base" or category == "models":
 
                     # base and models folder are only one layer
                     #
                     folder = os.path.join(dest, category, mesh)
-                    self.createFolder(folder)
+                    self.createFolder(folder, debugfunc)
                     destname = os.path.join(folder, name)
 
-                    self.copyFile(sourcename, destname, replace)
+                    self.copyFile(sourcename, destname, replace, debugfunc)
 
                 elif category == "contarget":
                     folder = os.path.join(dest, category, mesh)
-                    self.createFolder(folder)
+                    self.createFolder(folder, debugfunc)
 
                     restdirs = os.sep.join(dirs[1:])
                     destfolder = os.path.join(folder, restdirs)
-                    self.createFolder(destfolder)
+                    self.createFolder(destfolder, debugfunc)
 
                     destname = os.path.join(destfolder, name)
 
-                    self.copyFile(sourcename, destname, replace)
+                    self.copyFile(sourcename, destname, replace, debugfunc)
 
 
 class TargetASCII():

@@ -157,7 +157,6 @@ class DownLoadImport(QVBoxLayout):
         self.fnameinserted()
 
     def searchzipfile(self):
-        print ("search zip file called")
         freq = MHFileRequest(self.glob, "Select zipfile", "compressed file (*.zip)", "")
         name = freq.request()
         if name is not None:
@@ -171,12 +170,11 @@ class DownLoadImport(QVBoxLayout):
         self.packitems= [""]
         self.packurls= [""]
         sysassets  = self.env.release_info["url_systemassets"]
-        fileserver = self.env.release_info["url_fileserver"]
         for elem in sysassets:
             base = elem.get("base")
             if base == self.env.basename or base == "*" or self.parentmesh == base:
                 self.packitems.append(elem["title"])
-                self.packurls.append(fileserver +  "/" + elem["url"])
+                self.packurls.append(elem["url"])
 
     def formList(self, packs):
         self.packitems= []
@@ -236,9 +234,15 @@ class DownLoadImport(QVBoxLayout):
         #
         # in case of newbase_<basename>.zip download a new mesh should be possible
         #
-        base = fname[8:-4] if fname.startswith("newbase_") else self.env.basename
+        if fname.startswith("newbase_"):
+            base = fname[8:-4]
+            parentmesh = None
+        else:
+            base = self.env.basename
+            parentmesh = self.parentmesh
+
         self.env.logLine(1, "Unzip into: " + tempdir + " >" + destpath + " Mesh: " + base)
-        self.assets.copyAssets(tempdir, destpath, base)
+        self.assets.copyAssets(tempdir, destpath, base, parentmesh=parentmesh, debugfunc=self.env.logLine)
 
     def finishUnzip(self):
         self.assets.cleanupUnzip()
@@ -281,7 +285,7 @@ class DownLoadImport(QVBoxLayout):
         tempdir = args[0][0]
         filename = args[0][1]
         self.error = None
-        self.env.logLine(1, "Download " + filename + " to " + tempdir)
+        self.env.logLine(1, "Download " + self.packname.text() + " to " + tempdir)
         (err, text) = self.assets.getAssetPack(self.packname.text(), tempdir, filename, unzip=False, responsefunc=self.displayProgress)
         self.error = text
 
@@ -470,8 +474,7 @@ class DownLoadImport(QVBoxLayout):
                 if path is None:
                     return              # cancel
 
-                print ("Working with path: ", path)
-
+                self.env.logLine(8, "Working with path: " + path)
 
             folder, err = self.assets.createMaterialsFolder(path)
         else:
