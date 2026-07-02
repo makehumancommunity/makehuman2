@@ -74,6 +74,8 @@ class gltfExport:
 
         self.json = {}
         self.json["asset"] = {"generator": "makehuman2", "version": "2.0" }    # copyright maybe
+        self.json["extensionsUsed"] =[]
+
         self.json["scenes"] = [ {"name": "makehuman2 export", "nodes": [] } ]  # one scene contains all nodes
 
         self.json["samplers"] = [ { "magFilter": self.MAGFILTER, "minFilter": self.MINFILTER, # fixed sampler (one for all)
@@ -405,6 +407,11 @@ class gltfExport:
         self.json["textures"].append({"sampler": 0, "source": image})
         return ({ "index": self.texture_cnt, "strength": strength })
 
+    def addExtensions(self, extension):
+        if extension not in self.json["extensionsUsed"]:
+            self.json["extensionsUsed"].append(extension)
+
+
     def addMaterial(self, material, assettype):
         """
         :param material:  material from opengl.material
@@ -466,6 +473,21 @@ class gltfExport:
             mat["emissiveTexture"] = self.addEmissiveTexture(material.emissiveTexture)
             emf = getattr(material, "emissiveFactor", 0.0)
             mat["emissiveFactor"]  = [ emf, emf, emf ]
+
+        if material.transmission != 0.0:
+            self.addExtensions("KHR_materials_transmission")
+            self.addExtensions("KHR_materials_ior")
+            mat["extensions"] = { "KHR_materials_transmission": { "transmissionFactor": material.transmission},
+                    "KHR_materials_ior": {"ior": material.ior }
+            }
+
+            # in case of no texture use constants from glass
+            #
+            if "baseColorFactor" in mat["pbrMetallicRoughness"]:
+                color = material.glassColor
+                mat["pbrMetallicRoughness"]["baseColorFactor"] = [ color[0], color[1], color[2], 1.0 ]
+                mat["pbrMetallicRoughness"]["roughnessFactor"] = material.glassRoughness
+
 
         self.json["materials"].append(mat)
 
@@ -840,6 +862,12 @@ class gltfExport:
             baseclass.bvh.identFinal()
 
         self.json["buffers"].append({"byteLength": self.bufferoffset})
+
+        # cleanup
+        #
+        if len(self.json["extensionsUsed"]) == 0:
+            del self.json["extensionsUsed"]
+
         self.env.logLine(32, str(self))
         return True
 

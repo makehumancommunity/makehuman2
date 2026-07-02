@@ -288,6 +288,17 @@ class blendCom:
                 mat["emissiveColor"] = material.emissiveColor
                 mat["emissiveFactor"]= material.emissiveFactor
 
+        if material.transmission != 0.0:
+            mat["transmissionFactor"] = material.transmission
+            mat["ior"] = material.ior
+
+            # in case of no texture use constants from glass
+            #
+            if "baseColorFactor" in mat["pbrMetallicRoughness"]:
+                color = material.glassColor
+                mat["pbrMetallicRoughness"]["baseColorFactor"] = [ color[0], color[1], color[2], 1.0 ]
+                mat["pbrMetallicRoughness"]["roughnessFactor"] = material.glassRoughness
+
         self.json["materials"].append(mat)
         return (self.material_cnt)
 

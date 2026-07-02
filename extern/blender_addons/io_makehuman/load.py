@@ -339,7 +339,6 @@ class MH2B_OT_Loader:
         cnt = 0
 
         for frame in range(nframes):
-            print (frame)
             scn.frame_set(frame+1)
             for bone in skel["bones"]:
                 name = bone["name"]

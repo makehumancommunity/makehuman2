@@ -84,7 +84,7 @@ class MH2B_OT_Material:
         return (node)
 
     def addNodes(self, jdata, texture, alpha, roughness, metallic, normtexture, normscale, \
-            aotexture, aoscale, mrtexture, emtexture, emscale):
+            aotexture, aoscale, mrtexture, emtexture, emscale, ior, transmission):
 
         # Add the Principled Shader node
         #
@@ -121,6 +121,12 @@ class MH2B_OT_Material:
 
         if metallic is not None:
             node_principled.inputs["Metallic"].default_value = metallic
+
+        if ior is not None:
+            node_principled.inputs["IOR"].default_value = ior
+
+        if transmission is not None:
+            node_principled.inputs["Transmission Weight"].default_value = transmission
 
         if normtexture is not None:
             # Add the normal Texture node
@@ -221,6 +227,9 @@ class MH2B_OT_Material:
         self.nodes = self.blendmat.node_tree.nodes
         self.nodes.clear()
 
+        ior = matj['ior'] if "ior" in matj else None
+        transmission = matj['transmissionFactor'] if "transmissionFactor" in matj else None
+
         normtexture = None
         normscale = 0.0
         if "normalTexture" in matj:
@@ -249,6 +258,7 @@ class MH2B_OT_Material:
 
         if "pbrMetallicRoughness" in matj:
             pbr = matj["pbrMetallicRoughness"]
+
             roughness = pbr['roughnessFactor'] if "roughnessFactor" in pbr else None
             metallic  = pbr['metallicFactor'] if "metallicFactor" in pbr else None
 
@@ -261,9 +271,9 @@ class MH2B_OT_Material:
                 textind = pbr['baseColorTexture']["index"]
                 texture = jdata["textures"][textind]
                 self.addNodes(jdata, texture, alpha, roughness, metallic, normtexture, normscale, \
-                        aotexture, aoscale, mrtexture, emtexture, emscale)
+                        aotexture, aoscale, mrtexture, emtexture, emscale, ior, transmission)
             elif 'baseColorFactor' in pbr:
                 self.addNodes(jdata,  pbr['baseColorFactor'], alpha, roughness, metallic, normtexture, normscale, \
-                        aotexture, aoscale, mrtexture, emtexture, emscale)
+                        aotexture, aoscale, mrtexture, emtexture, emscale, ior, transmission)
         return(self.blendmat)
 
