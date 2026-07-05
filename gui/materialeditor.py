@@ -366,6 +366,17 @@ class MHMaterialEditor(QWidget):
         self.glassGroup.setLayout(glassLayout)
         slayout.addWidget(self.glassGroup)
 
+        # specularColor (.obj exporter)
+        self.specGroup = QGroupBox("specular color (used for obj exports)")
+        self.specGroup.setObjectName("subwindow")
+        spec_layout = QHBoxLayout()
+        spec_color_label = QLabel("Specular Color: ")
+        self.specColorButton = ColorButton(self.glob, "Color: ", self.specColorChanged)
+        spec_layout.addWidget(spec_color_label)
+        spec_layout.addWidget(self.specColorButton)
+        self.specGroup.setLayout(spec_layout)
+        slayout.addWidget(self.specGroup)
+
         scrollContainer.setLayout(slayout)
         scroll = QScrollArea()
         scroll.setWidget(scrollContainer)
@@ -431,6 +442,8 @@ class MHMaterialEditor(QWidget):
 
         # Control sub-panel visibility when moving across different shader profiles
         self.glassGroup.setVisible(self.material.shader == "pbr")
+
+        self.specColorButton.setColorValue(QColor.fromRgbF(*self.material.specularColor))
 
         for t in self.TBoxes:
             t.updateMap(self.object, False)
@@ -521,6 +534,10 @@ class MHMaterialEditor(QWidget):
 
     def glassColorChanged(self, color):
         self.material.glassColor = list(color.getRgbF())[:3]
+        self.Tweak(False)
+
+    def specColorChanged(self, color):
+        self.material.specularColor = list(color.getRgbF())[:3]
         self.Tweak(False)
 
     # coloration

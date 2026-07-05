@@ -418,7 +418,9 @@ class DownLoadImport(QVBoxLayout):
                 return True, path
 
             parentkey = str(pobj["belongs_to_id"])
-            mtype = self.assetjson[parentkey]["type"]        # changed type includes hair, cannot use belongs_to_type
+            mtype = self.assetjson[parentkey]["type"]       # changed type includes hair, cannot use belongs_to_type
+            if mtype == "model":                            # change relation from mhm model to skins
+                mtype = "skins"
             folder = self.assets.titleToFileName(pobj["belongs_to_title"])
 
             path = self.env.existDataDir(mtype, self.env.basename, folder)

@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2 2026 V1.2
 
     Classes:
     * objExport
@@ -128,20 +128,31 @@ class objExport:
             material is a class and the definition (defaults) prevents wrong values.
             If this is not given all openGL processes would immediately crash
         """
+
         diff = material.diffuseColor
-        spec = material.diffuseColor    # spec color is NOT really supported
+        d_r, d_g, d_b = diff[0], diff[1], diff[2]
+        spec = material.specularColor
+        s_r, s_g, s_b = spec[0], spec[1], spec[2]
         emis = material.emissiveColor
+        e_r, e_g, e_b = emis[0], emis[1], emis[2]
+
         alpha = 1
+
+        rough = getattr(material, "roughnessFactor", 0.5)
+        metal = getattr(material, "metallicFactor", 0.0)
 
         self.matlines.append("\n")
         self.matlines.append("newmtl " + material.name + "\n")
-        self.matlines.append("Kd %.4g %.4g %.4g\n" % (diff[0], diff[1], diff[2]))
-        self.matlines.append("Ks %.4g %.4g %.4g\n" % (spec[0], spec[1], spec[2]))
-        self.matlines.append("Ke %.4g %.4g %.4g\n" % (emis[0], emis[1], emis[2]))
-        self.matlines.append("d %.4g\n" % alpha)
-        self.matlines.append("Pr %.4g\n" % material.roughnessFactor)
-        self.matlines.append("Pm %.4g\n" % material.metallicFactor)
 
+        # --- Pass direct unpacked floating point values into the templates ---
+        self.matlines.append("Kd %.4f %.4f %.4f\n" % (d_r, d_g, d_b))
+        self.matlines.append("Ks %.4f %.4f %.4f\n" % (s_r, s_g, s_b))
+        self.matlines.append("Ke %.4f %.4f %.4f\n" % (e_r, e_g, e_b))
+        self.matlines.append("d %.4f\n" % alpha)
+        self.matlines.append("Pr %.4f\n" % rough)
+        self.matlines.append("Pm %.4f\n" % metal)
+
+        # --- TEXTURE MAP CHANNELS  ---
         if hasattr(material, "aomapTexture") and material.aomapTexture:
             if self.addImage("map_Ka", material.aomapTexture) is False:
                 return False
@@ -151,20 +162,17 @@ class objExport:
             if self.addImage("map_Kd", diffusename) is False:
                 return False
 
-        # metallic roughness are two channels
-        #
+        # Metallic Roughness Texture Splitting
         if hasattr(material, "metallicRoughnessTexture") and material.metallicRoughnessTexture:
             if self.addImage("map_Pr -imfchan g", material.metallicRoughnessTexture) is False:
                 return False
             self.addImage("map_Pm -imfchan b", material.metallicRoughnessTexture, copy=False)
 
         if hasattr(material, "emissiveTexture") and material.emissiveTexture:
-            if self.addImage("map_Ke", material.specularmapTexture) is False:
+            if self.addImage("map_Ke", material.emissiveTexture) is False:
                 return False
 
-        # some software can use Bump map textures as normal maps (e.g. 3Ds MAX)
-        # load as Bump use as normal map
-
+        # Normal Map Mapping Check
         if hasattr(material, "normalmapTexture") and material.normalmapTexture:
             if self.addImage("map_Bump", material.normalmapTexture) is False:
                 return False
