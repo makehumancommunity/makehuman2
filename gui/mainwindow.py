@@ -1038,6 +1038,7 @@ class MHMainWindow(QMainWindow):
                 return
             if self.changesLost("New basemesh") == 0:
                 return
+            self.glob.closeSubwindow("measure", True) # destroy measure window just in case
             self.loadNewClass(base)
 
     def redrawNewCategory(self, category, text=None):

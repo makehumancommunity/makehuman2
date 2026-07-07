@@ -89,9 +89,11 @@ class globalObjects():
             return self.subwindows[name]
         return None
 
-    def closeSubwindow(self, name):
+    def closeSubwindow(self, name, destroy=False):
         if name in self.subwindows:
             self.subwindows[name].close()
+            if destroy:
+                del self.subwindows[name]
 
     def getCacheData(self):
         """

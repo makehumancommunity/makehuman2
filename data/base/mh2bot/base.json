@@ -6,5 +6,8 @@
         "target-opposites": {
 	        "decr": "incr"
         },
-	"mhm": "base.mhm"
+	"mhm": "base.mhm",
+	"measure": {
+                "size":  "none"
+        }
 }

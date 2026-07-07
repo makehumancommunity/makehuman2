@@ -86,9 +86,10 @@ class MHCharMeasWindow(QWidget):
             text1 = "none"
             text2 = "none"
             text3 = "none"
-        self.addOrReplace(0.0, "EU cup size", text1, bratip + calcCM)
-        self.addOrReplace(0.0, "US cup size", text2, bratip + calcIN)
-        self.addOrReplace(0.0, "UK cup size", text3, bratip + calcIN)
+        if "gender" in self.values:
+            self.addOrReplace(0.0, "EU cup size", text1, bratip + calcCM)
+            self.addOrReplace(0.0, "US cup size", text2, bratip + calcIN)
+            self.addOrReplace(0.0, "UK cup size", text3, bratip + calcIN)
 
     def calculateTargets(self):
         bc = self.glob.baseClass
