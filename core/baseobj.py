@@ -469,6 +469,7 @@ class baseClass():
         # change also proxy, if there is one
         #
         if self.proxy:
+            self.proxy.material = obj.material
             self.proxy.openGL.setMaterial(obj.material)
         self.glob.openGLWindow.Tweak()
         self.glob.markAssetByFileName(fname)
