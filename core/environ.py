@@ -174,6 +174,7 @@ class UserEnvironment():
         #
         elif self.osindex == 1:
             cpath = os.path.expanduser('~/.config/user-dirs.dirs')
+            path = None
             if os.path.isfile(cpath):
                 with open(cpath, 'r', encoding='utf-8') as cfile:
                     for line in cfile:
