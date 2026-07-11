@@ -5,7 +5,7 @@
 </p>
 
 
-*This program is still in Alpha II state. If you need the official version, please work with MakeHuman version 1*
+*This program is still in Alpha II state. Please be patient with the progress!
 
 ## Introduction
 
