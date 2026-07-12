@@ -15,7 +15,7 @@
 import os
 import sys
 from PySide6.QtCore import Qt, QRect, QPoint
-from PySide6.QtGui import QPainter, QPixmap, QPen, QIcon
+from PySide6.QtGui import QPainter, QPixmap, QPen, QIcon, QColor
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QSlider, QStyle, QStyleOptionSlider, QLabel, QPushButton,
     QSizePolicy, QDoubleSpinBox, QProgressBar, QFrame, QColorDialog
@@ -374,6 +374,7 @@ class ColorButton(QWidget):
     def __init__(self, glob, labeltext, callback, parent=None, horizontal=False, ident=None):
         super().__init__()
         self.labeltext = labeltext
+        self.lastcolor = None
         self.callback = callback
         self.ident = ident
         self.glob = glob
@@ -395,16 +396,19 @@ class ColorButton(QWidget):
         self.info.setText(self.labeltext + color.name())
 
     def setColorValue(self, color):
+        self.lastcolor = color
         self.setInfoText(color)
         self.button.setStyleSheet("background-color : " + color.name())
 
     def getColor(self):
+        lastcol = QColor("white") if self.lastcolor is None else self.lastcolor
         self.glob.openGLWinUpdate = False
-        color = QColorDialog.getColor()
+        color = QColorDialog.getColor(lastcol, self, "Pick a Color", QColorDialog.ColorDialogOption.DontUseNativeDialog)
         self.glob.openGLWinUpdate = True
-        self.setColorValue(color)
-        if self.ident is None:
-            self.callback(color)
-        else:
-            self.callback(self.ident, color)
+        if color.isValid():
+            self.setColorValue(color)
+            if self.ident is None:
+                self.callback(color)
+            else:
+                self.callback(self.ident, color)
 

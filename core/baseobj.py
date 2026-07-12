@@ -565,9 +565,9 @@ class baseClass():
             ErrorBox(self.glob.centralWidget, err)
             return None
 
-        # handle bad geometry, skip error in case of startup or parallel load
+        # handle bad geometry, skip error in case of startup or parallel load or with verbose < mid-level
         #
-        if res == 1 and self.glob.centralWidget is not None and self.glob.parallel is None:
+        if res == 1 and self.glob.centralWidget is not None and self.env.verbose > 1 and self.glob.parallel is None:
             WarningBox(self.glob.centralWidget, err)
 
         self.glob.markAssetByFileName(path)

@@ -189,7 +189,7 @@ Example on Linux:
 The packet is created with python3 pyinbuild.py (in this build folder):
 
 ```bash
-usage: pyinbuild.py [-h] [--verbose] [--pyname PYNAME] [builddir]
+usage: pyinbuild.py [-h] [--verbose] [--keepsource] [--name NAME] [--pyname PYNAME] [--data DATA [DATA ...]] [builddir]
 
 Create a pyInstaller packet. Make sure no extra directories are placed in parent, directories starting with '.' are skipped.
 
@@ -199,17 +199,23 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --verbose, -v         verbose
+  --keepsource, -k      keep source files (mhclo and obj)
+  --name NAME, -n NAME  Rename program to name
   --pyname PYNAME, -P PYNAME
                         Windows only: use a specific name for python3 (e.g. 'py')
+  --data DATA [DATA ...], -d DATA [DATA ...]
+                        Append additional data folders
 ```
 
 Here is, what the build does:
 
 * It copies the programs to build-folder
-* It calls pyInstaller, this command creates a structure with a "dist" folder inside build-folder containing python, libraries in a folder `_internal` and one executable file using the identical name without ".py", so "makehuman"
+* It calls pyInstaller, this command creates a structure with a "dist" folder inside build-folder containing python, libraries in a folder `_internal` and one executable file using the identical name without ".py", so "makehuman" (or makehuman.exe for windows)
+* It renames the program if needed
 * Only the data folder is missing, so pyinbuild copies the data folder to the repo
+* It also copies extra folders if mentioned with -d. Make sure structure in these folders is according to main structure, so e.g. the directory clothes/my_mesh_name would be an example for an extra asset folder to be combined with the standard hm08 folders.
 * It compiles system targets and deletes all ASCII targets
-* It creates binary .mhbin files for base mesh and all assets and deletes .mhclo and .obj files
+* It creates binary .mhbin files for base mesh and all assets and deletes .mhclo and .obj files (except -k is set, then ASCII files are kept)
 
 The content of "dist" folder would be used as a container and e.g. uploaded to Steam. The executable "makehuman" is the program to start.
 
