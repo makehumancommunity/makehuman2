@@ -446,7 +446,7 @@ class baseClass():
             m = elem.obj.getLowestPos(posed)
             if m < lowest:
                 lowest = m
-        return lowest
+        return float(lowest)
 
     def setSkinMaterial(self, asset):
         """

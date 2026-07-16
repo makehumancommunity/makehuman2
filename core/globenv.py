@@ -272,9 +272,15 @@ class programInfo():
         return dumper(self)
 
     def setVerboseBit(self, bit):
+        if bit == 0:
+            bit = (1 << len(self.helpVerbose())) -1
+
         self.verbose |= bit
 
     def resetVerboseBit(self, bit):
+        if bit == 0:
+            bit = (1 << len(self.helpVerbose())) -1
+
         self.verbose &= ~bit
 
     def helpVerbose(self):

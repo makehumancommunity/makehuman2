@@ -210,17 +210,19 @@ class MHMainWindow(QMainWindow):
 
         deb_menu = act_menu.addMenu("Debug messages")
 
+        self.verbose_checkmarks = []
         for num, text in self.env.helpVerbose():
             checked = ((self.env.verbose & num) != 0)
             act = QAction(text, deb_menu, checkable=True, checked=checked)
             deb_menu.addAction(act)
             act.triggered.connect(self.loglevel_call)
             act.setData(num)
+            self.verbose_checkmarks.append(act)
 
-        act = QAction('mid level messages', deb_menu, checkable=True)
+        act = QAction('All messages', deb_menu, checkable=True)
         deb_menu.addAction(act)
         act.triggered.connect(self.loglevel_call)
-        act.setData(2)
+        act.setData(0)
 
         info_menu = menu_bar.addMenu("&Information")
         self.addActCallBack(info_menu, "Character Info", self.measure_call)
@@ -1215,6 +1217,13 @@ class MHMainWindow(QMainWindow):
             self.env.setVerboseBit(bit)
         else:
             self.env.resetVerboseBit(bit)
+        if bit == 0:
+            b = 0
+            for num, text in self.env.helpVerbose():
+                checked = ((self.env.verbose & num) != 0)
+                self.verbose_checkmarks[b].setChecked(checked)
+                b += 1
+
 
     def socket_call(self):
         if self.sender().isChecked() and self.glob.apiSocket is None:

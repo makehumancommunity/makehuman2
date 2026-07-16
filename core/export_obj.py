@@ -39,6 +39,10 @@ class objExport:
 
         self.obj = []
 
+    def matName(self, num, matname):
+        raw_name = matname if  matname is not None else "material"
+        name = "{}_{:03d}".format(self.env.normalizeName(raw_name), num)
+        return name
 
     def copyImage(self, source, dest):
         self.env.logLine(8, "Need to copy " + source + " to " + dest)
@@ -78,7 +82,8 @@ class objExport:
         self.obj[num]["lenUV"] = len(mcoord)
 
     def addFaces(self, num, name, material, vpf, faces, ov):
-        self.facelines.append("usemtl " + material.name + "\n")
+        matname = self.matName(num, material.name)
+        self.facelines.append("usemtl " + matname + "\n")
         self.facelines.append("g " + name + "\n")
 
         # --- overflow array is defined as pairs
@@ -142,7 +147,8 @@ class objExport:
         metal = getattr(material, "metallicFactor", 0.0)
 
         self.matlines.append("\n")
-        self.matlines.append("newmtl " + material.name + "\n")
+        matname = self.matName(num, material.name)
+        self.matlines.append("newmtl " + matname + "\n")
 
         # --- Pass direct unpacked floating point values into the templates ---
         self.matlines.append("Kd %.4f %.4f %.4f\n" % (d_r, d_g, d_b))

@@ -1,6 +1,6 @@
 """
     License information: data/licenses/makehuman_license.txt
-    Author: black-punkduck
+    Author: black-punkduck, Elvaerwyn_MH2 2026 V1.1
 
     Classes:
     * stlExport
@@ -94,7 +94,7 @@ class stlExport:
         try:
             with open(filename, 'w', encoding="utf-8") as f:
                 f.write('solid %s\n' % solid)
-                if has_proxy is None:
+                if not has_proxy:
                     self.ascMesh(f, baseclass.baseMesh)
                 for asset in baseclass.attachedAssets:
                     self.ascMesh(f, asset.obj)
@@ -115,7 +115,7 @@ class stlExport:
             with open(filename, 'wb') as f:
                 f.write(b'\x00' * 80)
                 f.write(struct.pack(b'<I', count))
-                if has_proxy is None:
+                if not has_proxy:
                     count += self.binMesh(f, baseclass.baseMesh)
                 for asset in baseclass.attachedAssets:
                     count += self.binMesh(f, asset.obj)

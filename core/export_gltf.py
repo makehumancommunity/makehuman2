@@ -439,6 +439,7 @@ class gltfExport:
             pbr = self.pbrMaterial(material.diffuseColor, material.metallicFactor, material.roughnessFactor, roughtex)
 
         if pbr is None:
+            self.env.last_error = "No diffuse material found."
             return -1
 
         mat = {"name": name, "pbrMetallicRoughness": pbr,
@@ -778,7 +779,8 @@ class gltfExport:
             for elem in assets_pool:
                 current_obj = elem.obj
                 mat_idx = self.addMaterial(current_obj.material, elem.type)
-                if mat_idx == -1: return False
+                if mat_idx == -1:
+                    return False
 
                 weights = None
                 if baseweights is not None:
