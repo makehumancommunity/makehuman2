@@ -315,7 +315,7 @@ class programInfo():
         used to create filenames compatible for Windows and Linux
         """
         path = path.lower()
-        return re.sub('[^a-z0-9_+=-]', "_", path)
+        return re.sub(r'[^a-z0-9_+=-]', "_", path)
 
     def developmentPyCacheCleanup(self):
         purged_paths = []

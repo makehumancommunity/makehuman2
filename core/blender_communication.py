@@ -444,6 +444,12 @@ class blendCom:
 
         for frame in range(bvh.frameCount):
             for joint in bvh.bvhJointOrder:
+
+                # skip unknown bones
+                #
+                if joint.name not in  self.bonenames:
+                    continue
+
                 if joint.nChannels > 0:
                     num = self.bonenames[joint.name]
                     f = joint.animdata[frame]

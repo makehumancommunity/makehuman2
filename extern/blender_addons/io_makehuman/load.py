@@ -16,6 +16,7 @@ class MH2B_OT_Loader:
         self.collection = None
         self.bufferoffset = 0
         self.skeleton = None
+        self.armature = None
         self.bonelist = {}
         self.bonecorr = {}
         self.subsurf = context.scene.MH2B_subdiv
@@ -252,6 +253,7 @@ class MH2B_OT_Loader:
         # prepare skeleton
         #
         amt = bpy.data.armatures.new(skel["name"])
+        self.armature = amt
         rig = bpy.data.objects.new(skel["name"], amt)
         setattr(amt, "display_type", 'STICK')
         setattr(rig, "show_in_front" , True)
@@ -329,9 +331,8 @@ class MH2B_OT_Loader:
         bpy.ops.object.mode_set(mode='POSE')
         rig = self.skeleton
         self.activateObject(rig)
-        for bone in rig.pose.bones:
-            dbone = rig.data.bones.get(bone.name)
-            dbone.select = True
+        for bone in self.armature.edit_bones:
+            bone.select = True
 
         scn = self.context.scene
         scn.frame_start = 1
@@ -343,8 +344,8 @@ class MH2B_OT_Loader:
             for bone in skel["bones"]:
                 name = bone["name"]
                 pbone = rig.pose.bones.get(name)
-                m = animdata[cnt]
                 if pbone:
+                    m = animdata[cnt]
                     pbone.location = (m[2], m[1], m[0])         # dislocation usually on root bone (because of bvh files)
                     pbone.scale    = (m[3], m[4], m[5])
                     euler = Euler((radians(m[6]), radians(m[7]), radians(m[8])), 'ZYX')
@@ -354,8 +355,12 @@ class MH2B_OT_Loader:
                         rot = mat.to_euler()
                         pbone.rotation_mode = 'XYZ'
                         pbone.rotation_euler = (rot.x, rot.y, rot.z)
+
+                # keyframe per property
+                pbone.keyframe_insert(data_path="location", frame=scn.frame_current)
+                pbone.keyframe_insert(data_path="scale", frame=scn.frame_current)
+                pbone.keyframe_insert(data_path="rotation_euler", frame=scn.frame_current)
                 cnt += 1
-            bpy.ops.anim.keyframe_insert(type='LocRotScale')
         bpy.ops.object.mode_set(mode='OBJECT')
 
 

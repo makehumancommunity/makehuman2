@@ -23,9 +23,9 @@ class AssetPack():
                 "mhpose", "meta", "bvh", "mhskel", "mhw", "obj_file", "file", "mhm" ]
 
     def titleToFileName(self, title):
-        fname = re.sub('[^a-z0-9 ]', '', title.lower()).strip()
+        fname = re.sub(r'[^a-z0-9 ]', '', title.lower()).strip()
         fname = fname.replace(" ", "_")
-        return re.sub('__+', '_', fname)
+        return re.sub(r'__+', '_', fname)
 
     def createMaterialsFolder(self, path):
         #

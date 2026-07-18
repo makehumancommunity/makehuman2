@@ -116,7 +116,7 @@ class ppaBuilder():
         for line in data:
             if line.startswith("<p>"):
                 line = ".\n"
-            line = re.sub("<.+?>", "", line)
+            line = re.sub(r"<.+?>", "", line)
             if l > 0:
                 if line.strip():
                     out += " " + line

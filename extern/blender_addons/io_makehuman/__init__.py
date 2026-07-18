@@ -6,8 +6,8 @@
 bl_info = {
     "name": "MakeHuman2-IO",
     "author": "black-punkduck",
-    "version": (0,0,1),
-    "blender": (3,0,0),
+    "version": (0,0,2),
+    "blender": (4,5,0),
     "location": "View3D > Properties > MakeHuman2-IO",
     "description": "MakeHuman2 communication.",
     "category": "MakeHuman"}
