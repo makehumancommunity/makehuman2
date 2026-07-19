@@ -202,11 +202,13 @@ void main()
 
 	// cubemap, create some reflection in case of metal
 	vec3 iblSpecular = vec3(0.0);
+	vec3 iblSpecular_glass = vec3(0.0);
 	if (useSky) {
 		vec3 R = reflect(-viewDir, normal);
 
 		// SPECULAR IBL: Sample skybox for sharp highlights
 		vec3 iblSpecular = textureCube(skybox, R).bgr * metallic;
+		vec3 iblSpecular_glass = textureCube(skybox, R).bgr * roughness;
 
 		// DIFFUSE IBL: Sample skybox at max blur for soft environment light
 		// work different on metal though
@@ -270,9 +272,9 @@ void main()
 
 		// Apply your original texture tint properties cleanly
 		vec3 iblTransmission = finalGlassOutput * (basecolor.rgb * glassColor);
-		color = mix(color, iblTransmission, transmission) + (iblSpecular * F * transmission);
+		color = mix(color, iblTransmission, transmission) + (iblSpecular_glass * F * transmission);
 
-		// now change transparency
+		// now change transparency (glass is monochromatic, so one channel is sufficient)
 		transp = mix(transp, F.r, transmission);
 	}
 

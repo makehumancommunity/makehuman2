@@ -359,6 +359,7 @@ class MHGraphicWindow(QWidget):
             self.camChanged()
 
     def recalc_graph(self):
+        self.glob.baseClass.applyAllTargets()
         self.glob.textureRepo.refresh()
         if self.glob.baseClass is not None:
             self.glob.baseClass.updateNormals()
