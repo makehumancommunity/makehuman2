@@ -43,7 +43,7 @@ Decide if the name of the .exe should contain a date-stamp or a certain version 
 After that works once, one only needs to call python3 winbuild.py (in this build folder):
 
 ```bash
-usage: winbuild.py [-h] [--verbose] [--date] [--version VERSION] [builddir]
+usage: winbuild.py [-h] [--verbose] [--datestamp] [--data DATA [DATA ...]] [--version VERSION] [builddir]
 
 Create a windows packet. Make sure no extra directories are placed in parent, directories starting with '.' are skipped.
 
@@ -53,7 +53,9 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --verbose, -v         verbose
-  --date, -d            add datestamp to name
+  --datestamp, -D       add datestamp to name
+  --data DATA [DATA ...], -d DATA [DATA ...]
+                        Append additional data folders
   --version VERSION, -V VERSION
                         version like 'alpha1'
 ```
@@ -62,6 +64,7 @@ Usually there is no need to do further manual actions. Here is, what the build d
 
 * The program uses the configuration file build.json and version number, title and publisher from makehuman2\_version.json
 * It copies all necessary files from the repo to the destination folder
+* It also copies extra folders if mentioned with -d. Make sure structure in these folders is according to main structure, so e.g. the directory clothes/my_mesh_name would be an example for an extra asset folder to be combined with the standard hm08 folders.
 * It leaves out directories and files mentioned in build.json, therefore folder and files starting with '.' are not copied.
 * It adds an icon, a starter script 'winstart.py' and a license file
 * It creates pynsist.cfg for pynsist library call
