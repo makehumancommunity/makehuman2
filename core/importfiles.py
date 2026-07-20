@@ -321,6 +321,13 @@ class AssetPack():
 
                     self.copyFile(sourcename, destname, replace, debugfunc)
 
+                elif category == "themes":
+                    folder = os.path.join(dest, category)
+                    self.createFolder(folder, debugfunc)
+                    destname = os.path.join(folder, name)
+
+                    self.copyFile(sourcename, destname, replace, debugfunc)
+
 
 class TargetASCII():
     """
