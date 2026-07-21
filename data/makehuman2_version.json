@@ -6,6 +6,7 @@
 	"copyright": "(C) 2026 by MakeHuman Team",
 	"maintainer": "black punkduck",
 	"status": "development, use with care",
+	"parallelmacro": false,
 	"url_github": "https://github.com/makehumancommunity/makehuman2",
 	"url_mhcommunity": "https://static.makehumancommunity.org",
 	"url_mhfacebook":  "https://www.facebook.com/makehuman",

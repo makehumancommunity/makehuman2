@@ -324,7 +324,7 @@ class Modelling(ScaleComboItem):
         #
         for elem in sortedtargets:
             if elem in self.glob.macroRepo:
-                print ("  + " + str(round(sortedtargets[elem],2)) + " " + elem)
+                # print ("  + " + str(round(sortedtargets[elem],2)) + " " + elem)
                 self.obj.baseMesh.addTargetToMacroBuffer(sortedtargets[elem], self.glob.macroRepo[elem])
         self.obj.baseMesh.addMacroBuffer()
 
@@ -342,8 +342,6 @@ class Modelling(ScaleComboItem):
         change macros will run as a background process
         """
         self._last_value = self.value
-
-        print (self.m_influence)
         m = self.glob.targetMacros['macrodef']
         m_influence = list(range(0,len(m)))
         self.macroCalculation(m_influence)
@@ -374,9 +372,7 @@ class Modelling(ScaleComboItem):
 
 
     def finished_bckproc(self):
-        print ("done")
         self.glob.openGLWindow.Tweak()
-        self.glob.parallel = None
         #
         # when still a difference exists, callback should start again
 
@@ -385,30 +381,40 @@ class Modelling(ScaleComboItem):
             self.setBaryCentricDiffuse()
 
         if self.value != self._last_value:
-            self.callback()
-        else:
-            self.postChange()
+            self.changeMacroTarget(None, None)
+        self.postChange()
+        self.glob.parallel = None
 
     def callback(self):
         """
-        callback function, works different for macros (as a thread) and 
+        callback function, works different for macros (as a thread) when self.env.parslide
+        is used otherwise if works normal to avoid pyInstaller problems
         """
         factor = self.value / 100
         if len(self.m_influence) > 0:
-            print ("Macro change " +  str(self.m_influence))
+            #print ("Macro change " +  str(self.m_influence))
 
-            #
-            # make sure background process runs only once
-
-            if self.glob.parallel is None:
+            if self.glob.env.parslide:
                 #
-                # special case barycentric, values will be fetched
+                # make sure background process runs only once
 
+                if self.glob.parallel is None:
+                    #
+                    # special case barycentric, values will be fetched
+
+                    if self.barycentric is not None:
+                        self.set_barycentricFromMapSlider()
+                    self.glob.parallel = WorkerThread(self.changeMacroTarget, None)
+                    self.glob.parallel.start()
+                    self.glob.parallel.finished.connect(self.finished_bckproc)
+            else:
+                self.changeMacroTarget(None, None)
                 if self.barycentric is not None:
                     self.set_barycentricFromMapSlider()
-                self.glob.parallel = WorkerThread(self.changeMacroTarget, None)
-                self.glob.parallel.start()
-                self.glob.parallel.finished.connect(self.finished_bckproc)
+                    self.setBaryCentricDiffuse()
+                self.postChange()
+                self.glob.openGLWindow.Tweak()
+
 
         elif self.incr is not None or self.decr is not None:
             # print("change " + self.name)

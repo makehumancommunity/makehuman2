@@ -433,6 +433,10 @@ class programInfo():
             return False
         self.release_info = c
 
+        # decide im macros should be calculated in parallel
+        #
+        self.parslide = "parallelmacro" in self.release_info and self.release_info["parallelmacro"] is True
+
         if os.path.isfile(self.path_userconf):
             c = self.readJSON(self.path_userconf)
             if c is None:
@@ -509,6 +513,7 @@ class programInfo():
 
         # read last session on demand
         #
+        self.logLine(1, "Initializing Makehuman2, Slider-parallel mode used: " + str(self.parslide))
         self.loadSession()
         return True
 

@@ -7,7 +7,7 @@
 """
 
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtWidgets import (
         QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QPushButton, QListWidgetItem, QRadioButton,
         QGroupBox, QCheckBox, QLineEdit, QGridLayout
@@ -31,7 +31,6 @@ class MHLogWindow(QWidget):
         self.setWindowTitle("Messages")
         self.resize (500, 600)
         layout = QVBoxLayout()
-
         self.error_view = QListWidget()
         layout.addWidget(self.error_view)
 
@@ -47,12 +46,13 @@ class MHLogWindow(QWidget):
         fdisp.setObjectName("subwindow")
         me_layout = QVBoxLayout()
 
-        self.cb_redisp = QCheckBox("Automatic redisplay\n(5 seconds)")
-        self.cb_redisp.setLayoutDirection(Qt.LeftToRight)
-        self.cb_redisp.setChecked(self.redispdata)
-        self.cb_redisp.stateChanged.connect(self.handleTimer)
+        if self.env.frozen is False:
+            self.cb_redisp = QCheckBox("Automatic redisplay\n(5 seconds)")
+            self.cb_redisp.setLayoutDirection(Qt.LeftToRight)
+            self.cb_redisp.setChecked(self.redispdata)
+            self.cb_redisp.stateChanged.connect(self.handleTimer)
+            me_layout.addWidget(self.cb_redisp)
 
-        me_layout.addWidget(self.cb_redisp)
         me_layout.addWidget(self.f_stdout)
         me_layout.addWidget(self.f_stderr)
         fdisp.setLayout(me_layout)
@@ -68,9 +68,10 @@ class MHLogWindow(QWidget):
         layout.addLayout(hlayout)
         self.setLayout(layout)
 
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.redisplay_call)
-        self.timer.start(5000) 
+        if self.env.frozen is False:
+            self.timer = QTimer(self)
+            self.timer.timeout.connect(self.redisplay_call)
+            self.timer.start(5000)
 
     def handleTimer(self, value):
         state = Qt.CheckState(value)
@@ -103,6 +104,7 @@ class MHLogWindow(QWidget):
                         color=0
                 l = QListWidgetItem(line.rstrip())
                 l.setBackground( QColor(col[color]) )
+                l.setSizeHint(QSize(0, 20))
                 self.error_view.addItem(l)
         self.error_view.scrollToBottom()
                 
