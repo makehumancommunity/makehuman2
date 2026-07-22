@@ -132,7 +132,7 @@ class ppaBuilder():
         replaces = "" if self.replaces is None else "Replaces: " + self.replaces + "\n"
         text = f"""Section: graphics
 Priority: optional
-Homepage: {self.url_mhcommunity}
+Homepage: {self.url_makehuman2}
 Package: {self.reponame}
 Version: {self.applvers}
 Maintainer: {self.maintainer}
@@ -253,9 +253,9 @@ Categories=Graphics"""
         else:
             self.suffix = mhobject["suffix"] + " version. "
 
-        if "url_mhcommunity" not in mhobject:
-            self.cleanexit(4, "Missing url_mhcommunity in " + mhconfig)
-        self.url_mhcommunity = mhobject["url_mhcommunity"]
+        if "url_makehuman2" not in mhobject:
+            self.cleanexit(4, "Missing url_makehuman2 in " + mhconfig)
+        self.url_makehuman2 = mhobject["url_makehuman2"]
 
         if "maintainer" not in mhobject:
             self.cleanexit(4, "Missing maintainer in " + mhconfig)
