@@ -5,7 +5,7 @@
 </p>
 
 
-*This program is still in Alpha II state. Please be patient with the progress!
+*This program is still in Alpha III state. Please be patient with the progress!
 
 ## Introduction
 
