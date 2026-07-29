@@ -62,6 +62,7 @@ class globalObjects():
         self.reset()
 
     def reset(self):
+        self.wireframemode = 1 if self.env.osindex == 2 else 0 # wireframe mode, 1 is not own shader
         self.project_changed = False        # will contain if sth. has changed
         self.textureRepo.cleanup()
         self.cachedInfo = []                # cached data 

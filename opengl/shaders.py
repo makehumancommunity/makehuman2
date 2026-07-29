@@ -39,12 +39,16 @@ class ShaderFiles(QOpenGLShaderProgram):
         self.env.logLine(8, "Load: " + path)
         if self.addShaderFromSourceFile(QOpenGLShader.Fragment, path):
             self.frag_id  = self.shaders()[-1].shaderId()
+            return True
+        return False
 
     def loadVertShader(self):
         path = self.path + ".vert"
         self.env.logLine(8, "Load: " + path)
         if self.addShaderFromSourceFile(QOpenGLShader.Vertex,path):
             self.vert_id = self.shaders()[-1].shaderId()
+            return True
+        return False
 
     def loadGeomShader(self):
         path = self.path + ".geom"
@@ -53,10 +57,13 @@ class ShaderFiles(QOpenGLShaderProgram):
             self.geom_id = self.shaders()[-1].shaderId()
 
     def loadAllShaderTypes(self):
-        self.loadFragShader()
-        self.loadVertShader()
+        if self.loadFragShader() is False:
+            return False
+        if self.loadVertShader() is False:
+            return False
         if os.path.isfile(self.path + ".geom"):
             self.loadGeomShader()
+        return True
 
 class ShaderRepository():
     def __init__(self, glob):
@@ -85,7 +92,8 @@ class ShaderRepository():
             return self._shadernames[path]
 
         files = ShaderFiles(self.env, filename, path)
-        files.loadAllShaderTypes()
+        if files.loadAllShaderTypes() is False:
+            return -1
         self._shaders.append(files)
         shadernum = len(self._shaders)-1
         self._shadernames[filename] = shadernum
@@ -97,8 +105,9 @@ class ShaderRepository():
         """
         for shader in filenames:
             s = self.loadShader(shader)
-            self.attribVertShader(s)
-            self.getUniforms(s)
+            if s != -1:
+                self.attribVertShader(s)
+                self.getUniforms(s)
 
     def attribVertShader(self, num=0):
         shader = self._shaders[num]

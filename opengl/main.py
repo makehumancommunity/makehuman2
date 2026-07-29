@@ -251,7 +251,7 @@ class OpenGLView(QOpenGLWidget):
         # initialize shaders
         #
         self.mh_shaders = ShaderRepository(self.glob)
-        self.mh_shaders.loadShaders(["phong", "fixcolor", "xray", "litsphere", "pbr", "toon","skybox"])
+        self.mh_shaders.loadShaders(["phong", "fixcolor", "xray", "litsphere", "pbr", "toon", "wireframe", "skybox"])
 
         self.light = Light(self.mh_shaders, self.glob)
         self.light.setShader()

@@ -8,7 +8,7 @@
 
 from PySide6.QtWidgets import (
         QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QPushButton, QRadioButton, QGroupBox, QCheckBox, QSizePolicy,
-        QListWidget, QAbstractItemView, QGridLayout, QScrollArea
+        QListWidget, QAbstractItemView, QGridLayout, QScrollArea, QComboBox
         )
 
 from PySide6.QtCore import Qt
@@ -91,13 +91,25 @@ class MHSceneWindow(QWidget):
         self.specFocus = SimpleSlider("Specular light, Focus: ", 1, 64, self.specFocChanged)
         vlayout.addWidget(self.specFocus )
 
-        vlayout.addStretch()
+        vlayout.addWidget(QLabel("Reflection model:"))
         self.phong = QRadioButton("Phong")
         self.blinn = QRadioButton("Blinn")
         self.phong.toggled.connect(self.setMethod)
         self.blinn.toggled.connect(self.setMethod)
         vlayout.addWidget(self.phong)
         vlayout.addWidget(self.blinn)
+
+        if self.env.osindex == 2:
+            vlayout.addWidget(QLabel("Wireframe mode: openGL glPolygonMode"))
+        else:
+            vlayout.addWidget(QLabel("Wireframe mode:"))
+            self.wireCombo = QComboBox()
+            self.wireCombo.addItems(["Wireframe shader", "openGL glPolygonMode"])
+            self.wireCombo.setCurrentIndex(self.glob.wireframemode)
+            self.wireCombo.currentIndexChanged.connect(self.wireframeChanged)
+            self.wireCombo.setToolTip("glPolygonMode can create problems on certain GPUs, so be careful to use it.")
+            vlayout.addWidget(self.wireCombo)
+
         l.setLayout(vlayout)
 
         glayout.addWidget(l, 1, 0, 1, 1)
@@ -246,6 +258,10 @@ class MHSceneWindow(QWidget):
         self.view.skybox.delete()
         self.view.skybox.create(name)
         self.light.skybox = s
+        self.view.Tweak()
+
+    def wireframeChanged(self, value):
+        self.glob.wireframemode = value
         self.view.Tweak()
 
     def changeFloor(self, name, oldname):

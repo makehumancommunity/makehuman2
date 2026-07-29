@@ -321,6 +321,7 @@ class SimpleSlider(QWidget):
         if vertical:
             layout = QHBoxLayout()
             layout.setSpacing(1)
+            layout.setContentsMargins(0, 1, 0, 1)
             self.slider=NoModSlider(Qt.Vertical, self)
             layout.addWidget(self.slider)
             layout.addWidget(self.info)
@@ -329,6 +330,7 @@ class SimpleSlider(QWidget):
             self.slider.setMinimumHeight(120)
         else:
             layout = QVBoxLayout()
+            layout.setContentsMargins(1, 0, 1, 0)
             layout.setSpacing(1)
             layout.addWidget(self.info)
             self.slider=NoModSlider(Qt.Horizontal, self)

@@ -371,16 +371,27 @@ class RenderedObject:
 
     def drawWireframe(self, proj_view_matrix, campos, black, white):
         """
-        creates a wireframe model
+        creates a wireframe model, either uses an own shader or the old
+        glPolygonMode function for apple
 
         :param QMatrix4x4 proj_view_matrix: view-matrix
         :param QVector3D campos: camera position
         :param black: black 1x1 pixel texture
         :param white: white 1x1 pixel texture
         """
+        functions = self.functions
+        indices = self.getindex()
+
+        if self.glob.wireframemode == 0:
+            shader = self.shaders.getShader("wireframe")
+            self.geomToShader(shader, proj_view_matrix, campos)
+            functions.glEnable(gl.GL_DEPTH_TEST)
+            functions.glDrawElements(gl.GL_TRIANGLES, len(indices), gl.GL_UNSIGNED_INT, indices)
+            functions.glDisable(gl.GL_DEPTH_TEST)
+            return
+
         shader = self.shaders.getShader("phong")
         self.geomToShader(shader, proj_view_matrix, campos)
-        functions = self.functions
 
         oldtexture = self.texture
         self.setTexture(black)
@@ -390,8 +401,6 @@ class RenderedObject:
         self.texture.bind()
 
         functions.glUniform1f(shader.uniforms['AOMult'], 1.0)
-
-        indices = self.getindex()
 
         functions.glLineWidth(1)
         functions.glEnable(gl.GL_DEPTH_TEST)
@@ -422,6 +431,7 @@ class RenderedObject:
         functions.glDisable(gl.GL_CULL_FACE)
 
         self.setTexture(oldtexture)
+
         functions.glDisable(gl.GL_DEPTH_TEST)
         functions.glActiveTexture(gl.GL_TEXTURE0)
 
