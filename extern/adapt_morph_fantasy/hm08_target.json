@@ -1,0 +1,98 @@
+{
+	"helper-upper-wings-left": {
+		"vrange": [19415, 19671],
+		"source": 3780,
+		"dest": 19630,
+	        "horizontal":	[3776, 10443],
+	        "depth":	[1400, 1596],
+		"vertical": [4002, 1539]
+	},
+	"helper-upper-wings-right": {
+		"vrange": [19158, 19414],
+		"source": 3780,
+		"dest": 19373,
+		"horizontal": [3776, 10443],
+		"depth": [1400, 1596],
+		"vertical": [4002, 1539]
+	},
+	"helper-lower-wings-left": {
+		"vrange": [19933, 20193],
+		"source": 3932,
+		"dest": 19914,
+	       	"horizontal": [3928, 10593],
+	        "depth": [1400, 1596],
+		"vertical": [4002, 3932]
+	},
+	"helper-lower-wings-right": {
+		"vrange": [19672, 19932],
+		"source": 3932,
+		"dest": 20175,
+	       	"horizontal": [3928, 10593],
+		"depth":[1400, 1596],
+		"vertical": [4002, 3932]
+	},
+	"helper-antenae-left": {
+		"vrange": [20194, 20341],
+		"source": 7746,
+		"dest": 20305,
+		"horizontal": [1013, 7706],
+		"depth": [7000, 7744],
+		"vertical": [787, 882]
+	},
+	"helper-antenae-right": {
+		"vrange": [20342, 20489],
+		"source": 1054,
+		"dest": 20453,
+		"horizontal": [1012, 1013],
+		"depth": [226, 1052],
+		"vertical": [787, 882]
+	},
+	"helper-topears-left": {
+		"vrange": [20511, 20531],
+		"source": 7746,
+		"dest": 20522,
+		"horizontal": [1013, 7706],
+		"depth": [7000, 7744],
+		"vertical": [787, 882]
+	},
+	"helper-topears-right": {
+		"vrange": [20490, 20510],
+		"source": 1054,
+		"dest": 20501,
+		"horizontal": [1012, 1013],
+		"depth": [226, 1052],
+		"vertical": [787, 882]
+	},
+	"helper-elfears-left": {
+		"vrange": [20582, 20631],
+		"source": 12237,
+		"dest": 20587,
+		"horizontal": [12355, 12034],
+		"depth": [12010, 7648],
+		"vertical": [7634, 12364]
+	},
+	"helper-elfears-right": {
+		"vrange": [20532, 20581],
+		"source": 5640,
+		"dest": 20537,
+		"horizontal": [5435, 5758],
+		"depth": [5411, 949],
+		"vertical": [932, 5767]
+	},
+	"helper-fishtail": {
+		"vrange": [20632, 21639],
+		"source": 4367,
+		"dest": 21586,
+	        "horizontal": [4272, 10902],
+		"depth": [4367, 4387],
+		"vertical": [19157, 4367]
+	},
+	"helper-tail": {
+		"vrange": [21640, 21856],
+		"source": 4387,
+		"dest": 21821,
+		"horizontal": [4390, 11008],
+		"depth": [4110, 4195],
+		"vertical": [4215, 4188]
+	}
+}
