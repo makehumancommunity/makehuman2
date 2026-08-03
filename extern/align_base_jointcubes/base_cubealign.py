@@ -2,14 +2,13 @@
 """
 this script corrects the cubes of a given basemesh
 
-needs to be placed where makehuman.py is
-
-put  geometry.json to "data/base/<type>/geometry.json"
-(it is the same for fantasy, so it would work)
+geometry.json should be in "<basedir>/data/base/<type>/geometry.json"
+(type is now always hm08, it is the same for fantasy, so it would work)
 
 Output is on screen, can be written to a file
 
 python3 base_cubealign.py hm08  >/tmp/base.obj
+python3 base_cubealign.py -u ownuserroot fantasy >/tmp/base.obj
 
 in the end copy base.obj to base folder
 """
@@ -82,6 +81,7 @@ def recalcCube(cube, dist):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Converts a base mesh to have aligned cubes for joint helpers")
+    parser.add_argument("--userroot", "-u", type=str, help="own user root if base mesh is there")
     parser.add_argument("type", type=str, help="type of the mesh, e.g. hm08")
 
     args = parser.parse_args()
@@ -106,7 +106,10 @@ if __name__ == '__main__':
     end = joints[1]
     print (start, end, file=sys.stderr)
 
-    basefile = os.path.join(basepath, args.type, "base.obj")
+    if args.userroot is not None:
+        basefile = os.path.join(args.userroot, "data", "base", args.type, "base.obj")
+    else:
+        basefile = os.path.join(basepath, args.type, "base.obj")
 
     # read base
     try:
