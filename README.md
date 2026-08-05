@@ -5,11 +5,17 @@
 </p>
 
 
-*This program is still in Alpha III state. Please be patient with the progress!
+*This program is in Alpha III state. Please be patient with the progress!
 
 ## Introduction
 
 MakeHuman 2 should be successor of the standalone version MakeHuman 1, which has been running for more than 10 years. There will be additional features like working with additional base meshes, animation and PBR shading. For exports glTF standard will be supported. Some old standards will be no longer supported.
+
+The standard hm08 basemesh was kept compatible but is no longer identical to support more correct attachments:
+
+<p align="center">
+    <img src="docu/images/cubealigned_base.png" alt="Makehuman2 modifierd basemesh">
+</p>
 
 If you already want to test or work with this version, you should install it in parallel to old version.
 

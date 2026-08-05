@@ -1,9 +1,9 @@
-# This is a target file for MakeHuman
-# 
+# Makehuman2 modified morph-target (joint-helper cubes aligned)
+#
 # This asset was explicitly released as CC0 in september 2020. The license
 # text for CC0 can be found in the root of this repository.
 #
-# Original copyright (C) 2014 Manuel Bastioni 
+# Original copyright (C) 2014 Manuel Bastioni
 #
 # The copyright was explicitly transfered to other team members in 2016:
 #
@@ -1400,11 +1400,3 @@
 14427 -.024 .05 -.111
 14428 -.024 .05 -.111
 14429 -.024 .05 -.111
-14430 -.013 .021 -.053
-14431 -.013 .021 -.053
-14432 -.013 .021 -.053
-14433 -.013 .021 -.053
-14434 -.013 .021 -.053
-14435 -.013 .021 -.053
-14436 -.013 .021 -.053
-14437 -.013 .021 -.053
