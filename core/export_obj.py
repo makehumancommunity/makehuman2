@@ -13,7 +13,7 @@ import numpy as np
 
 class objExport:
     def __init__(self, glob, exportfolder, imagefolder="textures", hiddenverts=False, onground=True, helper=False,
-            normals=False, animation=False, saveprops=False, scale=0.1):
+            normals=False, saveprops=False, scale=0.1):
 
         self.imagefolder = imagefolder
         self.exportfolder = exportfolder
@@ -25,7 +25,6 @@ class objExport:
         self.lowestPos = 0.0
         self.normals = normals
         self.helper = helper
-        self.animation = animation
         self.saveprops = saveprops
 
         self.coordlines = []
