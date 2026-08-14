@@ -132,7 +132,7 @@ class FileHelper():
         """
         json = self.env.readJSON(path)
         if json is None:
-            self.logLine (1, "JSON error " + self.last_error)
+            self.env.logLine (1, "JSON error " + self.env.last_error)
             return None
         else:
             thumbfile = self.hasThumb(path)
