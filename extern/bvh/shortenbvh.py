@@ -11,7 +11,7 @@ if __name__ == '__main__':
             formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("filename", type=str, help="filename")
     parser.add_argument("-V", type=float, default=0.0, help="move character vertical in V units, -V -9")
-    parser.add_argument("-f", type=float, default=1.0, nargs=3, help="Factor to scale root bone animation, example  -f 10 -10 10")
+    parser.add_argument("-f", type=float, default=[1.0, 1.0, 1.0], nargs=3, help="Factor to scale root bone animation, example  -f 10 -10 10")
     parser.add_argument("-r", action="store_true", help="Reduce to rotation for all bones except for root.")
 
     args = parser.parse_args()
@@ -63,6 +63,10 @@ if __name__ == '__main__':
                                 mask.extend([True, True, True])
                             print(line, end='')
                     else:
+                        if num == 6:
+                            mask.extend([True, True, True, True, True, True])
+                        else:
+                            mask.extend([True, True, True])
                         print(line, end='')
                     bone += 1
                 except Exception as e:
@@ -104,60 +108,3 @@ if __name__ == '__main__':
             except ValueError:
                 print(line, end='')
 
-        """
-    corrected = False
-    corrvalue = 0.0
-    h = None
-    if args.C:
-        h = 0.0
-    elif args.V != 0.0:
-        h = args.V
-
-    column = 0
-    delete = 0
-    #
-    for line in f:
-        # find number of columns to work with
-        #
-        new = line.replace('\t', " ") # readability, but wrong for BVH
-        pos = line.find("CHANNELS")
-        if pos > -1:
-            s = line[pos+9:]
-            words = s.split()
-            try:
-                num = int(words[0])
-                cols += num
-                if column > 1 and num > 3:
-                    delete += (num - 3)
-                column += 1
-            except:
-                pass
-            print(new, end='')
-            continue
-
-        words = line.split()
-        try:
-            float(words[0])
-            text = ""
-            for i, word in enumerate(words):
-                val = float(word)
-                if i < 3:
-                    val *= args.f[i]
-
-                if i == 2:
-                    if h is not None:
-                        if corrected is False:
-                            corrvalue = val - h
-                            val = h
-                            corrected = True
-                        else:
-                            val-= corrvalue
-
-                if val < 0.0001 and val > -0.0001:
-                    text += " 0"
-                else:
-                    text += " " + str(round(val,4))
-            print (text[1:])
-        except ValueError:
-            print(new, end='')
-        """
