@@ -862,8 +862,11 @@ class object3d:
     def _getMinMaxValues(self, coord):
         """
         calculate numbers of vertices, which are on the outside for later use
-        do that only for visible groups
+        do that only for visible groups. In case of an empty object None, None is returned.
         """
+        if self.n_origverts == 0:
+            return None, None
+
         ncoord = np.zeros((self.n_origverts, 3), dtype=np.float32)
         for i in range (0, self.n_fverts):
             cnt = self.gl_icoord[i]
@@ -879,18 +882,32 @@ class object3d:
         self.minpose_index, self.maxpose_index = self._getMinMaxValues(poscoord)
 
     def boundingBox(self):
+        """
+        calculate bounding box of an object.
+        sets self.min_index and self.max_index, can be None in case of empty object even after precalculation.
+        and returns Ax, Ay, Az, Bx, By, Bz
+        """
         if self.min_index is None:
             self.precalculateDimension()
-        return(self.gl_coord[self.min_index[0]*3], self.gl_coord[self.min_index[1]*3+1], self.gl_coord[self.min_index[2]*3+2], \
-            self.gl_coord[self.max_index[0]*3], self.gl_coord[self.max_index[1]*3+1], self.gl_coord[self.max_index[2]*3+2])
+            if self.min_index is None:
+                return 0.0, 0.0, 0.0, 0.0, 0.0, 0,0
+
+        return self.gl_coord[self.min_index[0]*3], self.gl_coord[self.min_index[1]*3+1], self.gl_coord[self.min_index[2]*3+2], \
+            self.gl_coord[self.max_index[0]*3], self.gl_coord[self.max_index[1]*3+1], self.gl_coord[self.max_index[2]*3+2]
 
     def getCenterWidth(self):
+        if self.min_index is None:
+            return 0.0
         return (self.gl_coord[self.max_index[0]*3]+self.gl_coord[self.min_index[0]*3])/2.0
 
     def getCenterHeight(self):
+        if self.min_index is None:
+            return 0.0
         return (self.gl_coord[self.max_index[1]*3+1]+self.gl_coord[self.min_index[1]*3+1])/2.0
 
     def getCenterDepth(self):
+        if self.min_index is None:
+            return 0.0
         return (self.gl_coord[self.max_index[2]*3+2]+self.gl_coord[self.min_index[2]*3+2])/2.0
 
     def getCenter(self):
@@ -900,8 +917,12 @@ class object3d:
 
     def getLowestPos(self, posed=False):
         if posed and self.minpose_index is not None:
+            if self.minpose_index is None:
+                return 0.0
             return self.gl_coord[self.minpose_index[1]*3+1]
         else:
+            if self.min_index is None:
+                return 0.0
             return self.gl_coord[self.min_index[1]*3+1]
 
     def setNoPose(self):
@@ -909,6 +930,8 @@ class object3d:
         self.maxpose_index = None
 
     def getHeightInUnits(self):
+        if self.min_index is None:
+            return 0.0
         return self.gl_coord[self.max_index[1]*3+1]-self.gl_coord[self.min_index[1]*3+1]
 
     def getMeasure(self, vindex):

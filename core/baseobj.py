@@ -957,8 +957,8 @@ class baseClass():
         """
         if self.glob.parallel is None:
             self.glob.parallel = WorkerThread(self.applyAllTargets, None)
-            self.glob.parallel.start()
             self.glob.parallel.finished.connect(self.finishApply)
+            self.glob.parallel.start()
 
     def nonParApplyTargets(self):
         """
