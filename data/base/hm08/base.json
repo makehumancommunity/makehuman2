@@ -39,7 +39,7 @@
 			"shapes|female shapes": false,
 			"shapes|female hormonal": false,
                 	"shapes|male shapes": false,
-			"shapes|fale hormonal": false
+			"shapes|male hormonal": false
 		},
 		"rules": {
 			"Stomach Pregnant": {"Gender": "x < 0.5", "Age": "0.2 < x < 0.75" }
