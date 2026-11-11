@@ -418,7 +418,7 @@ class object3d:
 
             overflow = self.shortenOverflow(mapping)
             if overflow is not None:
-                mx = overflow.min(axis=0)[1]
+                mx = int(overflow.min(axis=0)[1])
                 coord = np.resize(coord, mx * 3)
                 norm = np.resize(norm, mx * 3)
             else:
